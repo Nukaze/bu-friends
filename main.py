@@ -1,5 +1,6 @@
 '''
     Hello BUFriends (lifestyle personalities etc.)
+    ehe ehe ehe I will have order to kiss you in theatre <3
 '''
 import tkinter as tk
 from tkinter import ttk,messagebox
@@ -35,4 +36,3 @@ def bu_friends():
     root.mainloop()
 
 bu_friends()
-'''ehe ehe ehe I will have order.'''
