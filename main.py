@@ -35,3 +35,4 @@ def bu_friends():
     root.mainloop()
 
 bu_friends()
+'''ehe ehe ehe I will have order.'''
