@@ -36,8 +36,4 @@ def bu_friends():
     root.mainloop()
 
 bu_friends()
-<<<<<<< HEAD
-'''ehe ehe ehe I will have order.'''
 '''yeah yeah<3'''
-=======
->>>>>>> 5cbcd50fbe58036e1a04f508c60b588eb60ef1fa
