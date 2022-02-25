@@ -36,4 +36,5 @@ def bu_friends():
     root.mainloop()
 
 bu_friends()
-'''หิวข้าวววววววว'''
+'''yeah yeah<3'''
+'''write b4 pull na'''
