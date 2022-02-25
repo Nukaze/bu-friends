@@ -19,9 +19,10 @@ def bu_friends():
         root.title("BU Friends  | ")
         screenwidth = root.winfo_screenwidth()
         screenheight = root.winfo_screenheight()
-        x = (screenwidth/2)-(1600/2)
-        y = (screenheight/2-50)-(800/2)
-        root.geometry("{}x{}+{}+{}".format(1600,800,int(x),int(y)))
+        w,h = 900,600
+        x = (screenwidth/2)-(w/2)
+        y = (screenheight/2-50)-(h/2)
+        root.geometry("{}x{}+{}+{}".format(w,h,int(x),int(y)))
         root.iconbitmap("assets/icon/BUF.ico")
         root.resizable(0,0)
         return root
