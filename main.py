@@ -21,7 +21,7 @@ def bu_friends():
         screenheight = root.winfo_screenheight()
         x = (screenwidth/2)-(1600/2)
         y = (screenheight/2-50)-(800/2)
-        root.geometry("{}x{}+{}+{}".format(1600,800,int(x),int(y)))
+        root.geometry("{}x{}+{}+{}".format(900,600,int(x),int(y)))
         root.iconbitmap("assets/icon/BUF.ico")
         root.resizable(0,0)
         return root
