@@ -36,3 +36,4 @@ def bu_friends():
 
 bu_friends()
 '''ehe ehe ehe I will have order.'''
+'''yeah yeah<3'''
