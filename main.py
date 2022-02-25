@@ -13,7 +13,6 @@ def bu_friends():
         for path in assets:
             origin = Image.open(path).resize((160, 160), Image.ANTIALIAS)
             img = ImageTk.PhotoImage(origin)
-            img = Image
             imglst.append(img)
     def init_root():
         root = tk.Tk()
