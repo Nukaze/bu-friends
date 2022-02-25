@@ -37,3 +37,4 @@ def bu_friends():
 
 bu_friends()
 '''yeah yeah<3'''
+'''write b4 pull na'''
