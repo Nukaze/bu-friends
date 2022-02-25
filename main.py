@@ -1,5 +1,5 @@
 '''
-    Hello BUFriends
+    Hello BUFriends (lifestyle personalities etc.)
 '''
 import tkinter as tk
 from tkinter import ttk,messagebox
