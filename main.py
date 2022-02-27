@@ -5,7 +5,7 @@
 import tkinter as tk
 from tkinter import ttk,messagebox
 from PIL import Image, ImageTk
-from data import mbtiData
+from database import mbtiData
 import assets
 
 def bu_friends():

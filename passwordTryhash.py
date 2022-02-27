@@ -3,6 +3,13 @@ import os
 
 users = {} # A simple demo storage
 
+book = {'name':'Hehe how are u doin'
+        ,'price':299
+        ,'page':342}
+book['name'] = "Somewhare in dumbai"
+print("Book name : {}".format(book))
+
+
 # Add a user
 username = 'Brent' # The users username
 password = 'mypassword' # The users password
@@ -21,7 +28,7 @@ password = 'notmypassword'
 salt = users[username]['salt'] # Get the salt
 key = users[username]['key'] # Get the correct key
 new_key = hashlib.pbkdf2_hmac(encryptstd, password.encode('utf-8'), salt, 100000)
-print(salt)
+print(new_key)
 assert key != new_key # The keys are not the same thus the passwords were not the same
 
 # Verification attempt 2 (correct password)
@@ -54,6 +61,6 @@ salt = users[username]['salt']
 key = users[username]['key']
 new_key = hashlib.pbkdf2_hmac(encryptstd, password.encode('utf-8'), salt, 100000)
 
-print(salt)
+print(new_key)
 assert key == new_key # The keys are the same thus the passwords were the same for this user also
-print("\n",users)
+#print("\n",users)

@@ -5,6 +5,7 @@ from tkinter import *
 from tkinter import ttk, messagebox
 from PIL import Image,ImageTk
 import os
+import hashlib
 
 class BUFriends(Tk):
 
@@ -21,7 +22,7 @@ class BUFriends(Tk):
         self.switch_page(LogIn)
 
     def switch_page(self, frameClass):
-        print("switching")
+        print("switching to {}".format(frameClass))
         newFrame = frameClass(self)
         if self.frame is not None:
             self.frame.destroy()
@@ -44,35 +45,38 @@ class LogIn(Frame):
             self.bg,self.fg = "#ccefff","#cc07e6"
             self.fontHead = "Kanit 36 bold"
             self.font = "Kanit 16 "
-            def clear_name(e):
-                self.userName.delete(0, END)
-            def clear_pass(e):
-                self.userPass.delete(0, END)
-            Label(root,text="BU Friends  |  Log-In",font=self.fontHead,bg=self.bg,foreground=self.fg)\
-                .pack(expand=1,padx=50,pady=50)
+            Label(root,text="BU Friends  |  Log-In",font=self.fontHead,bg=self.bg,foreground=self.fg,justify="left")\
+                .pack(side=TOP,expand=1,padx=50,pady=40)
             userName, userPass = StringVar(), StringVar()
             self.userName = Entry(root, textvariable=userName,width=25, font=self.font,justify="center",relief="solid")
             self.userPass = Entry(root, textvariable=userPass,show="*",width=25, font=self.font,justify="center",relief="solid")
             self.userName.insert(0,"Enter BU-Mail")
             self.userPass.insert(0,"Enter Password")
-            self.userName.bind('<Button-1>',clear_name)
-            self.userPass.bind('<Button-1>',clear_pass)
-            self.userName.pack(pady=5)
-            self.userPass.pack(pady=5)
+            self.userName.bind('<Button-1>',self.clear_name)
+            self.userPass.bind('<Button-1>',self.clear_pass)
+            self.userName.pack(pady=6,ipadx=1,ipady=5)
+            self.userPass.pack(pady=6,ipadx=1,ipady=5)
             self.frameBtn = Frame(root, bg=self.bg)
-            self.frameBtn.pack(pady=20)
-            self.loginBtn = Button(self.frameBtn,text="Log-in",command=self.login_submit,font=self.font,bg="#f8bfff"
-                                   ,relief="solid",width=29)
-            self.loginBtn.pack(pady=10)
-            self.regisBtn = Button(self.frameBtn,text="Register",command=lambda :masterFrame.switch_page(Registration)
-                                   ,bg="#edffbf",font="Kanit 12",relief="solid",width=25)
-            self.regisBtn.pack(side=LEFT,pady=2)
-            self.clearBtn = Button(self.frameBtn,text="Quit",command=masterFrame.destroy,font="Kanit 12",relief="solid",width=12)
-            self.clearBtn.pack(side=LEFT,padx=5,pady=2)
+            self.frameBtn.pack(side=TOP, pady=20, expand=1)
+            self.loginBtn = Button(self.frameBtn, text="Log-in", command=lambda :self.login_submit(masterFrame)
+                                   , font=self.font, bg="#f8bfff", relief="solid", width=29)
+            self.regisBtn = Button(self.frameBtn, text="Register", command=lambda :masterFrame.switch_page(Registration)
+                                    , bg="#edffbf", font="Kanit 12", relief="solid", width=25)
+            self.clearBtn = Button(self.frameBtn, text="Quit", command=masterFrame.destroy, font="Kanit 12", relief="solid", width=15)
+            self.loginBtn.pack(side=TOP,pady=10,ipady=5,fill=BOTH,padx=3)
+            self.regisBtn.pack(side=LEFT,padx=3)
+            self.clearBtn.pack(side=LEFT,padx=3)
 
-        def login_submit(self):
+        def clear_name(self,e):
+            self.userName.delete(0, END)
+        def clear_pass(self,e):
+            self.userPass.delete(0, END)
+
+        def login_submit(self,masterFrame):
             print(self.userName.get())
             print(self.userPass.get())
+            masterFrame.switch_page(DashBoard)
+
             #userPass
 
 
@@ -88,43 +92,103 @@ class Registration(Frame):
     class RegisterContent:
 
         def __init__(self, root, masterFrame):
+            self.masterFrame = masterFrame
             self.bg,self.fg = "#ccefff","#cc07e6"
             self.fontHead = "Kanit 36 bold"
             self.font = "Kanit 16 "
             Label(root, text="BU Friends  |  Registration",font=self.fontHead,bg=self.bg,foreground=self.fg)\
-                .pack(expand=1)
-            self.frameRegis = Frame(root,width=500,height=500)
+                .pack(expand=1,pady=40)
+            self.frameRegis = Frame(root,width=500,height=500,bg=self.bg)
             self.frameRegis.pack(expand=1,fill=BOTH,ipadx=10,ipady=10)
-            self.regisInfolst = [["BUMail"],["Display Name"],["Password"],["Confirm Password"]]
+            self.regisInfoLst = ["BUMail", "Display Name", "Password", "Confirm Password"]
+            self.regisVarData = []
             self.regisDataSubmit = []
-            for i in range(len(self.regisInfolst)):
-                self.regisInfolst[i].append(StringVar())
-                self.regis_form(self.regisInfolst[i][0],self.font,i,self.regisInfolst[i][1])
-            print(self.regisInfolst)
-            self.frameBtn = Frame(self.frameRegis)
-            self.frameBtn.grid(row=4,column=0,columnspan=3)
-            self.regisBtn = Button(self.frameBtn,text="Register!",command=self.regis_submit,relief="solid",width=25,height=2
-                                   ,bd=2,highlightcolor="green", highlightthickness=1)
+            for i in range(len(self.regisInfoLst)):
+                self.regisVarData.append(StringVar())
+                self.regis_form(self.regisInfoLst[i], self.font, i, self.regisVarData[i])
+            self.frameBtn = Frame(self.frameRegis,bg=self.bg)
+            self.frameBtn.grid(row=4,column=0,columnspan=3,sticky="e")
+            self.regisBtn = Button(self.frameBtn,text="Register!",command=self.regis_submit,relief="solid",width=30,height=3
+                                   ,bg="#edffbf")
             self.regisBtn.grid(row=4,column=1,sticky="nsew",padx=2,pady=15)
-            self.CancelBtn = Button(self.frameBtn,text="Cancel",command=lambda :masterFrame.switch_page(LogIn),relief="solid",width=25,height=2)
+            self.CancelBtn = Button(self.frameBtn,text="Cancel",command=lambda :masterFrame.switch_page(LogIn),relief="solid",width=20,height=2)
             self.CancelBtn.grid(row=4,column=2,sticky="nsew",padx=2,pady=15)
 
         def regis_form(self,_text,_font,_row,_entVar):
-                Label(self.frameRegis, text=_text ,font=_font,anchor="w").grid(row=_row,column=0,sticky="nsew",padx=20,pady=10)
-                Label(self.frameRegis, text=":", font=_font,anchor="e").grid(row=_row,column=1,sticky="nsew",pady=10)
+                Label(self.frameRegis, text=_text ,font=_font,anchor="w",bg=self.bg).grid(row=_row,column=0,sticky="nsew",padx=20,pady=10)
+                Label(self.frameRegis, text=":", font=_font,anchor="e",bg=self.bg).grid(row=_row,column=1,sticky="nsew",pady=10)
                 if _row == 2 or _row ==3:
-                    Entry(self.frameRegis, textvariable=_entVar,show="*",font="Kanit 10",justify="left",width=22)\
-                        .grid(row=_row,column=2,sticky="nsew",pady=10)
+                    Entry(self.frameRegis, textvariable=_entVar,show="*",font="Kanit 12",justify="left",relief="solid")\
+                        .grid(row=_row, column=2, sticky="nsew",padx=5, pady=10,ipadx=80,ipady=2)
                 else:
-                    Entry(self.frameRegis, textvariable=_entVar, font="Kanit 10", justify="left",width=22)\
-                        .grid(row=_row, column=2, sticky="nsew", pady=10)
+                    Entry(self.frameRegis, textvariable=_entVar, font="Kanit 10", justify="left",relief="solid")\
+                        .grid(row=_row, column=2, sticky="nsew",padx=5, pady=10,ipadx=80,ipady=2)
 
         def regis_submit(self):
-            self.regisDataSubmit = []
-            for i,data in enumerate(self.regisInfolst):
-                self.regisDataSubmit.append(data[1].get())
-            messagebox.showinfo('Register Successfully'
-                                ,"BUMail : {}\nDisplayName : {}\nPassword1 : {}\nPassword2 : {}".format(*self.regisDataSubmit))
+
+            def register_error(errorFormat):
+                #self.regisVarData.clear()
+                self.regisDataSubmit.clear()
+                messagebox.showinfo('Register Error', '{}\nPlease Register Form Again'.format(errorFormat))
+                self.masterFrame.switch_page(Registration)
+
+            def register_validate(self):
+                dbUserDataLst = []
+                with open('database/user.txt',buffering=1)as db:
+                    while True:
+                        dbdata = db.readline().split()
+                        if dbdata == []:break
+                        else:dbUserDataLst.append(dbdata)
+                    print(dbUserDataLst)
+                    for linedata in dbUserDataLst:
+                        if self.regisVarData[0].get() == linedata[0]:
+                            register_error("{} is Existed".format(self.regisVarData[0].get()))
+                            print("end")
+                            break
+                for i,data in enumerate(self.regisVarData):
+                    if data.get() == "" or data.get().isspace():
+                        self.regisVarData.clear()
+                        break
+                        register_error("Register Form Information not Complete")
+
+                    if "@bumail.net" not in self.regisVarData[0].get():
+                        self.regisVarData.clear()
+                        break
+                        register_error("BU Friends Exclusive for BU Mail only")
+                    if self.regisVarData[2].get() != self.regisVarData[3].get():
+
+                        break
+                        register_error("Password is not Matching")
+                    else:
+                        self.regisDataSubmit.append(data.get())
+                if len(self.regisVarData) == len(self.regisVarData):
+                    with open('database/user.txt', 'a+')as db:
+                        db.writelines("{} {} {} {}\n".format(*self.regisDataSubmit))
+                        messagebox.showinfo('Register Successfully'
+                                            ,"BUMail : {} DisplayName : {}\nPassword1 : {}\nPassword2 : {}".format(*self.regisDataSubmit))
+                else:
+                    register_error("dunno u forgot")
+            register_validate(self)
+
+class DashBoard(Frame):
+
+    def __init__(self, masterFrame):
+        Frame.__init__(self,masterFrame)
+        self.bg = "grey"
+        Frame.configure(self,bg=self.bg)
+        self.pack(expand=1)
+        self.DashBoardContent(self,masterFrame)
+
+    class DashBoardContent:
+
+        def __init__(self, root, masterFrame):
+            self.masterFrame = masterFrame
+            self.fontHead = "Kanit 48 bold"
+            self.font = "Kanit 16"
+            Label(root, text="Dashboard",font=self.fontHead).pack()
+
+
+
 
 
 if __name__ == '__main__':

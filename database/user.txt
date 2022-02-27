@@ -1,0 +1,4 @@
+@bumail.net asa 1234 1234
+@bumail.net 213 123 123
+ka@bumail.net kaka 12345 12345
+kaka@bumail.net ladwk 123 123
