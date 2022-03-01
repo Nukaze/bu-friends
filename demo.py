@@ -124,7 +124,7 @@ class Registration(Frame):
                     Entry(self.frameRegis, textvariable=_entVar, font="Kanit 10", justify="left",relief="solid")\
                         .grid(row=_row, column=2, sticky="nsew",padx=5, pady=10,ipadx=80,ipady=2)
 
-        def regis_submit(self):
+        def regis_submit(self): 
 
             def register_error(errorFormat):
                 #self.regisVarData.clear()
@@ -139,6 +139,7 @@ class Registration(Frame):
                         dbdata = db.readline().split()
                         if dbdata == []:break
                         else:dbUserDataLst.append(dbdata)
+                        dbUserDataLst[1]
                     print(dbUserDataLst)
                     for linedata in dbUserDataLst:
                         if self.regisVarData[0].get() == linedata[0]:
@@ -148,17 +149,15 @@ class Registration(Frame):
                 for i,data in enumerate(self.regisVarData):
                     if data.get() == "" or data.get().isspace():
                         self.regisVarData.clear()
-                        break
                         register_error("Register Form Information not Complete")
-
+                        break
                     if "@bumail.net" not in self.regisVarData[0].get():
                         self.regisVarData.clear()
-                        break
                         register_error("BU Friends Exclusive for BU Mail only")
-                    if self.regisVarData[2].get() != self.regisVarData[3].get():
-
                         break
+                    if self.regisVarData[2].get() != self.regisVarData[3].get():
                         register_error("Password is not Matching")
+                        break
                     else:
                         self.regisDataSubmit.append(data.get())
                 if len(self.regisVarData) == len(self.regisVarData):
@@ -182,12 +181,14 @@ class DashBoard(Frame):
     class DashBoardContent:
 
         def __init__(self, root, masterFrame):
+            x = 10
             self.masterFrame = masterFrame
             self.fontHead = "Kanit 48 bold"
             self.font = "Kanit 16"
             Label(root, text="Dashboard",font=self.fontHead).pack()
 
-
+        def ehe(self):
+            print("ehe nun dayo")
 
 
 
