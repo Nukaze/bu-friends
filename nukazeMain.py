@@ -1,13 +1,13 @@
 '''
     demo BUFriends
 '''
-from ast import expr_context
-from cgitb import text
 from cmath import exp
-from re import L
+from email.mime import image
 from tkinter import *
-from tkinter import ttk, messagebox
+from tkinter import messagebox
+from tkinter import font
 from tkinter.font import Font
+from webbrowser import get
 import pyglet, tkinter
 from PIL import Image,ImageTk
 import os
@@ -16,37 +16,36 @@ import sqlite3
 import datetime
 
 
+
 def BUFriends_Time():
     timeFull = datetime.datetime.now()
     timeNow = timeFull.strftime("%d-%b-%Y") + " " + timeFull.strftime("( %H:%M:%S )")
     print(timeFull, timeNow)
     return timeNow
 
+class DbController() :
+    
+    def create_connection():
+        conn = None
+        try:
+            conn = sqlite3.connect(r"./database/BUFriends.db")
+            print("sqlite version:",sqlite3.version)
+        except sqlite3.Error as e:
+            print("conn error",e)
+        return conn
 
-class BUFriends_Database():
+    def create_table(conn, create_table_sql):
+        try:
+            c = conn.cursor()
+            c.execute(create_table_sql)
+        except sqlite3.Error as e:
+            print("create error",e)
     
-    def __init__(self):
-        self.conn = sqlite3.connect('trySpace/user.db')
-        self.cur = self.conn.cursor()
-        self.request_createdb()
-    
-    def request_createdb(self):
-        self.cur.execute('''CREATE TABLE IF NOT EXISTS record(
-                        bumail text,
-                        displayname text,
-                        password text
-                    
-                    )''')
-        self.conn.commit()
+    def request_createdb():
+        pass
         
-        
-    def request_register(self, _bumail, _displayname, _password):
-        self.cur.execute("INSERT INTO record VALUES (:bumail, :displayname, :password)",{
-                            'bumail': _bumail,
-                            'displayname': _displayname,
-                            'password': _password,
-                            })
-        self.conn.commit()
+    def request_register():
+        pass
     
 
 class BUFriends(Tk):
@@ -60,8 +59,8 @@ class BUFriends(Tk):
         self.geometry("{}x{}+{}+{}".format(self.width, self.height, self.x, self.y))
         self.resizable(0,0)
         self.title("BU Friends  |")
-        self.iconbitmap('assets/icon/BUF.ico')
-        self.switch_page(LogIn)
+        self.iconbitmap('assets/icons/BUF.ico')
+        self.switch_page(SignIn)
 
     def switch_page(self, frameClass):
         print("switching to {}".format(frameClass))
@@ -73,56 +72,65 @@ class BUFriends(Tk):
         self.frame.pack()
 
 
-class LogIn(Frame):
+class SignIn(Frame):
 
     def __init__(self, masterFrame):
         Frame.__init__(self, masterFrame)
-        self.bg = "#ccefff"
+        self.bg,self.fg = "#ccefff","#cc07e6"
         Frame.configure(self,bg=self.bg)
         self.pack()
-        self.LogInContent(self,masterFrame)
+        self.SignInContent(self,masterFrame)
+        
 
-    class LogInContent:
+    class SignInContent:
         def __init__(self, root, masterFrame):
-            self.bg,self.fg = "#ccefff","#cc07e6"
+            self.bg,self.fg = "lightblue","black"
             self.masterFrame = masterFrame
-            self.masterFrame.title("BU Friends  |  Log-In")
-            pyglet.font.add_file('assets/InterFont/Inter-Bold.ttf')
-            self.fontHead = Font(family="Inter",size=36)
-            self.font = Font(family="Futura",size=16)
+            self.masterFrame.title("BU Friends  |  Sign-In")
+            self.fontHead = Font(family="leelawadee bold",size=30)
+            self.font = Font(family="leelawadee bold",size=16)
             self.timeNow = BUFriends_Time()
-            self.titleFrame = Frame(root,bg=self.bg)
+            #CANVAS
+            self.canvasFrame = Canvas(root,width=400,height=600)
+            self.canvasFrame.pack(side=LEFT,expand=1,fill=BOTH)
+            self.bannerImg = self.get_image('assets/widgets/banner.png')
+            self.mascotImg = self.get_image('assets/widgets/character.png')
+            self.canvasFrame.create_image(0,0,image=self.bannerImg,anchor="nw")
+            self.canvasFrame.create_image(0,0,image=self.mascotImg,anchor="nw")
+            #widget
+            self.signinFrame = Frame(root,bg=self.bg,width=500,height=600)
+            self.signinFrame.pack(side=LEFT,expand=1,fill=BOTH)
+            self.signinFrame.propagate(0)
+            self.titleFrame = Frame(self.signinFrame,bg=self.bg)
             self.titleFrame.pack(expand=1,pady=50)
             Label(self.titleFrame,text="BU Friends  |  Log-In",font=self.fontHead,bg=self.bg,foreground=self.fg,justify="left")\
                 .pack(side=TOP,expand=1,padx=50,pady=0)
-            Label(self.titleFrame, text="{}".format(self.timeNow),font=self.font,bg=self.bg).pack(expand=1,padx=50,pady=0)
             userName, userPass = StringVar(), StringVar()
-            self.userName = Entry(root, textvariable=userName,width=25, font=self.font,justify="center",relief="solid")
-            self.userPass = Entry(root, textvariable=userPass,show="*",width=25, font=self.font,justify="center",relief="solid")
+            self.userName = Entry(self.signinFrame, textvariable=userName,width=25, font=self.font,justify="center",relief="solid")
+            self.userPass = Entry(self.signinFrame, textvariable=userPass,show="*",width=25, font=self.font,justify="center",relief="solid")
             self.userName.insert(0,"Enter BU-Mail")
             self.userPass.insert(0,"Enter Password")
             self.userName.bind('<Button-1>',self.clear_name)
             self.userPass.bind('<Button-1>',self.clear_pass)
             self.userName.pack(pady=6,ipadx=1,ipady=5)
             self.userPass.pack(pady=6,ipadx=1,ipady=5)
-            self.frameBtn = Frame(root, bg=self.bg)
+            self.frameBtn = Frame(self.signinFrame, bg=self.bg)
             self.frameBtn.pack(side=TOP, pady=20, expand=1)
-            def get_image(_path, _width, _height):
-                ori = Image.open(_path).resize((_width, _height), Image.ANTIALIAS)
-                img = ImageTk.PhotoImage(ori)
-                return img
-            self.imgBtn = get_image('assets/widgets/button1.png',400,80)
-            self.lab = Label(self.frameBtn,image=self.imgBtn,bg=self.bg).pack(expand=1)
-            self.lab 
-            self.loginBtn = Button(self.frameBtn, text="Log-in", command=lambda :self.login_req(masterFrame),image=self.imgBtn
-                                   , font=self.font,bg=self.bg, relief="solid", width=0,bd=0) #bg="#f8bfff"
+            self.imgBtn = self.get_image('assets/widgets/raw_button.png')
+            self.loginBtn = Button(self.frameBtn, text="Log-in", command=lambda :self.login_req(masterFrame)
+                                   , image=self.imgBtn, font=self.font, foreground="white", bg=self.bg,
+                                   activebackground=self.bg,activeforeground="white",bd=0,compound="center", )
             self.regisBtn = Button(self.frameBtn, text="Register", command=lambda :masterFrame.switch_page(Registration)
-                                    , bg="#edffbf", font="Kanit 12", relief="solid", width=25)
-            self.clearBtn = Button(self.frameBtn, text="Quit", command=masterFrame.destroy, font="Kanit 12", relief="solid", width=15)
-            self.loginBtn.pack(side=TOP,pady=10,ipady=0,fill=X,padx=3,expand=1)
-            self.regisBtn.pack(side=LEFT,padx=3)
-            self.clearBtn.pack(side=LEFT,padx=3)
-
+                                    , bg="#edffbf", font=self.font, relief="solid", width=25)
+            self.clearBtn = Button(self.frameBtn, text="Quit", command=masterFrame.destroy, font=self.font, relief="solid", width=15)
+            self.loginBtn.pack(side=TOP,pady=10,ipady=0,padx=3,expand=1,)
+            #self.regisBtn.pack(side=LEFT,padx=3)
+            
+        def get_image(self,_path):
+                #img = ImageTk.PhotoImage(Image.open(_path).resize((_width, _height), Image.ANTIALIAS))
+                img = PhotoImage(file= _path)
+                return img
+            
         def clear_name(self,e):
             self.userName.delete(0, END)
         def clear_pass(self,e):
@@ -133,8 +141,8 @@ class LogIn(Frame):
             print(self.userPass.get())
             masterFrame.switch_page(DashBoard)
             #userPass
-            
-        def login_submit():
+        
+        def login_submit(self):
             pass
 
 
@@ -153,8 +161,8 @@ class Registration(Frame):
             self.bg,self.fg = "#ccefff","#cc07e6"
             self.masterFrame = masterFrame
             self.masterFrame.title("BU Friends  |  Registration")
-            self.fontHead = Font(family="Futura",size=36)
-            self.font = Font(family="Helvetica",size=16)
+            self.fontHead = Font(family="fira code bold",size=36)
+            self.font = Font(family="Futura",size=16)
             Label(root, text="BU Friends  |  Registration",font=self.fontHead,bg=self.bg,foreground=self.fg)\
                 .pack(expand=1,pady=40)
             self.frameRegis = Frame(root,width=500,height=500,bg=self.bg)
@@ -170,7 +178,7 @@ class Registration(Frame):
             self.regisBtn = Button(self.frameBtn,text="Register!",command=self.regis_submit,relief="solid",width=30,height=3
                                    ,bg="#edffbf")
             self.regisBtn.grid(row=4,column=1,sticky="nsew",padx=2,pady=15)
-            self.CancelBtn = Button(self.frameBtn,text="Cancel",command=lambda :self.masterFrame.switch_page(LogIn),relief="solid",width=20,height=2)
+            self.CancelBtn = Button(self.frameBtn,text="Cancel",command=lambda :self.masterFrame.switch_page(SignIn),relief="solid",width=20,height=2)
             self.CancelBtn.grid(row=4,column=2,sticky="nsew",padx=2,pady=15)
 
         def regis_form(self,_text,_font,_row,_entVar):
@@ -212,13 +220,13 @@ class Registration(Frame):
                 
             def register_confirm(self):
                 print(self.regisDataSubmit)
-                bufdb = BUFriends_Database()
+                bufdb = DbController()
                 bufdb.request_createdb
                 bufdb.request_register(*self.regisDataSubmit)
                 messagebox.showinfo('Register Successfully'
                                     ,"BUMail : {} DisplayName : {}\nPassword1 : {}\nPassword2 : {}".format(*self.regisDataSubmit))
                 messagebox.showinfo('Redirecting',"Going to BU Friends | Log-in")
-                self.masterFrame.switch_page(LogIn)
+                self.masterFrame.switch_page(SignIn)
             register_validate(self)
 
 class DashBoard(Frame):
@@ -236,8 +244,8 @@ class DashBoard(Frame):
             x = 10
             self.masterFrame = masterFrame
             self.masterFrame.title("BU Friends  |  Dashboard")
-            self.fontHead = "Inter 48 bold"
-            self.font = "Inter 16"
+            self.fontHead = Font(family="Leelawadee",size=40)
+            self.font = Font(family="Futura",size=16)
             Label(root, text="Dashboard",font=self.fontHead).pack()
 
         def ehe(self):
@@ -245,4 +253,16 @@ class DashBoard(Frame):
 
 
 if __name__ == '__main__':
+    sql = """ CREATE TABLE IF NOT EXISTS testTable(
+                                    id integer PRIMARY KEY,
+                                    bumail text NOT NULL,
+                                    username varchar NOT NULL,
+                                    password varchar NOT NULL
+                                    );"""
+    conn = DbController.create_connection()
+    if conn is not None:
+        print("connection complete!")
+        DbController.create_table(conn, sql)
+    else:
+        print("Error Connection incomplete!")
     BUFriends().mainloop()
