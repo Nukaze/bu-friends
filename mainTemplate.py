@@ -4,12 +4,11 @@ class SampleApp(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.frame = None
-        self.geometry("900x600")
         screenwidth = self.winfo_screenwidth()
         screenheight = self.winfo_screenheight()
         w,h = 900,600
-        x = (screenwidth/2)-(w/2)
-        y = (screenheight/2-50)-(h/2)
+        x = (screenwidth//2)-(w//2)
+        y = (screenheight//2-50)-(h//2)
         self.geometry("{}x{}+{}+{}".format(w,h,int(x),int(y)))
         self.iconbitmap("assets/icon/BUF.ico")
         self.resizable(0,0)
