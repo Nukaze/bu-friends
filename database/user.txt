@@ -1,8 +1,12 @@
-@bumail.net asa 1234 1234
-ka@bumail.net kaka 12345 12345
-kaka@bumail.net ladwk 123 123
-aka@bumail.net ak47 47 47
-yo@bumail.net 123 123 123
-ouigvrh@bumail.net 1rfji 123 123
-heh@bumail.net ighjbij 123 123
-ht@bumail.net rmdfj4i 123 123
+@bumail.net asa 1234 
+ka@bumail.net kaka 12345 
+kaka@bumail.net ladwk 123
+aka@bumail.net ak47 47 
+yo@bumail.net 123 123
+ouigvrh@bumail.net 1rfji 123
+heh@bumail.net ighjbij 123 
+ht@bumail.net rmdfj4i 123 
+haha@bumail.net okitchen 123
+ok@bumail.net 123shark 123 
+go@bumail.net 123go 123
+hunsa@bumail.net hunxoza 123

@@ -42,13 +42,14 @@
 				{
 					"scope": "entity.name.function",
 					"settings": {
-						"foreground": "#112233"
+						"foreground": "#4070ff"
+						
 					}
 				},
 				{
 					"scope": "support.function.builtin",
 					"settings": {
-						"foreground": "#1e80ff"
+						"foreground": "#82AAFF"
 					}
 				},
 				{
@@ -61,7 +62,7 @@
 				{
 					"scope": "meta.function-call.generic",
 					"settings": {
-						"foreground": "#1e80ff"
+						"foreground": "#82AAFF"
 					}
 				},
 				{
@@ -186,7 +187,21 @@
 					"settings": {
 						"foreground": "#ffffff"
 					}
-				}
+				},
+				{
+					"scope": "keyword.operator.comparison",
+					"settings": {
+						"foreground": "#C792EA",
+						"fontStyle": "bold"
+					}
+				},
+				{
+					"scope": "keyword.operator.assignment",
+					"settings": {
+						"foreground": "#C792EA",
+						"fontStyle": "bold"
+					}
+				},
 			]
 		},
 		"terminal.explorerKind": "external",

@@ -1,16 +1,45 @@
 '''
     demo BUFriends
 '''
-from atexit import register
-from distutils.log import Log
-from doctest import master
-from multiprocessing.context import set_spawning_popen
 from tkinter import *
 from tkinter import ttk, messagebox
-from unittest import case
 from PIL import Image,ImageTk
 import os
 import hashlib
+import sqlite3
+import datetime
+def BUFriends_Time():
+    timeFull = datetime.datetime.now()
+    timeNow = timeFull.strftime("%d-%b-%Y") + " " + timeFull.strftime("( %H:%M:%S )")
+    print(timeFull, timeNow)
+    return timeNow
+
+
+class BUFriends_Database():
+    
+    def __init__(self):
+        self.conn = sqlite3.connect('database/user.db')
+        self.cur = self.conn.cursor()
+        self.request_createdb()
+    
+    def request_createdb(self):
+        self.cur.execute('''CREATE TABLE IF NOT EXISTS record(
+                        bumail text,
+                        displayname text,
+                        password text
+                    
+                    )''')
+        self.conn.commit()
+        
+        
+    def request_register(self, _bumail, _displayname, _password):
+        self.cur.execute("INSERT INTO record VALUES (:bumail, :displayname, :password)",{
+                            'bumail': _bumail,
+                            'displayname': _displayname,
+                            'password': _password,
+                            })
+        self.conn.commit()
+    
 
 class BUFriends(Tk):
 
@@ -52,8 +81,12 @@ class LogIn(Frame):
             self.masterFrame.title("BU Friends  |  Log-In")
             self.fontHead = "Kanit 36 bold"
             self.font = "Kanit 16 "
-            Label(root,text="BU Friends  |  Log-In",font=self.fontHead,bg=self.bg,foreground=self.fg,justify="left")\
-                .pack(side=TOP,expand=1,padx=50,pady=40)
+            self.timeNow = BUFriends_Time()
+            self.titleFrame = Frame(root,bg=self.bg)
+            self.titleFrame.pack(expand=1,pady=50)
+            Label(self.titleFrame,text="BU Friends  |  Log-In",font=self.fontHead,bg=self.bg,foreground=self.fg,justify="left")\
+                .pack(side=TOP,expand=1,padx=50,pady=0)
+            Label(self.titleFrame, text="{}".format(self.timeNow),font=self.font,bg=self.bg).pack(expand=1,padx=50,pady=0)
             userName, userPass = StringVar(), StringVar()
             self.userName = Entry(root, textvariable=userName,width=25, font=self.font,justify="center",relief="solid")
             self.userPass = Entry(root, textvariable=userPass,show="*",width=25, font=self.font,justify="center",relief="solid")
@@ -168,16 +201,19 @@ class Registration(Frame):
                         register_error("Password is not Matching")
                         break
                     else:self.regisDataSubmit.append(data.get())
+                self.regisDataSubmit.pop(-1)    #remove second password
                 register_confirm(self)
                 
             def register_confirm(self):
                 print(self.regisDataSubmit)
                 with open('database/user.txt', 'a+')as db:
-                    db.writelines("{} {} {} {}\n".format(*self.regisDataSubmit))
-                    messagebox.showinfo('Register Successfully'
-                                        ,"BUMail : {} DisplayName : {}\nPassword1 : {}\nPassword2 : {}".format(*self.regisDataSubmit))
-                    messagebox.showinfo('Redirecting',"Going to BU Friends | Log-in")
-                    self.masterFrame.switch_page(LogIn)
+                    db.writelines("{} {} {}\n".format(*self.regisDataSubmit))
+                bufdb = BUFriends_Database()
+                bufdb.request_register(*self.regisDataSubmit)
+                messagebox.showinfo('Register Successfully'
+                                    ,"BUMail : {} DisplayName : {}\nPassword1 : {}\nPassword2 : {}".format(*self.regisDataSubmit))
+                messagebox.showinfo('Redirecting',"Going to BU Friends | Log-in")
+                self.masterFrame.switch_page(LogIn)
             register_validate(self)
 
 class DashBoard(Frame):
@@ -201,7 +237,6 @@ class DashBoard(Frame):
 
         def ehe(self):
             print("ehe nun dayo")
-
 
 
 if __name__ == '__main__':
