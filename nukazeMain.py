@@ -1,13 +1,21 @@
 '''
     demo BUFriends
 '''
+from ast import expr_context
+from cgitb import text
+from cmath import exp
+from re import L
 from tkinter import *
 from tkinter import ttk, messagebox
+from tkinter.font import Font
+import pyglet, tkinter
 from PIL import Image,ImageTk
 import os
 import hashlib
 import sqlite3
 import datetime
+
+
 def BUFriends_Time():
     timeFull = datetime.datetime.now()
     timeNow = timeFull.strftime("%d-%b-%Y") + " " + timeFull.strftime("( %H:%M:%S )")
@@ -18,7 +26,7 @@ def BUFriends_Time():
 class BUFriends_Database():
     
     def __init__(self):
-        self.conn = sqlite3.connect('database/user.db')
+        self.conn = sqlite3.connect('trySpace/user.db')
         self.cur = self.conn.cursor()
         self.request_createdb()
     
@@ -79,8 +87,9 @@ class LogIn(Frame):
             self.bg,self.fg = "#ccefff","#cc07e6"
             self.masterFrame = masterFrame
             self.masterFrame.title("BU Friends  |  Log-In")
-            self.fontHead = "Kanit 36 bold"
-            self.font = "Kanit 16 "
+            pyglet.font.add_file('assets/InterFont/Inter-Bold.ttf')
+            self.fontHead = Font(family="Inter",size=36)
+            self.font = Font(family="Futura",size=16)
             self.timeNow = BUFriends_Time()
             self.titleFrame = Frame(root,bg=self.bg)
             self.titleFrame.pack(expand=1,pady=50)
@@ -98,12 +107,19 @@ class LogIn(Frame):
             self.userPass.pack(pady=6,ipadx=1,ipady=5)
             self.frameBtn = Frame(root, bg=self.bg)
             self.frameBtn.pack(side=TOP, pady=20, expand=1)
-            self.loginBtn = Button(self.frameBtn, text="Log-in", command=lambda :self.login_submit(masterFrame)
-                                   , font=self.font, bg="#f8bfff", relief="solid", width=29)
+            def get_image(_path, _width, _height):
+                ori = Image.open(_path).resize((_width, _height), Image.ANTIALIAS)
+                img = ImageTk.PhotoImage(ori)
+                return img
+            self.imgBtn = get_image('assets/widgets/button1.png',400,80)
+            self.lab = Label(self.frameBtn,image=self.imgBtn,bg=self.bg).pack(expand=1)
+            self.lab 
+            self.loginBtn = Button(self.frameBtn, text="Log-in", command=lambda :self.login_req(masterFrame),image=self.imgBtn
+                                   , font=self.font,bg=self.bg, relief="solid", width=0,bd=0) #bg="#f8bfff"
             self.regisBtn = Button(self.frameBtn, text="Register", command=lambda :masterFrame.switch_page(Registration)
                                     , bg="#edffbf", font="Kanit 12", relief="solid", width=25)
             self.clearBtn = Button(self.frameBtn, text="Quit", command=masterFrame.destroy, font="Kanit 12", relief="solid", width=15)
-            self.loginBtn.pack(side=TOP,pady=10,ipady=5,fill=BOTH,padx=3)
+            self.loginBtn.pack(side=TOP,pady=10,ipady=0,fill=X,padx=3,expand=1)
             self.regisBtn.pack(side=LEFT,padx=3)
             self.clearBtn.pack(side=LEFT,padx=3)
 
@@ -112,12 +128,14 @@ class LogIn(Frame):
         def clear_pass(self,e):
             self.userPass.delete(0, END)
 
-        def login_submit(self,masterFrame):
+        def login_req(self,masterFrame):
             print(self.userName.get())
             print(self.userPass.get())
             masterFrame.switch_page(DashBoard)
-
             #userPass
+            
+        def login_submit():
+            pass
 
 
 class Registration(Frame):
@@ -135,8 +153,8 @@ class Registration(Frame):
             self.bg,self.fg = "#ccefff","#cc07e6"
             self.masterFrame = masterFrame
             self.masterFrame.title("BU Friends  |  Registration")
-            self.fontHead = "Kanit 36 bold"
-            self.font = "Kanit 16 "
+            self.fontHead = Font(family="Futura",size=36)
+            self.font = Font(family="Helvetica",size=16)
             Label(root, text="BU Friends  |  Registration",font=self.fontHead,bg=self.bg,foreground=self.fg)\
                 .pack(expand=1,pady=40)
             self.frameRegis = Frame(root,width=500,height=500,bg=self.bg)
@@ -179,21 +197,9 @@ class Registration(Frame):
                 register_email_validate(self)
 
             def register_email_validate(self):
-                dbUserDataLst = []
-                with open('database/user.txt',buffering=1)as db:
-                    while db:
-                        dbdata = db.readline().split()
-                        if dbdata == []:break
-                        else:dbUserDataLst.append(dbdata)
-                    print(dbUserDataLst)
-                    for linedata in dbUserDataLst:
-                        if "@bumail.net" not in self.regisVarData[0].get():
-                            register_error("BU Friends Exclusive for BU Mail only")
-                            break
-                        elif self.regisVarData[0].get() == linedata[0]:
-                            register_error("{} is Existed".format(self.regisVarData[0].get()))
-                            break
-                    register_password_validate(self)
+                if "@bumail.net" not in self.regisVarData[0].get():
+                    register_error("BU Friends Exclusive for BU Mail only")
+                register_password_validate(self)
                         
             def register_password_validate(self):
                 for i,data in enumerate(self.regisVarData):
@@ -206,9 +212,8 @@ class Registration(Frame):
                 
             def register_confirm(self):
                 print(self.regisDataSubmit)
-                with open('database/user.txt', 'a+')as db:
-                    db.writelines("{} {} {}\n".format(*self.regisDataSubmit))
                 bufdb = BUFriends_Database()
+                bufdb.request_createdb
                 bufdb.request_register(*self.regisDataSubmit)
                 messagebox.showinfo('Register Successfully'
                                     ,"BUMail : {} DisplayName : {}\nPassword1 : {}\nPassword2 : {}".format(*self.regisDataSubmit))
@@ -231,8 +236,8 @@ class DashBoard(Frame):
             x = 10
             self.masterFrame = masterFrame
             self.masterFrame.title("BU Friends  |  Dashboard")
-            self.fontHead = "Kanit 48 bold"
-            self.font = "Kanit 16"
+            self.fontHead = "Inter 48 bold"
+            self.font = "Inter 16"
             Label(root, text="Dashboard",font=self.fontHead).pack()
 
         def ehe(self):
