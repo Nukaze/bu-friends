@@ -1,6 +1,6 @@
 from tkinter import *
 # set a main window 
-class SampleApp(Tk):
+class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.frame = None
@@ -9,8 +9,8 @@ class SampleApp(Tk):
         w,h = 900,600
         x = (screenwidth//2)-(w//2)
         y = (screenheight//2-50)-(h//2)
-        self.geometry("{}x{}+{}+{}".format(w,h,int(x),int(y)))
-        self.iconbitmap("assets/icon/BUF.ico")
+        self.geometry("{}x{}+{}+{}".format(w,h,x,y))
+        self.iconbitmap("assets/icons/BUF.ico")
         self.resizable(0,0)
         self.switch_frame(PageOne)
 # switch page event
@@ -63,5 +63,5 @@ class PageThree(Frame):
                     command=lambda: controller.switch_frame(PageOne)).pack()  
 
 if __name__ == "__main__":
-    app = SampleApp()
+    app = BUFriends()
     app.mainloop()
