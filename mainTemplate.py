@@ -13,7 +13,7 @@ class DBController() :
             print(e)
         return conn
 
-    def exucute_sql(conn, sql):
+    def execute_sql(conn, sql):
         try:
             c = conn.cursor()
             c.execute(sql)
