@@ -49,6 +49,11 @@ class BUFriends(Tk):
         self.frame = new_frame
         self.configure(bg = self.frame.bgColor)
         self.frame.pack()
+# get image from path
+    def get_imageraw(self, _path):
+        img = PhotoImage(file = _path)
+        return img
+    
 # page 1
 class PageOne(Frame):
     def __init__(self, master):
