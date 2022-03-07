@@ -21,7 +21,7 @@ class DBController() :
     def create_connection():
         conn = None
         try:
-            conn = sqlite3.connect(r"./database/BUcontrollerFrame.db")
+            conn = sqlite3.connect(r"./database/BUFriends.db")
             conn.execute("PRAGMA foreign_keys = 1")
             print(sqlite3.version)
         except Error as e:
