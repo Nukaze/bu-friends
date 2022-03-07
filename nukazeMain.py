@@ -16,6 +16,7 @@ def BUFriends_Time():
     print(timeFull, timeNow)
     return timeNow
 
+
 class DBController() :
     def create_connection():
         conn = None
@@ -52,21 +53,23 @@ class BUFriends(Tk):
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
         self.y = ((self.winfo_screenheight()//2-50) - (self.height // 2))
         self.geometry("{}x{}+{}+{}".format(self.width, self.height, self.x, self.y))
-        #self.resizable(0,0)
+        self.resizable(0,0)
         self.title("BU Friends  |")
         self.iconbitmap('assets/icons/bufriends.ico')
+        self.fontHead = Font(family="inter",size=36,weight="bold")
+        self.font = Font(family="inter",size=16)
         self.switch_frame(SignIn)
 
-    def switch_frame(self, frameClass):
-        print("switching to {}".format(frameClass))
-        newFrame = frameClass(self)
+    def switch_frame(self, frame_class):
+        print("switching to {}".format(frame_class))
+        new_frame = frame_class(self)
         if self.frame is not None:
             self.frame.destroy()
-        self.frame = newFrame
-        self.configure(bg=self.frame.bg)
-        self.frame.pack()
+        self.frame = new_frame
+        self.configure(bg=self.frame.bgColor)
+        self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
         
-    def get_imageraw(self, _path):
+    def get_image(self, _path):
         img = PhotoImage(file = _path)
         return img
     
@@ -75,29 +78,30 @@ class SignIn(Frame):
 
     def __init__(self, masterFrame):
         Frame.__init__(self, masterFrame)
-        self.bg,self.fg = "#B6E0F7","#cc07e6"
-        Frame.configure(self,bg=self.bg)
+        self.bgColor,self.fg = "#B6E0F7","#cc07e6"
+        Frame.configure(self,bg=self.bgColor)
         self.pack()
-        self.Style = ttk.Style()
         self.SignInContent(self,masterFrame)
 
     class SignInContent:
         
         def __init__(self, root, masterFrame):
-            self.bg,self.fg,self.fghead = "#B6E0F7","#444444","black"
+            self.bg,self.bgentry,self.fghead,self.fg,self.fgHolder = "#B6E0F7","#ffffff","#000000","#333333","#999999"
             self.masterFrame = masterFrame
+            self.root = root
             self.masterFrame.title("BU Friends  |  Sign-In")
-            self.fontHead = Font(family="leelawadee bold",size=36)
-            self.font = Font(family="leelawadee",size=16)
+            self.fontHead = Font(family="Inter",size=36,weight="bold")
+            self.font = Font(family="Inter",size=16)
             self.timeNow = BUFriends_Time()
             #BannerCanva
             def zone_canvas():
-                self.canvasFrame = Canvas(root,width=400,height=600)
-                self.canvasFrame.pack(side=LEFT,expand=1,fill=BOTH)
-                self.bannerImg = self.masterFrame.get_imageraw('assets/images/banner.png')
-                self.mascotImg = self.masterFrame.get_imageraw('assets/images/character.png')
-                self.canvasFrame.create_image(0,0,image=self.bannerImg,anchor="nw")
-                self.canvasFrame.create_image(0,0,image=self.mascotImg,anchor="nw")
+                self.canvasFrame = Canvas(root,width=400,height=600,bd=-2)
+                self.canvasFrame.pack(side=LEFT,expand=1,fill="both")
+                pathLst = ['assets/images/banner.png','assets/images/character.png']
+                self.imgLst = []
+                for i,data in enumerate(pathLst):
+                    self.imgLst.append(self.masterFrame.get_image(data))
+                    self.canvasFrame.create_image(0,0,image=self.imgLst[i],anchor="nw")
             #widgetAll
             def zone_entrys():    
                 self.signinFrame = Frame(root,bg=self.bg,width=500,height=600)
@@ -106,26 +110,31 @@ class SignIn(Frame):
                 Label(self.mainFrame,text="BU Friends",font=self.fontHead,bg=self.bg,fg=self.fghead,justify="left")\
                     .pack(side=TOP,expand=1,padx=30,pady=2)
                 self.entryFrame = Frame(self.mainFrame,bg=self.bg)
-                self.entryImg = self.masterFrame.get_imageraw('assets/entrys/entry1rz.png')
-                self.entryicon1 = self.masterFrame.get_imageraw('assets/icons/user.png')
-                self.entryicon2 = self.masterFrame.get_imageraw('assets/icons/lock.png')   
-                self.icon1 = Label(root,image=self.entryicon1,bg="white")
-                self.icon2 = Label(root,image=self.entryicon2,bg="white")
+                self.entryImg = self.masterFrame.get_image('assets/entrys/entry1rz.png')
+                self.entryicon1 = self.masterFrame.get_image('assets/icons/user.png')
+                self.entryicon2 = self.masterFrame.get_image('assets/icons/lock.png')
+                self.icon1 = Label(root,image=self.entryicon1,bg=self.bgentry)
+                self.icon2 = Label(root,image=self.entryicon2,bg=self.bgentry)
                 self.icon1.place(relx=0.55,rely=0.38)
                 self.icon2.place(relx=0.55,rely=0.485)
                 Label(self.entryFrame,image=self.entryImg,bg=self.bg).pack(pady=10)
                 Label(self.entryFrame,image=self.entryImg,bg=self.bg,width=350,height=50).pack()
-                self.userName = Entry(self.entryFrame,width=25,font=self.font,justify="left",relief="flat",fg=self.fg)
-                self.userPass = Entry(self.entryFrame,width=25, font=self.font,show="*",justify="left",relief="flat",fg=self.fg)
+                self.userName = Entry(self.entryFrame,width=25,font=self.font,justify="left",relief="flat")
+                self.userPass = Entry(self.entryFrame,width=25, font=self.font,show="*",justify="left",relief="flat")
                 self.userName.insert(0,"Enter BU-Mail")
                 self.userPass.insert(0,"Enter Password")
+                self.userName.config(fg=self.fgHolder)
+                self.userPass.config(fg=self.fgHolder)
+                
                 self.userName.bind('<Button-1>',self.clear_name)
+                self.userName.bind('<Tab>',self.clear_name)
                 self.userPass.bind('<Button-1>',self.clear_pass)
+                self.userPass.bind('<Tab>',self.clear_pass)
                 self.userName.place(relx=0.17,rely=0.18)
                 self.userPass.place(relx=0.17,rely=0.7)
             def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
-                self.imgBtn = self.masterFrame.get_imageraw('assets/buttons/buttonRaw.png')
+                self.imgBtn = self.masterFrame.get_image('assets/buttons/buttonRaw.png')
                 self.loginBtn = Button(self.frameBtn, text="Log-in", command=self.login_req, image=self.imgBtn
                                        , font=self.font, foreground="white", bg=self.bg,
                                     activebackground=self.bg,activeforeground="white",bd=0,compound="center")
@@ -143,7 +152,7 @@ class SignIn(Frame):
             zone_entrys()
             zone_buttons()
             #displayFrame
-            self.signinFrame.pack(side="top",expand=1,fill=BOTH)
+            self.signinFrame.pack(side="top",expand=1,fill="both")
             self.mainFrame.pack(expand=1,pady=50,ipady=50)
             self.entryFrame.pack(side="top",expand=1)
             self.frameBtn.pack(side="top", pady=0, expand=1)
@@ -152,8 +161,10 @@ class SignIn(Frame):
 
         def clear_name(self,e):
             self.userName.delete(0, END)
+            self.userName.config(fg=self.fg)
         def clear_pass(self,e):
             self.userPass.delete(0, END)
+            self.userPass.config(fg=self.fg)
         def login_mouseover(self,e):
             self.loginBtn.config()
         def login_mouseleave(self,e):
@@ -176,96 +187,129 @@ class SignIn(Frame):
                 self.masterFrame.switch_frame(SignUp)
             
 
-
-
 class SignUp(Frame):
 
     def __init__(self, masterFrame):
         Frame.__init__(self, masterFrame)
-        self.bg = "#ccefff"
-        Frame.configure(self,bg=self.bg)
+        self.bgColor = "#ccefff"
+        Frame.configure(self,bg=self.bgColor)
         self.pack()
         self.SignUpContent(self, masterFrame)
 
     class SignUpContent:
-
         def __init__(self, root, masterFrame):
-            self.bg,self.fg = "#ccefff","#cc07e6"
             self.masterFrame = masterFrame
+            self.root = root
             self.masterFrame.title("BU Friends  |  Sign-In")
-            self.fontHead = Font(family="leelawadee bold",size=40)
-            self.font = Font(family="leelawadee bold",size=16)
-            Label(root, text="BU Friends  |  Sign-Up",font=self.fontHead,bg=self.bg,foreground=self.fg)\
-                .pack(expand=1,pady=40)
-            self.frameRegis = Frame(root,width=500,height=500,bg=self.bg)
-            self.frameRegis.pack(expand=1,fill=BOTH,ipadx=10,ipady=10)
-            self.regisInfoLst = ["BUMail", "Display Name", "Password", "Confirm Password"]
-            self.regisVarData = []
-            self.regisDataSubmit = []
-            for i in range(len(self.regisInfoLst)):
-                self.regisVarData.append(StringVar())
-                self.signup_form(self.regisInfoLst[i], self.font, i, self.regisVarData[i])
-            self.frameBtn = Frame(self.frameRegis,bg=self.bg)
-            self.frameBtn.grid(row=4,column=0,columnspan=3,sticky="e")
-            self.regisBtn = Button(self.frameBtn, text="Register!", command=self.signup_submit, relief="solid", width=30, height=3
-                                   , bg="#edffbf")
-            self.regisBtn.grid(row=4,column=1,sticky="nsew",padx=2,pady=15)
-            self.CancelBtn = Button(self.frameBtn, text="Cancel", command=lambda :self.masterFrame.switch_frame(SignIn), relief="solid", width=20, height=2)
-            self.CancelBtn.grid(row=4,column=2,sticky="nsew",padx=2,pady=15)
-
-        def signup_form(self, _text, _font, _row, _entVar):
-                Label(self.frameRegis, text=_text ,font=_font,anchor="w",bg=self.bg).grid(row=_row,column=0,sticky="nsew",padx=20,pady=10)
-                Label(self.frameRegis, text=":", font=_font,anchor="e",bg=self.bg).grid(row=_row,column=1,sticky="nsew",pady=10)
-                if _row == 2 or _row ==3:
-                    Entry(self.frameRegis, textvariable=_entVar,show="*",font="Kanit 12",justify="left",relief="solid")\
-                        .grid(row=_row, column=2, sticky="nsew",padx=5, pady=10,ipadx=80,ipady=2)
-                else:
-                    Entry(self.frameRegis, textvariable=_entVar, font="Kanit 10", justify="left",relief="solid")\
-                        .grid(row=_row, column=2, sticky="nsew",padx=5, pady=10,ipadx=80,ipady=2)
+            self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
+            self.fontHead = Font(family="inter",size=36)
+            self.font = Font(family="inter",size=16)
+            self.regisInfoLst = ["Enter your BU-Mail", "Password1", "Password2", "Enter your Display Name"]
+            self.regisVarData,self.regisDataSubmit = [],[]         
+            self.canvasFrame = Canvas(root,width=900,height=600,bd=0)
+            self.canvasFrame.pack(expand=1,fill="both")
+            self.bgImg = self.masterFrame.get_image("assets/images/regis_bg.png")
+            self.canvasFrame.create_image(0,0,image=self.bgImg,anchor="nw")
+            self.canvasFrame.create_text(450,80,text="Registration",font=self.fontHead, fill=self.fgHead)
+            def zone_widgets():
+                self.entryLst = []
+                self.entryimg = self.masterFrame.get_image('assets/entrys/entry2rz.png')
+                for i in range(len(self.regisInfoLst)):
+                    self.regisVarData.append(StringVar())
+                    self.entryLst.append(self.signup_form(self.root, i, self.regisVarData[i]))
+                    x,y = 250,70*(i+2)
+                    self.canvasFrame.create_image(x,y,image=self.entryimg,anchor="nw")
+                    self.entryLst[i].place(x=x+20,y=y+5)
+                def entry_bind():
+                    def clear_ent0(e):
+                        self.entryLst[0].delete(0,END)
+                        self.entryLst[0].config(fg=self.fg)
+                    def clear_ent1(e):
+                        self.entryLst[1].delete(0,END)
+                        self.entryLst[1].config(fg=self.fg)
+                    def clear_ent2(e):
+                        self.entryLst[2].delete(0,END)
+                        self.entryLst[2].config(fg=self.fg)
+                    def clear_ent3(e):
+                        self.entryLst[3].delete(0,END)
+                        self.entryLst[3].config(fg=self.fg)
+                    self.entryLst[0].bind('<Button-1>',clear_ent0)
+                    self.entryLst[1].bind('<Button-1>',clear_ent1)
+                    self.entryLst[2].bind('<Button-1>',clear_ent2)
+                    self.entryLst[3].bind('<Button-1>',clear_ent3)
+                entry_bind()                
+            zone_widgets()
+            def zone_buttons():
+                self.btnFrame = Frame(root,border=0)
+                self.imgBtn = self.masterFrame.get_image('assets/buttons/signuprz.png')
+                self.imgBtn2 = self.masterFrame.get_image('assets/buttons/buttonGreyrz.png')
+                self.signupBtn = Button(root, text="Sign Up", command=self.signup_submit, image=self.imgBtn,fg="#ffffff"
+                                       , font=self.font,bd=-10,compound="center")
+                self.backBtn = Button(root, text="Cancel", command=lambda:self.masterFrame.switch_frame(SignIn), image=self.imgBtn2
+                                       , font=self.font, foreground="white",bd=-10,compound="center")
+                self.signupBtn.pack(side="left",padx=20)
+                self.backBtn.pack(side="left")
+                self.signupWin = self.canvasFrame.create_window(240,430,anchor="nw",window=self.signupBtn)
+                self.backWin = self.canvasFrame.create_window(500,442,anchor="nw",window=self.backBtn)
+            zone_buttons() 
+            
+        def signup_form(self,_root, _idx, _entVar):
+            entry = Entry(_root, textvariable=_entVar, font="Kanit 14", justify="left",relief="flat",fg=self.fgHolder,width=30)
+            entry.insert(0,self.regisInfoLst[_idx])
+            if _idx == 1 or _idx == 2:
+                entry.config(show="*")
+            return entry
 
         def signup_submit(self):
-            def register_error(errorFormat=""):
-                self.regisVarData.clear()
-                self.regisDataSubmit.clear()
-                messagebox.showinfo('Register Error', '{}\nPlease Register Form Again'.format(errorFormat))
-                self.masterFrame.switch_frame(SignUp)
-            def signup_validate(self):
-                for i,data in enumerate(self.regisVarData):
-                    if data.get() == "" or data.get().isspace():
-                        register_error("Register Form Information not Complete")
-                        break
-                signup_email_validate(self)
+                def register_error(errorFormat="unknow error"):
+                    self.regisVarData.clear()
+                    self.regisDataSubmit.clear()
+                    messagebox.showinfo('Sign Up Error', '{}\nPlease Register Form Again'.format(errorFormat))
+                    self.masterFrame.switch_frame(SignUp)
+               
+                def signup_validate(self):
+                    for i,data in enumerate(self.regisVarData):
+                        if data.get() == "" or data.get().isspace():
+                            register_error("Register Form Information not Complete")
+                            break
+                    signup_email_validate(self)
 
-            def signup_email_validate(self):
-                if "@bumail.net" not in self.regisVarData[0].get():
-                    register_error("BU Friends Exclusive for BU Mail only")
-                signup_password_validate(self)
-                        
-            def signup_password_validate(self):
+                def signup_email_validate(self):
+                    if "@bumail.net" not in self.regisVarData[0].get():
+                        register_error("BU Friends Exclusive for BU Mail only")
+                    signup_password_validate(self)
+                            
+                def signup_password_validate(self):
+                    for i,data in enumerate(self.regisVarData):
+                        if self.regisVarData[2].get() != self.regisVarData[3].get():
+                            register_error("Password is not Matching")
+                            break
+                        else:self.regisDataSubmit.append(data.get())
+                    self.regisDataSubmit.pop(-1)    #remove second password
+                    signup_confirm(self)
+                    
+                def signup_confirm(self):
+                    print(self.regisDataSubmit)
+                    # sqlSignupUser = """INSERT INTO user (email, password, displayname)
+                    #                                 VALUES({},{},{});""".format(self.sign)
+                    # conn = DBController()
+                    # conn.execute_sql(sqlSignupUser)
+                    messagebox.showinfo('Sign Up Successfully'
+                                        ,"BUMail : {} DisplayName : {}\nPassword1 {}".format(*self.regisDataSubmit))
+                    messagebox.showinfo('Redirecting',"Going to BU Friends | Log-in")
+                    self.masterFrame.switch_frame(SignIn)
                 for i,data in enumerate(self.regisVarData):
-                    if self.regisVarData[2].get() != self.regisVarData[3].get():
-                        register_error("Password is not Matching")
-                        break
-                    else:self.regisDataSubmit.append(data.get())
-                self.regisDataSubmit.pop(-1)    #remove second password
-                signup_confirm(self)
-                
-            def signup_confirm(self):
-                print(self.regisDataSubmit)
-                bufdb = DbController()
-                bufdb.request_register(*self.regisDataSubmit)
-                messagebox.showinfo('Register Successfully'
-                                    ,"BUMail : {} DisplayName : {}\nPassword1 : {}\nPassword2 : {}".format(*self.regisDataSubmit))
-                messagebox.showinfo('Redirecting',"Going to BU Friends | Log-in")
-                self.masterFrame.switch_frame(SignIn)
-            signup_validate(self)
+                    print(data.get())
+                    
+                signup_validate(self)
+
 
 class DashBoard(Frame):
 
     def __init__(self, masterFrame):
         Frame.__init__(self,masterFrame)
-        self.bg = "grey"
-        Frame.configure(self,bg=self.bg)
+        self.bgColor = "grey"
+        Frame.configure(self,bg=self.bgColor)
         self.pack(expand=1)
         self.DashBoardContent(self,masterFrame)
 
@@ -280,7 +324,7 @@ class DashBoard(Frame):
             Label(root, text="Dashboard",font=self.fontHead).pack()
             self.entryFrame = Canvas(root,bg=self.bg,width=500,height=500)
             self.entryFrame.propagate(0)
-            self.entryImg = self.masterFrame.get_imageraw('assets/entrys/entry1.png')
+            self.entryImg = self.masterFrame.get_image('assets/entrys/entry1.png')
             Label(self.entryFrame,image=self.entryImg,bg=self.bg).place(relx=0.5,rely=0.5,anchor="center")
             Label(self.entryFrame,image=self.entryImg,bg=self.bg).place(relx=0.5,rely=0.5,anchor="center")
             Label(root,image=self.entryImg,bg="pink").pack(expand=1,fill=BOTH)
@@ -296,18 +340,17 @@ if __name__ == '__main__':
                                     bumail text(50) NOT NULL,
                                     passwordx password NOT NULL,
                                     displayname varchar(50) NOT NULL
-                                    )"""
+                                    );"""
                                     
     sqlinto = """INSERT INTO user (email, password, displayname)
-                                    VALUES("{}","{}","{}")""".format("hehe@bumail","12345","Woohoo~")
+                                    VALUES("{}","{}","{}");""".format("hehe@bumail","12345","Woohoo~")
                                     
-    needDel = 0
-    sqldel = """DELETE FROM user WHERE id={}"""#.format(needDel)
+    sqldel = """DELETE FROM user WHERE id={}"""#.format(needDel) 
     sqldrop = """ DROP TABLE testTable;"""
     conn = DBController.create_connection()
     if conn is not None:
         print("connection complete!")
-        DBController.execute_sql(conn, sqlinto)
+        #DBController.execute_sql(conn, sqlinto)
     else:
         print("Error Connection incomplete!")
     BUFriends().mainloop()
