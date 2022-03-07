@@ -33,6 +33,9 @@ class BUFriends(Tk):
         self.geometry("{}x{}+{}+{}".format(w, h, x, y))
         self.iconbitmap("assets/icons/bufriends.ico")
         self.resizable(0,0)
+        self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
+        self.fontBody = Font(family="leelawadee",size=16)
+        self.option_add('*font',self.fontBody)
         self.switch_frame(PageOne)
 # switch page event
     def switch_frame(self, frameClass):
@@ -106,7 +109,7 @@ class PageOne(Frame):
         master = scroll.interior
         # widget หลังจากนี้จะทำเป็น def หรือ class หรือเป็นพรืดก็ตามสะดวกใจเลย
         # ex.ปุ่มดปลี่ยนหน้าแบบพรืด
-        for index in range(100):
+        for index in range(50):
             item = Entry(master)
             item.insert(0, index)
             item.pack(side=TOP, fill=X, expand=TRUE)
@@ -124,7 +127,7 @@ class PageTwo(Frame):
         # ex.ปุ่มดปลี่ยนหน้าแบบdef
         self.widget(master)
     def widget(self,root) :
-        Label(root, text="Page two", font=('Helvetica', 18, "bold")).pack(side="top", pady=5)
+        Label(root, text="Page two", font=self.controller.fontHeaing).pack(side="top", pady=5)
         Button(root, text="Go to third page",
                   command=lambda: self.controller.switch_frame(PageThree)).pack() 
 class PageThree(Frame):
