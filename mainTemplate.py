@@ -1,4 +1,32 @@
+import sqlite3
+from sqlite3 import Error
 from tkinter import *
+# connecting to database
+class DBController() :
+    def create_connection():
+        conn = None
+        try:
+            conn = sqlite3.connect(r"./database/BUFriends.db")
+            conn.execute("PRAGMA foreign_keys = 1")
+            print(sqlite3.version)
+        except Error as e:
+            print(e)
+        return conn
+
+    def exucute_sql(conn, sql):
+        try:
+            c = conn.cursor()
+            c.execute(sql)
+            conn.commit()
+        except Error as e:
+            print(e)
+    ''' เวลาเรียกใช้
+        conn = DBController.create_connection()
+        sql = """คำสั่ง SQL"""
+    if conn is not None:
+            DBController.exucute_sql(conn, sql)
+    else:
+        print("Error! cannot create the database connection.")'''
 # set a main window 
 class BUFriends(Tk):
     def __init__(self):
