@@ -1,6 +1,8 @@
 import sqlite3
 from sqlite3 import Error
 from tkinter import *
+from tkinter import messagebox
+from tkinter.font import Font
 # connecting to database
 class DBController() :
     def create_connection():
@@ -21,15 +23,14 @@ class DBController() :
         except Error as e:
             print(e)
 class BUFriends(Tk):
+    
     def __init__(self):
         Tk.__init__(self)
         self.frame = None
-        screenwidth = self.winfo_screenwidth()
-        screenheight = self.winfo_screenheight()
         w,h = 900,600
-        x = (screenwidth//2)-(w//2)
-        y = (screenheight//2-50)-(h//2)
-        self.geometry("{}x{}+{}+{}".format(w,h,x,y))
+        x = (self.winfo_screenwidth()//2) - (w//2)
+        y = (self.winfo_screenheight()//2-50) - (h//2)
+        self.geometry("{}x{}+{}+{}".format(w, h, x, y))
         self.iconbitmap("assets/icons/bufriends.ico")
         self.resizable(0,0)
         self.switch_frame(PageOne)
