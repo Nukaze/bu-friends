@@ -1,5 +1,5 @@
 '''
-    Nukaze BUcontrollerFrame
+    Nukaze BU Friends
 '''
 from tkinter import *
 from tkinter import ttk,messagebox
@@ -124,7 +124,6 @@ class SignIn(Frame):
                 self.userPass.insert(0,"Enter Password")
                 self.userName.config(fg=self.fgHolder)
                 self.userPass.config(fg=self.fgHolder)
-                
                 self.userName.bind('<Button-1>',self.clear_name)
                 self.userPass.bind('<Button-1>',self.clear_pass)
                 self.userName.place(relx=0.17,rely=0.18)
@@ -197,10 +196,8 @@ class SignUp(Frame):
         def __init__(self, root, controllerFrame):
             self.controllerFrame = controllerFrame
             self.root = root
-            self.controllerFrame.title("BU  |  Sign-In")
+            self.controllerFrame.title("BU Friends |  Sign-Up")
             self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
-            controllerFrame.fontHeading = Font(family="inter",size=36)
-            self.font = Font(family="inter",size=16)
             self.regisInfoLst = ["Enter your BU-Mail", "enter Password1", "enter Password2", "Enter your Display Name"]
             self.regisVarData,self.regisDataSubmit = [],[]         
             self.canvasFrame = Canvas(root,width=900,height=600,bd=0)
@@ -311,10 +308,8 @@ class DashBoard(Frame):
 
         def __init__(self, root,controllerFrame):
             self.bg,self.fg = "#ccefff","#cc07e6"
-            self.controllerFrame =controllerFrame
-            self.controllerFrame.title("BU controllerFrame  |  Dashboard")
-            controllerFrame.fontHeading = Font(family="leelawadee bold",size=30)
-            self.font = Font(family="leelawadee bold",size=16)
+            self.controllerFrame = controllerFrame
+            self.controllerFrame.title("BU Friends  |  Dashboard")
             Label(root, text="Dashboard",font=self.controllerFrame.fontHeading).pack()
             self.entryFrame = Canvas(root,bg=self.bg,width=500,height=500)
             self.entryFrame.propagate(0)
