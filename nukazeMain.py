@@ -4,10 +4,10 @@
 from tkinter import *
 from tkinter import ttk,messagebox
 from tkinter.font import Font
-from PIL import Image,ImageTk
+from sqlite3 import Error
+import sqlite3
 import os
 import hashlib
-import sqlite3
 import datetime
 
 def BUFriends_Time():
@@ -16,30 +16,31 @@ def BUFriends_Time():
     print(timeFull, timeNow)
     return timeNow
 
-class DbController() :
-    
+class DBController() :
     def create_connection():
         conn = None
         try:
-            conn = sqlite3.connect("./database/BUFriends.db")
-            print("sqlite version:",sqlite3.version)
-        except sqlite3.Error as e:
-            print("conn error",e)
+            conn = sqlite3.connect(r"./database/BUFriends.db")
+            conn.execute("PRAGMA foreign_keys = 1")
+            print(sqlite3.version)
+        except Error as e:
+            print(e)
         return conn
 
-    def execute_sql(conn, sqlCommand):
+    def execute_sql(conn, sql):
         try:
             c = conn.cursor()
-            c.execute(sqlCommand)
-            print("{}\n Complete!".format(sqlCommand))
-        except sqlite3.Error as e:
-            print("execute sql error",e)
-    
-    def request_createdb():
-        pass
-        
-    def request_register():
-        pass
+            c.execute(sql)
+            conn.commit()
+        except Error as e:
+            print(e)
+    ''' เวลาเรียกใช้
+        conn = DBController.create_connection()
+        sql = """คำสั่ง SQL"""
+    if conn is not None:
+            DBController.exucute_sql(conn, sql)
+    else:
+        print("Error! cannot create the database connection.")'''
     
 
 class BUFriends(Tk):
@@ -69,11 +70,6 @@ class BUFriends(Tk):
         img = PhotoImage(file = _path)
         return img
     
-    def get_imagerz(self,_path, _width, _height):
-        img = ImageTk.PhotoImage(Image.open(_path))
-        img = PhotoImage(file= _path).subsample(_width,_height)
-        return img
-
 
 class SignIn(Frame):
 
@@ -98,21 +94,21 @@ class SignIn(Frame):
             def zone_canvas():
                 self.canvasFrame = Canvas(root,width=400,height=600)
                 self.canvasFrame.pack(side=LEFT,expand=1,fill=BOTH)
-                self.bannerImg = self.masterFrame.get_imageraw('assets/widgets/banner.png')
-                self.mascotImg = self.masterFrame.get_imageraw('assets/widgets/character.png')
+                self.bannerImg = self.masterFrame.get_imageraw('assets/images/banner.png')
+                self.mascotImg = self.masterFrame.get_imageraw('assets/images/character.png')
                 self.canvasFrame.create_image(0,0,image=self.bannerImg,anchor="nw")
                 self.canvasFrame.create_image(0,0,image=self.mascotImg,anchor="nw")
             #widgetAll
-            def zone_entry():    
+            def zone_entrys():    
                 self.signinFrame = Frame(root,bg=self.bg,width=500,height=600)
                 self.signinFrame.propagate(0)
                 self.mainFrame = Frame(self.signinFrame,bg=self.bg)
                 Label(self.mainFrame,text="BU Friends",font=self.fontHead,bg=self.bg,fg=self.fghead,justify="left")\
                     .pack(side=TOP,expand=1,padx=30,pady=2)
                 self.entryFrame = Frame(self.mainFrame,bg=self.bg)
-                self.entryImg = self.masterFrame.get_imageraw('assets/1signin/entry1rz.png')
-                self.entryicon1 = self.masterFrame.get_imageraw('assets/1signin/user.png')
-                self.entryicon2 = self.masterFrame.get_imageraw('assets/1signin/lock.png')   
+                self.entryImg = self.masterFrame.get_imageraw('assets/entrys/entry1rz.png')
+                self.entryicon1 = self.masterFrame.get_imageraw('assets/icons/user.png')
+                self.entryicon2 = self.masterFrame.get_imageraw('assets/icons/lock.png')   
                 self.icon1 = Label(root,image=self.entryicon1,bg="white")
                 self.icon2 = Label(root,image=self.entryicon2,bg="white")
                 self.icon1.place(relx=0.55,rely=0.38)
@@ -127,21 +123,25 @@ class SignIn(Frame):
                 self.userPass.bind('<Button-1>',self.clear_pass)
                 self.userName.place(relx=0.17,rely=0.18)
                 self.userPass.place(relx=0.17,rely=0.7)
-            def zone_button():
+            def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
-                self.imgBtn = self.masterFrame.get_imageraw('assets/widgets/raw_button.png')
-                self.loginBtn = Button(self.frameBtn, text="Log-in", command=lambda :self.login_req(masterFrame)
-                                    , image=self.imgBtn, font=self.font, foreground="white", bg=self.bg,
-                                    activebackground=self.bg,activeforeground="white",bd=0,compound="center", )
+                self.imgBtn = self.masterFrame.get_imageraw('assets/buttons/buttonRaw.png')
+                self.loginBtn = Button(self.frameBtn, text="Log-in", command=self.login_req, image=self.imgBtn
+                                       , font=self.font, foreground="white", bg=self.bg,
+                                    activebackground=self.bg,activeforeground="white",bd=0,compound="center")
                 self.loginBtn.pack(side=TOP,pady=10,ipady=0,padx=3,expand=1)
+                self.loginBtn.bind('<Enter>',self.login_mouseover)
+                self.loginBtn.bind('<Leave>',self.login_mouseleave)
                 self.frameDonthave = Frame(self.frameBtn,bg=self.bg)
                 Label(self.frameDonthave,text="Don't have an account?",bg=self.bg).pack(side="left",expand=1)
                 self.signupBtn = Label(self.frameDonthave,text="Sign-Up",font="leelawadee 10 underline",bg=self.bg,fg="blue")
+                self.signupBtn.bind('<Enter>',self.signup_mouseover)
+                self.signupBtn.bind('<Leave>',self.signup_mouseleave)
                 self.signupBtn.bind('<Button-1>',self.signup_req)
             #displaywidgets
             zone_canvas()
-            zone_entry()
-            zone_button()
+            zone_entrys()
+            zone_buttons()
             #displayFrame
             self.signinFrame.pack(side="top",expand=1,fill=BOTH)
             self.mainFrame.pack(expand=1,pady=50,ipady=50)
@@ -149,24 +149,32 @@ class SignIn(Frame):
             self.frameBtn.pack(side="top", pady=0, expand=1)
             self.frameDonthave.pack(side="bottom",expand=1)
             self.signupBtn.pack(side=LEFT,padx=3)
-            
+
         def clear_name(self,e):
             self.userName.delete(0, END)
         def clear_pass(self,e):
             self.userPass.delete(0, END)
+        def login_mouseover(self,e):
+            self.loginBtn.config()
+        def login_mouseleave(self,e):
+            self.loginBtn.config(width=0)
+        def signup_mouseover(self,e):
+            self.signupBtn.config(fg="purple")
+        def signup_mouseleave(self,e):
+            self.signupBtn.config(fg="blue")
 
-        def login_req(self,masterFrame):
+        def login_req(self):
             print(self.userName.get())
             print(self.userPass.get())
-            masterFrame.switch_frame(DashBoard)
+            self.masterFrame.switch_frame(DashBoard)
             #userPass
         
         def login_submit(self):
             pass
         
         def signup_req(self,e):
-                print("signup-request")
                 self.masterFrame.switch_frame(SignUp)
+            
 
 
 
@@ -272,7 +280,7 @@ class DashBoard(Frame):
             Label(root, text="Dashboard",font=self.fontHead).pack()
             self.entryFrame = Canvas(root,bg=self.bg,width=500,height=500)
             self.entryFrame.propagate(0)
-            self.entryImg = self.masterFrame.get_imageraw('assets/1signin/entry1.png')
+            self.entryImg = self.masterFrame.get_imageraw('assets/entrys/entry1.png')
             Label(self.entryFrame,image=self.entryImg,bg=self.bg).place(relx=0.5,rely=0.5,anchor="center")
             Label(self.entryFrame,image=self.entryImg,bg=self.bg).place(relx=0.5,rely=0.5,anchor="center")
             Label(root,image=self.entryImg,bg="pink").pack(expand=1,fill=BOTH)
@@ -283,23 +291,23 @@ class DashBoard(Frame):
 
 
 if __name__ == '__main__':
-    sql = """ CREATE TABLE IF NOT EXISTS testTable(
+    sqlnewtable = """ CREATE TABLE IF NOT EXISTS testTable(
                                     id integer(20) PRIMARY KEY,
                                     bumail text(50) NOT NULL,
                                     passwordx password NOT NULL,
                                     displayname varchar(50) NOT NULL
-                                    );"""
-    insert = """ INSERT INTO testTable VALUES (
-                                    01230123012301000100,
-                                    bubuaddbumail.net,
-                                    passsxdpk3o2o04,
-                                    Ehe<3                                
-                                    );"""
-    sqld = """ DROP TABLE testTable;"""
-    conn = DbController.create_connection()
+                                    )"""
+                                    
+    sqlinto = """INSERT INTO user (email, password, displayname)
+                                    VALUES("{}","{}","{}")""".format("hehe@bumail","12345","Woohoo~")
+                                    
+    needDel = 0
+    sqldel = """DELETE FROM user WHERE id={}"""#.format(needDel)
+    sqldrop = """ DROP TABLE testTable;"""
+    conn = DBController.create_connection()
     if conn is not None:
         print("connection complete!")
-        #DbController.execute_sql(conn, insert)
+        DBController.execute_sql(conn, sqlinto)
     else:
         print("Error Connection incomplete!")
     BUFriends().mainloop()
