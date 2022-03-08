@@ -110,47 +110,79 @@ class ProfilePage(Frame):
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
-        self.fontTag = Font(family="leelawadee",size=13,weight='bold')
-        self.option_add('*font',self.fontTag)
         self.profileFrame()
         self.tagFrame()
+        self.postFrame()
 
     def profileFrame(self) :
         topFrame = Frame(self.root,bg=self.bgColor)
         bottomFrame = Frame(self.root,bg=self.bgColor)
-        imgPathList = ( ('./assets/icons/Back icon.png',50,50),
-                        ('./assets/icons/hamberger icon.png',25,25),
-                        ('./assets/icons/profile icon big.png',150,150))
+        imgPathList = ( ('./assets/icons/goback.png',50,50),
+                        ('./assets/icons/hamberger.png',25,25),
+                        ('./assets/icons/profile.png',180,180))
         bioText = """HEllo \nID LINE:Dekuloveallmight"""
+        fontTag = Font(family='leelawadee',size=13)
+        bottomFrame.option_add('*font',fontTag)
         self.imgList = []
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_imagerz(data[0],data[1],data[2])
             self.imgList.append(img)
-        Button(topFrame,image=self.imgList[0],relief=FLAT,bd=0,bg=self.bgColor).pack(side=LEFT)
-        Button(topFrame,image=self.imgList[1],relief=FLAT,bd=0,bg=self.bgColor).pack(side=RIGHT,padx=20)
+        Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=LEFT)
+        Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=RIGHT,padx=20)
         Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
-        Label(bottomFrame,text="Midoriya Izuku",font="leelawadee 22 bold",bg=self.bgColor).pack()
-        bioWidget = Text(bottomFrame,font="leelawadee 13",bg=self.bgColor,width=30,bd=0)  
+        Label(bottomFrame,text="Midoriya Izuku",font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
+        bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)  
         bioWidget.insert(END,bioText)     
         bioWidget.tag_configure("center",justify=CENTER)
         bioWidget.tag_add("center",1.0,END)
         line = float(bioWidget.index(END)) - 1
         bioWidget.config(height=line,state=DISABLED)
-        bioWidget.pack(pady=12)
+        bioWidget.pack()
         topFrame.pack(fill=X)
         bottomFrame.pack(fill=X)
     def tagFrame(self) :
         outerFrame = Frame(self.root,bg=self.bgColor,highlightthickness=2)
-        outerFrame.pack(fill=X)
+        outerFrame.pack(fill=X,pady=20)
+        fontTag = Font(family='leelawadee',size=13,weight='bold')
+        outerFrame.option_add('*font',fontTag)
+        imgPathList = ( ('./assets/buttons/mbtiCyan.png',120,40),
+                        ('./assets/buttons/mbtiGreen.png',120,40),
+                        ('./assets/buttons/mbtiPurple.png',120,40),
+                        ('./assets/buttons/mbtiYellow.png',120,40))   
+        tagList = ("INFJ","ITI","game","travel","sport")
+        if tagList[0][1:3] == "NT" :
+            self.img = self.controller.get_imagerz(imgPathList[0][0],imgPathList[0][1],imgPathList[0][2])
+        elif tagList[0][1:3] == "NF" :
+            self.img = self.controller.get_imagerz(imgPathList[1][0],imgPathList[1][1],imgPathList[1][2])
+        elif tagList[0][1:3] == "ST" :
+            self.img = self.controller.get_imagerz(imgPathList[2][0],imgPathList[2][1],imgPathList[2][2])
+        elif tagList[0][1:3] == "SF" :
+            self.img = self.controller.get_imagerz(imgPathList[3][0],imgPathList[3][1],imgPathList[3][2])
+        self.img2 = self.controller.get_imagerz('./assets/buttons/tagButton.png',120,40)
+        # for i,data in enumerate(imgPathList) :
+        #     img = self.controller.get_imagerz(data[0],data[1],data[2])
+        #     self.imgList.append(img)    
         frame = Frame(outerFrame,bg=self.bgColor)
-        frame.pack()            
-        tagList = ("INTJ","ITI","game","travel","sport")
+        frame.pack(pady=30)            
         # print(tagList[0][1:3])
         for i,data in enumerate(tagList) :
-            Label(frame,text=data,bg=self.bgColor).pack(side=LEFT)
+            if i == 0 :
+                Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
+            else :
+                Label(frame,text=data,image=self.img2,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
     def postFrame(self) :
+        self.img3 = self.controller.get_imagerz('./assets/buttons/buttonPurplerz.png',200,65)
+        var = StringVar()
+        var.set("Hi")
         frame = Frame(self.root,bg=self.bgColor)
+        fontTag = Font(family='leelawadee',size=13)
+        frame.option_add('*font',fontTag)
+        
+        Label(frame,text="Create Post",font="leelawadee 20 bold",bg=self.bgColor).pack(anchor=W,padx=35)
+        Text(frame,width=90,height=4,relief=SUNKEN).pack()
+        Button(frame,text="Post",font='leelawadee 13 bold',fg='white',activeforeground='white',image=self.img3,compound=CENTER,bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=RIGHT,padx=35)
         frame.pack(fill=X)   
+
 
 
 if __name__ == '__main__':
