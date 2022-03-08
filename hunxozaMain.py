@@ -2,6 +2,7 @@ import sqlite3
 from sqlite3 import Error
 from tkinter import *
 from tkinter.font import Font
+from PIL import Image, ImageTk
 
 # connecting to database
 class DBController() :
@@ -34,7 +35,9 @@ class BUFriends(Tk):
         self.geometry("{}x{}+{}+{}".format(w,h,x,y))
         self.iconbitmap("assets/icons/bufriends.ico")
         self.resizable(0,0)
-        self.fontHead = Font(family="leelawadee",size=36,weight="bold")
+        self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
+        self.fontBody = Font(family="leelawadee",size=16)
+        self.option_add('*font',self.fontBody)
         self.switch_frame(ProfilePage)
 # switch page event
     def switch_frame(self, frameClass):
@@ -44,6 +47,11 @@ class BUFriends(Tk):
         self.frame = new_frame
         self.configure(bg = self.frame.bgColor)
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
+
+    def get_imagerz(self, _path, _width, _height):
+        origin = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
+        img = ImageTk.PhotoImage(origin)
+        return img
 class ScrollFrame():
     def __init__(self,root,scrollable):
         # creating
@@ -51,7 +59,7 @@ class ScrollFrame():
         self.scrollable = scrollable
         self.scrollbar = Scrollbar(self.root, orient=VERTICAL,width=0)
         self.scrollbar.pack(fill=Y, side=RIGHT, expand=0)
-        self.canvas = Canvas(self.root, highlightthickness=0, yscrollcommand=self.scrollbar.set)
+        self.canvas = Canvas(self.root, bg=self.root.bgColor,highlightthickness=0, yscrollcommand=self.scrollbar.set)
         self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
         self.scrollbar.config(command=self.canvas.yview)
         # reset the view
@@ -97,12 +105,55 @@ class ScrollFrame():
 class ProfilePage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
-        self.bgColor = 'lightblue'
+        self.bgColor = 'white'
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
-        master = scroll.interior
-        Label(master,text="Registrati",font=controller.fontHead).pack()
+        self.root = scroll.interior
+        self.fontProfilePage = Font(family="leelawadee",size=13)
+        self.option_add('*font',self.fontProfilePage)
+        self.profileFrame()
+        self.tagFrame()
+
+    def profileFrame(self) :
+        topFrame = Frame(self.root,bg=self.bgColor)
+        bottomFrame = Frame(self.root,bg=self.bgColor)
+        imgPathList = ( ('./assets/icons/Back icon.png',50,50),
+                        ('./assets/icons/hamberger icon.png',25,25),
+                        ('./assets/icons/profile icon big.png',150,150))
+        bioText = """HEllo \nID LINE:Dekuloveallmight"""
+        self.imgList = []
+        for i,data in enumerate(imgPathList) :
+            img = self.controller.get_imagerz(data[0],data[1],data[2])
+            self.imgList.append(img)
+        Button(topFrame,image=self.imgList[0],relief=FLAT,bd=0,bg=self.bgColor).pack(side=LEFT)
+        Button(topFrame,image=self.imgList[1],relief=FLAT,bd=0,bg=self.bgColor).pack(side=RIGHT,padx=20)
+        Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
+        Label(bottomFrame,text="Midoriya Izuku",font="leelawadee 22 bold",bg=self.bgColor).pack()
+        bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)  
+        bioWidget.insert(END,bioText)     
+        bioWidget.tag_configure("center",justify=CENTER)
+        bioWidget.tag_add("center",1.0,END)
+        line = float(bioWidget.index(END)) - 1
+        bioWidget.config(height=line,state=DISABLED)
+        bioWidget.pack(pady=12)
+        topFrame.pack(fill=X)
+        bottomFrame.pack(fill=X)
+    def tagFrame(self) :
+        frame = Frame(self.root,bg=self.bgColor)
+        frame.pack()
+        tagList = ("INTJ","ITI","game","travel","sport")
+        img = self.controller.get_imagerz('')
+        for i,data in enumerate(tagList) :
+            Label(frame,text=data).pack(side=LEFT)
+
+
 if __name__ == '__main__':
     app = BUFriends()
+    # conn = DBController.create_connection()
+    # sql = """INSERT INTO test(score) VALUES ("8")"""
+    # if conn is not None:
+    #         DBController.execute_sql(conn, sql)
+    # else:
+    #     print("Error! cannot create the database connection.")
     app.mainloop()
