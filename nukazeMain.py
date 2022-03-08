@@ -320,30 +320,27 @@ class SignUp(Frame):
                     self.controller.switch_frame(SignUp)
                
                 def signup_validator(self):
-                    def local_validator(self):
-                        if "@bumail.net" not in self.regisVarData[0].get():
-                            register_error("BU Friends Exclusive for Bangkok University\nStudent Mail (bumail.net) only")
-                        if self.regisVarData[1].get() != self.regisVarData[2].get():
-                                register_error("Sign Up Password do not Matching")
-                        if not len(self.regisVarData[1].get()) > 8 and (self.regisVarData[1].get()).isalnum():
-                                register_error("Sign Up Password Again\nRequired At Least 8 Characters & Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarData[1].get())))
-                        for i,data in enumerate(self.regisVarData):
-                            if data.get() == "" or data.get().isspace():
-                                register_error("Sign Up Form Information do not Blank")
-                                break
-                            if i == 2:continue 
-                            else:
-                                self.regisDataSubmit.append(data.get())
-                        print(*self.regisDataSubmit)
-                        
+                    self.regisDataSubmit.clear()
+                    if "@bumail.net" not in self.regisVarData[0].get():
+                        register_error("BU Friends Exclusive for Bangkok University\nStudent Mail (bumail.net) only")
+                    if self.regisVarData[1].get() != self.regisVarData[2].get():
+                            register_error("Sign Up Password do not Matching")
+                    if not len(self.regisVarData[1].get()) > 8 and (self.regisVarData[1].get()).isalnum():
+                            register_error("Sign Up Password Again\nRequired At Least 8 Characters & Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarData[1].get())))
+                    for i,data in enumerate(self.regisVarData):
+                        if data.get() == "" or data.get().isspace():
+                            register_error("Sign Up Form Information do not Blank")
+                            break
+                        if i == 2:continue 
+                        else:self.regisDataSubmit.append(data.get())
+                    print(*self.regisDataSubmit)
                     def database_validator(self):
+                        print("Hehe now you check by My Database boi~")
                         pass
-                    
-                    local_validator(self)
                     database_validator(self)
-                    signup_confirm(self)
+                signup_validator(self)
                     
-                def signup_confirm(self):
+                def signup_commit(self):
                     print(self.regisDataSubmit)
                     # sqlSignupUser = """INSERT INTO user (email, password, displayname)
                     #                                 VALUES({},{},{});""".format(self.sign)
@@ -353,7 +350,7 @@ class SignUp(Frame):
                                         ,"BUMail : {} Password1 {}\nDisplayName : {}".format(*self.regisDataSubmit))
                     messagebox.showinfo('Redirecting',"Going to BU Friends  | Sign-in")
                     self.controller.switch_frame(SignIn)
-                signup_validator(self)
+                #signup_validator(self)
             
 
 class DashBoard(Frame):
