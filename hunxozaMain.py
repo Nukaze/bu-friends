@@ -67,7 +67,7 @@ class ScrollFrame():
         self.canvas.yview_moveto(0)
 
         # create a frame inside the canvas which will be scrolled with it
-        self.interior = Frame(self.canvas)
+        self.interior = Frame(self.canvas,bg=self.root.bgColor)
         self.interior_id = self.canvas.create_window(0, 0, window=self.interior,anchor=NW)
 
         self.interior.bind('<Configure>', self._configure_interior)
@@ -108,10 +108,10 @@ class ProfilePage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,FALSE)
+        scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
-        self.fontProfilePage = Font(family="leelawadee",size=13)
-        self.option_add('*font',self.fontProfilePage)
+        self.fontTag = Font(family="leelawadee",size=13,weight='bold')
+        self.option_add('*font',self.fontTag)
         self.profileFrame()
         self.tagFrame()
 
@@ -130,7 +130,7 @@ class ProfilePage(Frame):
         Button(topFrame,image=self.imgList[1],relief=FLAT,bd=0,bg=self.bgColor).pack(side=RIGHT,padx=20)
         Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
         Label(bottomFrame,text="Midoriya Izuku",font="leelawadee 22 bold",bg=self.bgColor).pack()
-        bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)  
+        bioWidget = Text(bottomFrame,font="leelawadee 13",bg=self.bgColor,width=30,bd=0)  
         bioWidget.insert(END,bioText)     
         bioWidget.tag_configure("center",justify=CENTER)
         bioWidget.tag_add("center",1.0,END)
@@ -140,12 +140,17 @@ class ProfilePage(Frame):
         topFrame.pack(fill=X)
         bottomFrame.pack(fill=X)
     def tagFrame(self) :
-        frame = Frame(self.root,bg=self.bgColor)
-        frame.pack()
+        outerFrame = Frame(self.root,bg=self.bgColor,highlightthickness=2)
+        outerFrame.pack(fill=X)
+        frame = Frame(outerFrame,bg=self.bgColor)
+        frame.pack()            
         tagList = ("INTJ","ITI","game","travel","sport")
-        img = self.controller.get_imagerz('')
+        # print(tagList[0][1:3])
         for i,data in enumerate(tagList) :
-            Label(frame,text=data).pack(side=LEFT)
+            Label(frame,text=data,bg=self.bgColor).pack(side=LEFT)
+    def postFrame(self) :
+        frame = Frame(self.root,bg=self.bgColor)
+        frame.pack(fill=X)   
 
 
 if __name__ == '__main__':
