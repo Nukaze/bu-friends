@@ -102,6 +102,7 @@ class ScrollFrame():
 
     def _unbind_from_mousewheel(self, event):
         self.root.unbind_all("<MouseWheel>")
+
 class ProfilePage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -110,10 +111,28 @@ class ProfilePage(Frame):
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
+        self.profile = infoOnProfile(self.root,self.bgColor,self.controller)
+        self.createPostFrame()
+    def createPostFrame(self) :
+        self.img3 = self.controller.get_imagerz('./assets/buttons/buttonPurplerz.png',200,65)
+        var = StringVar()
+        var.set("Hi")
+        frame = Frame(self.root,bg=self.bgColor)
+        fontTag = Font(family='leelawadee',size=13)
+        frame.option_add('*font',fontTag)
+        Label(frame,text="Create Post",font="leelawadee 20 bold",bg=self.bgColor).pack(anchor=W,padx=35)
+        Text(frame,width=90,height=4,relief=SUNKEN).pack()
+        Button(frame,text="Post",font='leelawadee 13 bold',fg='white',
+        activeforeground='white',image=self.img3,compound=CENTER,bd=0,
+        bg=self.bgColor,activebackground=self.bgColor).pack(side=RIGHT,padx=35,pady=10)
+        frame.pack(fill=X)   
+class infoOnProfile :
+    def __init__(self, root, bgcolor,controller):
+        self.root = root
+        self.bgColor = bgcolor
+        self.controller=controller
         self.profileFrame()
         self.tagFrame()
-        self.postFrame()
-
     def profileFrame(self) :
         topFrame = Frame(self.root,bg=self.bgColor)
         bottomFrame = Frame(self.root,bg=self.bgColor)
@@ -158,33 +177,14 @@ class ProfilePage(Frame):
             self.img = self.controller.get_imagerz(imgPathList[2][0],imgPathList[2][1],imgPathList[2][2])
         elif tagList[0][1:3] == "SF" :
             self.img = self.controller.get_imagerz(imgPathList[3][0],imgPathList[3][1],imgPathList[3][2])
-        self.img2 = self.controller.get_imagerz('./assets/buttons/tagButton.png',120,40)
-        # for i,data in enumerate(imgPathList) :
-        #     img = self.controller.get_imagerz(data[0],data[1],data[2])
-        #     self.imgList.append(img)    
+        self.img2 = self.controller.get_imagerz('./assets/buttons/tagButton.png',120,40)  
         frame = Frame(outerFrame,bg=self.bgColor)
         frame.pack(pady=30)            
-        # print(tagList[0][1:3])
         for i,data in enumerate(tagList) :
             if i == 0 :
                 Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
             else :
                 Label(frame,text=data,image=self.img2,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
-    def postFrame(self) :
-        self.img3 = self.controller.get_imagerz('./assets/buttons/buttonPurplerz.png',200,65)
-        var = StringVar()
-        var.set("Hi")
-        frame = Frame(self.root,bg=self.bgColor)
-        fontTag = Font(family='leelawadee',size=13)
-        frame.option_add('*font',fontTag)
-        
-        Label(frame,text="Create Post",font="leelawadee 20 bold",bg=self.bgColor).pack(anchor=W,padx=35)
-        Text(frame,width=90,height=4,relief=SUNKEN).pack()
-        Button(frame,text="Post",font='leelawadee 13 bold',fg='white',activeforeground='white',image=self.img3,compound=CENTER,bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=RIGHT,padx=35)
-        frame.pack(fill=X)   
-
-
-
 if __name__ == '__main__':
     app = BUFriends()
     # conn = DBController.create_connection()
