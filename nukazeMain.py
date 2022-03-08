@@ -269,13 +269,13 @@ class SignUp(Frame):
             self.canvasFrame.create_image(0,0,image=self.bgImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
             self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
-            self.regisVarData,self.regisDataSubmit = [],[]
+            self.regisVarLst, self.regisDataSubmit = [], []
             def zone_widgets():
                 self.entryLst = []
                 self.entryimg = self.controller.get_image('assets/entrys/entry2rz.png')
                 for i in range(len(self.regisInfoLst)):
-                    self.regisVarData.append(StringVar())
-                    self.entryLst.append(self.signup_form(self.root, i, self.regisVarData[i]))
+                    self.regisVarLst.append(StringVar())
+                    self.entryLst.append(self.signup_form(self.root, i, self.regisVarLst[i]))
                     x,y = 260,70*(i+2)
                     self.canvasFrame.create_image(x,y,image=self.entryimg,anchor="nw")
                     self.entryLst[i].place(x=x+20, y=y+10)
@@ -313,21 +313,21 @@ class SignUp(Frame):
             return entry
             
         def signup_submit(self):
-                def register_error(errorFormat="unknow error"):
-                    self.regisVarData.clear()
+                def register_error(errorFormat="Unknow error, Please Contact Moderater"):
+                    self.regisVarLst.clear()
                     self.regisDataSubmit.clear()
                     messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
                     self.controller.switch_frame(SignUp)
                
                 def signup_validator(self):
                     self.regisDataSubmit.clear()
-                    if "@bumail.net" not in self.regisVarData[0].get():
-                        register_error("BU Friends Exclusive for Bangkok University\nStudent Mail (bumail.net) only")
-                    if self.regisVarData[1].get() != self.regisVarData[2].get():
+                    if "@bumail.net" not in self.regisVarLst[0].get():
+                        register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
+                    if self.regisVarLst[1].get() != self.regisVarLst[2].get():
                             register_error("Sign Up Password do not Matching")
-                    if not len(self.regisVarData[1].get()) > 8 and (self.regisVarData[1].get()).isalnum():
-                            register_error("Sign Up Password Again\nRequired At Least 8 Characters & Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarData[1].get())))
-                    for i,data in enumerate(self.regisVarData):
+                    if not len(self.regisVarLst[1].get()) > 8 and (self.regisVarLst[1].get()).isalnum():
+                            register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
+                    for i,data in enumerate(self.regisVarLst):
                         if data.get() == "" or data.get().isspace():
                             register_error("Sign Up Form Information do not Blank")
                             break
