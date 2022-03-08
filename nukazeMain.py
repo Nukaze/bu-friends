@@ -1,18 +1,15 @@
 '''
     Nukaze BU Friends
 '''
-from asyncio import events
 from tkinter import *
 from tkinter import ttk,messagebox
 from tkinter.font import Font
+from PIL import Image, ImageTk
 from sqlite3 import Error
 import sqlite3
 import os
 import hashlib
 import datetime
-from turtle import clear
-
-from gevent import config
 
 def BUFriends_Time():
     timeFull = datetime.datetime.now()
@@ -78,6 +75,11 @@ class BUcontrollerFrame(Tk):
         img = PhotoImage(file = _path)
         return img
     
+    def get_imagerz(self, _path, _width, _height):
+        origin = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
+        img = ImageTk.PhotoImage(origin)
+        return img
+    
 
 class SignIn(Frame):
 
@@ -131,17 +133,16 @@ class SignIn(Frame):
                         self.userEntryLst[index][0].config(fg=self.fg)
                     def key_event(index):
                         self.userEntryLst[index][0].config(fg=self.fg)
-                    def entry_binding(i):
-                        self.userEntryLst[i][0].insert(0,self.userEntryLst[i][1])
-                        self.userEntryLst[i][0].config(fg=self.fgHolder)
-                        self.userEntryLst[i][0].bind('<Button-1>',lambda e,index=i:clear_event(i))
-                        self.userEntryLst[i][0].bind('<Key>',lambda e,index=i:key_event(i))
+                    def entry_binding(index):
+                        self.userEntryLst[index][0].insert(0,self.userEntryLst[index][1])
+                        self.userEntryLst[index][0].config(fg=self.fgHolder)
+                        self.userEntryLst[index][0].bind('<Button-1>',lambda e,index=index:clear_event(index))
+                        self.userEntryLst[index][0].bind('<Key>',lambda e,index=index:key_event(index))
                     for i in range(len(self.userEntryLst)):
                         entry_binding(i)
                 binding_events()
                 self.userName.place(relx=0.17,rely=0.18)
                 self.userPass.place(relx=0.17,rely=0.70)
-                    
             def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
                 self.imgBtn = self.controllerFrame.get_image('assets/buttons/buttonRaw.png')
@@ -205,7 +206,7 @@ class SignUp(Frame):
             self.canvasFrame.pack(expand=1,fill="both")
             self.bgImg = self.controllerFrame.get_image("assets/images/regisbg.png")
             self.canvasFrame.create_image(0,0,image=self.bgImg,anchor="nw")
-            self.canvasFrame.create_text(450,80,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
+            self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
             def zone_widgets():
                 self.entryLst = []
                 self.entryimg = self.controllerFrame.get_image('assets/entrys/entry2rz.png')
@@ -221,28 +222,28 @@ class SignUp(Frame):
                         self.entryLst[index].config(fg=self.fg)
                     def key_event(index):
                         self.entryLst[index].config(fg=self.fg)
-                    def entry_binding(i):
-                        self.entryLst[i].bind('<Button-1>',lambda e, index=i:clear_event(i))
-                        self.entryLst[i].bind('<Key>', lambda e, index=i:key_event(i))
+                    def entry_binding(index):
+                        self.entryLst[index].bind('<Button-1>',lambda e, index=index:clear_event(index))
+                        self.entryLst[index].bind('<Key>', lambda e, index=index:key_event(index))
                     for i in range(len(self.entryLst)):
                         entry_binding(i)
                 events()                
-            zone_widgets()
             def zone_buttons():
-                self.imgBtn = self.controllerFrame.get_image('assets/buttons/signuprz.png')
-                self.imgBtn2 = self.controllerFrame.get_image('assets/buttons/buttonGreyrz.png')
+                self.imgBtn = self.controllerFrame.get_image('assets/buttons/signup_newrz.png')
+                self.imgBtn2 = self.controllerFrame.get_image('assets/buttons/back_newrz.png')
                 self.signupBtn = Button(root, text="Sign Up", command=self.signup_submit, image=self.imgBtn,fg="#ffffff"
                                        ,bd=-10,compound="center")
                 self.backBtn = Button(root, text="Cancel", command=lambda:self.controllerFrame.switch_frame(SignIn), image=self.imgBtn2
                                        , foreground="white",bd=-10,compound="center")
-                self.signupWin = self.canvasFrame.create_window(240,430,anchor="nw",window=self.signupBtn)
-                self.backWin = self.canvasFrame.create_window(500,445,anchor="nw",window=self.backBtn)
+                self.signupWin = self.canvasFrame.create_window(250,430,anchor="nw",window=self.signupBtn)
+                self.backWin = self.canvasFrame.create_window(455,430,anchor="nw",window=self.backBtn)
+            zone_widgets()
             zone_buttons() 
-            
-        def signup_form(self,_root, _idx, _entVar):
+        # class method
+        def signup_form(self,_root, _index, _entVar):
             entry = Entry(_root, textvariable=_entVar, justify="left",relief="flat",fg=self.fgHolder,width=30)
-            entry.insert(0,self.regisInfoLst[_idx])
-            if _idx == 1 or _idx == 2:
+            entry.insert(0,self.regisInfoLst[_index])
+            if _index == 1 or _index == 2:
                 entry.config(show="*")
             return entry
             
@@ -266,11 +267,10 @@ class SignUp(Frame):
                     signup_password_validate(self)
                             
                 def signup_password_validate(self):
-                    for i,data in enumerate(self.regisVarData):
-                        if self.regisVarData[1].get() != self.regisVarData[2].get():
-                            register_error("Password is not Matching")
-                            break
-                        else:self.regisDataSubmit.append(data.get())
+                    #for i,data in enumerate(self.regisVarData):
+                    if self.regisVarData[1].get() != self.regisVarData[2].get():
+                        register_error("Password is not Matching")
+                    else:self.regisDataSubmit.append(data.get())
                     self.regisDataSubmit.pop(2)    #remove second password
                     signup_confirm(self)
                     
