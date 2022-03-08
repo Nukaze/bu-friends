@@ -3,6 +3,7 @@
 '''
 from tkinter import *
 from tkinter import ttk,messagebox
+from tkinter import font
 from tkinter.font import Font
 from PIL import Image, ImageTk
 from sqlite3 import Error
@@ -44,7 +45,7 @@ class DBController() :
         print("Error! cannot create the database connection.")'''
     
 
-class BUcontrollerFrame(Tk):
+class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.frame = None
@@ -120,9 +121,9 @@ class SignIn(Frame):
                 self.icon2.place(relx=0.55,rely=0.485)
                 Label(self.entryFrame,image=self.entryImg,bg=self.bg).pack(pady=10)
                 Label(self.entryFrame,image=self.entryImg,bg=self.bg,width=350,height=50).pack()
-                self.userName = Entry(self.entryFrame,width=25,justify="left",relief="flat")
-                self.userPass = Entry(self.entryFrame,width=25,justify="left",relief="flat")
-                self.userEntryLst = [[self.userName,"Enter BU-Mail"],[self.userPass,"Enter Password"]]
+                self.userName = Entry(self.entryFrame,font="leelawadee 14",width=27,justify="left",relief="flat")
+                self.userPass = Entry(self.entryFrame,font="leelawadee 14",width=27,justify="left",relief="flat")
+                self.userEntryLst = [[self.userName,"Enter Your BU-Mail"],[self.userPass,"Enter Your Password"]]
                 self.userName.place(relx=0.17,rely=0.18)
                 self.userPass.place(relx=0.17,rely=0.68)
                 def binding_events():
@@ -135,25 +136,30 @@ class SignIn(Frame):
                         if index == 1:
                             self.userEntryLst[index][0].config(show="*")
                         self.userEntryLst[index][0].config(fg=self.fg)
+                    def access_event(index):
+                        if index == 1:
+                            self.login_req()
+                        
                     def entry_binding(index):
                         self.userEntryLst[index][0].insert(0,self.userEntryLst[index][1])
                         self.userEntryLst[index][0].config(fg=self.fgHolder)
-                        self.userEntryLst[index][0].bind('<Button-1>',lambda e,index=index:clear_event(index))
-                        self.userEntryLst[index][0].bind('<Key>',lambda e,index=index:key_event(index))
+                        self.userEntryLst[index][0].bind('<Button-1>',lambda e,index=index: clear_event(index))
+                        self.userEntryLst[index][0].bind('<Key>',lambda e,index=index: key_event(index))
+                        self.userEntryLst[index][0].bind('<Return>',lambda e, index=index: access_event(index))
                     for i in range(len(self.userEntryLst)):
                         entry_binding(i)
                 binding_events()
             def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
                 self.imgBtn = self.controllerFrame.get_image('assets/buttons/buttonRaw.png')
-                self.loginBtn = Button(self.frameBtn, text="Log-in", command=self.login_req, image=self.imgBtn
+                self.loginBtn = Button(self.frameBtn, text="Sign-In", command=self.login_req, image=self.imgBtn
                                        , foreground="white", bg=self.bg,
                                     activebackground=self.bg,activeforeground="white",bd=0,compound="center")
                 self.loginBtn.pack(side=TOP,pady=10,ipady=0,padx=3,expand=1)
                 self.frameDonthave = Frame(self.frameBtn,bg=self.bg)
                 Label(self.frameDonthave,text="Don't have an account?",font="leelawadee 10",bg=self.bg).pack(side="left",expand=1)
                 self.signupBtn = Label(self.frameDonthave,text="Sign-Up",font="leelawadee 10 underline",bg=self.bg,fg="#0000ff")
-                self.signupBtn.bind('<Enter>',self.signup_mouseover)
+                self.signupBtn.bind('<Enter>',self.signup_mouseover)    
                 self.signupBtn.bind('<Leave>',self.signup_mouseleave)
                 self.signupBtn.bind('<Button-1>',self.signup_req)
             #callwidgets
@@ -176,10 +182,14 @@ class SignIn(Frame):
         def login_req(self):
             print(self.userName.get())
             print(self.userPass.get())
-            self.controllerFrame.switch_frame(DashBoard)
-        
+            if messagebox.askyesno('Sign-In',"{}, {}".format(self.userName.get(),self.userPass.get())):
+                self.login_submit()
+            else:
+                self.controllerFrame.switch_frame(SignIn)
+            
         def login_submit(self):
-            pass
+            print("go")
+            self.controllerFrame.switch_frame(DashBoard)
         
         def signup_req(self,e):
                 self.controllerFrame.switch_frame(SignUp)
@@ -197,7 +207,7 @@ class SignUp(Frame):
         def __init__(self, root, controllerFrame):
             self.controllerFrame = controllerFrame
             self.root = root
-            self.controllerFrame.title("BU Friends |  Sign-Up")
+            self.controllerFrame.title("BU Friends  |  Sign-Up")
             self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
             self.canvasFrame = Canvas(root,width=900,height=600,bd=0)
             self.canvasFrame.pack(expand=1,fill="both")
@@ -330,9 +340,9 @@ if __name__ == '__main__':
     sqldrop = """ DROP TABLE testTable;"""
     conn = DBController.create_connection()
     if conn is not None:
-        print("connection complete!")
+        print("connection completely!")
         #DBController.execute_sql(conn, sqlinto)
     else:
         print("Error Connection incomplete!")
     BUFriends_Time()
-    BUcontrollerFrame().mainloop()
+    BUFriends().mainloop()
