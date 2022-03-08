@@ -1,6 +1,7 @@
 '''
     Nukaze BU Friends
 '''
+from asyncio import events
 from tkinter import *
 from tkinter import ttk,messagebox
 from tkinter.font import Font
@@ -9,6 +10,9 @@ import sqlite3
 import os
 import hashlib
 import datetime
+from turtle import clear
+
+from gevent import config
 
 def BUFriends_Time():
     timeFull = datetime.datetime.now()
@@ -120,14 +124,24 @@ class SignIn(Frame):
                 Label(self.entryFrame,image=self.entryImg,bg=self.bg,width=350,height=50).pack()
                 self.userName = Entry(self.entryFrame,width=25,justify="left",relief="flat")
                 self.userPass = Entry(self.entryFrame,width=25,show="*",justify="left",relief="flat")
-                self.userName.insert(0,"Enter BU-Mail")
-                self.userPass.insert(0,"Enter Password")
-                self.userName.config(fg=self.fgHolder)
-                self.userPass.config(fg=self.fgHolder)
-                self.userName.bind('<Button-1>',self.clear_name)
-                self.userPass.bind('<Button-1>',self.clear_pass)
+                self.userEntryLst = [[self.userName,"Enter BU-Mail"],[self.userPass,"Enter Password"]]
+                def binding_events():
+                    def clear_event(index):    
+                        self.userEntryLst[index][0].delete(0,END)
+                        self.userEntryLst[index][0].config(fg=self.fg)
+                    def key_event(index):
+                        self.userEntryLst[index][0].config(fg=self.fg)
+                    def entry_binding(i):
+                        self.userEntryLst[i][0].insert(0,self.userEntryLst[i][1])
+                        self.userEntryLst[i][0].config(fg=self.fgHolder)
+                        self.userEntryLst[i][0].bind('<Button-1>',lambda e,index=i:clear_event(i))
+                        self.userEntryLst[i][0].bind('<Key>',lambda e,index=i:key_event(i))
+                    for i in range(len(self.userEntryLst)):
+                        entry_binding(i)
+                binding_events()
                 self.userName.place(relx=0.17,rely=0.18)
                 self.userPass.place(relx=0.17,rely=0.70)
+                    
             def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
                 self.imgBtn = self.controllerFrame.get_image('assets/buttons/buttonRaw.png')
@@ -135,15 +149,13 @@ class SignIn(Frame):
                                        , foreground="white", bg=self.bg,
                                     activebackground=self.bg,activeforeground="white",bd=0,compound="center")
                 self.loginBtn.pack(side=TOP,pady=10,ipady=0,padx=3,expand=1)
-                self.loginBtn.bind('<Enter>',self.login_mouseover)
-                self.loginBtn.bind('<Leave>',self.login_mouseleave)
                 self.frameDonthave = Frame(self.frameBtn,bg=self.bg)
                 Label(self.frameDonthave,text="Don't have an account?",font="leelawadee 10",bg=self.bg).pack(side="left",expand=1)
-                self.signupBtn = Label(self.frameDonthave,text="Sign-Up",font="leelawadee 10 underline",bg=self.bg,fg="blue")
+                self.signupBtn = Label(self.frameDonthave,text="Sign-Up",font="leelawadee 10 underline",bg=self.bg,fg="#0000ff")
                 self.signupBtn.bind('<Enter>',self.signup_mouseover)
                 self.signupBtn.bind('<Leave>',self.signup_mouseleave)
                 self.signupBtn.bind('<Button-1>',self.signup_req)
-            #displaywidgets
+            #callwidgets
             zone_canvas()
             zone_entrys()
             zone_buttons()
@@ -154,27 +166,16 @@ class SignIn(Frame):
             self.frameBtn.pack(side="top", pady=0, expand=1)
             self.frameDonthave.pack(side="bottom",expand=1)
             self.signupBtn.pack(side=LEFT,padx=3)
-
-        def clear_name(self,e):
-            self.userName.delete(0, END)
-            self.userName.config(fg=self.fg)
-        def clear_pass(self,e):
-            self.userPass.delete(0, END)
-            self.userPass.config(fg=self.fg)
-        def login_mouseover(self,e):
-            self.loginBtn.config()
-        def login_mouseleave(self,e):
-            self.loginBtn.config(width=0)
+        
         def signup_mouseover(self,e):
-            self.signupBtn.config(fg="purple")
+            self.signupBtn.config(fg="#7700ff")
         def signup_mouseleave(self,e):
-            self.signupBtn.config(fg="blue")
-
+            self.signupBtn.config(fg="#0000ff")
+        
         def login_req(self):
             print(self.userName.get())
             print(self.userPass.get())
             self.controllerFrame.switch_frame(DashBoard)
-            #userPass
         
         def login_submit(self):
             pass
@@ -211,27 +212,21 @@ class SignUp(Frame):
                 for i in range(len(self.regisInfoLst)):
                     self.regisVarData.append(StringVar())
                     self.entryLst.append(self.signup_form(self.root, i, self.regisVarData[i]))
-                    x,y = 250,70*(i+2)
+                    x,y = 260,70*(i+2)
                     self.canvasFrame.create_image(x,y,image=self.entryimg,anchor="nw")
                     self.entryLst[i].place(x=x+20,y=y+10)
-                def entry_bind():
-                    def clear_ent0(e):
-                        self.entryLst[0].delete(0,END)
-                        self.entryLst[0].config(fg=self.fg)
-                    def clear_ent1(e):
-                        self.entryLst[1].delete(0,END)
-                        self.entryLst[1].config(fg=self.fg)
-                    def clear_ent2(e):
-                        self.entryLst[2].delete(0,END)
-                        self.entryLst[2].config(fg=self.fg)
-                    def clear_ent3(e):
-                        self.entryLst[3].delete(0,END)
-                        self.entryLst[3].config(fg=self.fg)
-                    self.entryLst[0].bind('<Button-1>',clear_ent0)
-                    self.entryLst[1].bind('<Button-1>',clear_ent1)
-                    self.entryLst[2].bind('<Button-1>',clear_ent2)
-                    self.entryLst[3].bind('<Button-1>',clear_ent3)
-                entry_bind()                
+                def events():
+                    def clear_event(index):
+                        self.entryLst[index].delete(0,END)
+                        self.entryLst[index].config(fg=self.fg)
+                    def key_event(index):
+                        self.entryLst[index].config(fg=self.fg)
+                    def entry_binding(i):
+                        self.entryLst[i].bind('<Button-1>',lambda e, index=i:clear_event(i))
+                        self.entryLst[i].bind('<Key>', lambda e, index=i:key_event(i))
+                    for i in range(len(self.entryLst)):
+                        entry_binding(i)
+                events()                
             zone_widgets()
             def zone_buttons():
                 self.imgBtn = self.controllerFrame.get_image('assets/buttons/signuprz.png')
@@ -250,7 +245,7 @@ class SignUp(Frame):
             if _idx == 1 or _idx == 2:
                 entry.config(show="*")
             return entry
-
+            
         def signup_submit(self):
                 def register_error(errorFormat="unknow error"):
                     self.regisVarData.clear()
