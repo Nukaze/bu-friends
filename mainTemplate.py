@@ -1,8 +1,10 @@
 import sqlite3
+import hashlib
 from sqlite3 import Error
 from tkinter import *
-from tkinter import messagebox
+from tkinter import ttk,messagebox
 from tkinter.font import Font
+from PIL import Image, ImageTk
 # connecting to database
 class DBController() :
     def create_connection():
@@ -46,8 +48,12 @@ class BUFriends(Tk):
         self.configure(bg = self.frame.bgColor)
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
 # get image from path
-    def get_imageraw(self, _path):
+    def get_image(self, _path):
         img = PhotoImage(file = _path)
+        return img
+    def get_imagerz(self, _path, _width, _height):
+        origin = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
+        img = ImageTk.PhotoImage(origin)
         return img
 class ScrollFrame():
     def __init__(self,root,scrollable):
