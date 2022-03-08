@@ -79,6 +79,57 @@ class BUFriends(Tk):
         img = ImageTk.PhotoImage(origin)
         return img
     
+    
+class ScrollFrame():
+    def __init__(self,root,scrollable):
+        # creating
+        self.root = root
+        self.scrollable = scrollable
+        self.scrollbar = Scrollbar(self.root, orient=VERTICAL,width=0)
+        self.scrollbar.pack(fill=Y, side=RIGHT, expand=0)
+        self.canvas = Canvas(self.root, bg=self.root.bgColor,highlightthickness=0, yscrollcommand=self.scrollbar.set)
+        self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
+        self.scrollbar.config(command=self.canvas.yview)
+        # reset the view
+        self.canvas.xview_moveto(0)
+        self.canvas.yview_moveto(0)
+        # create a frame inside the canvas which will be scrolled with it
+        self.interior = Frame(self.canvas,bg=self.root.bgColor)
+        self.interior_id = self.canvas.create_window(0, 0, window=self.interior,anchor=NW)
+        self.interior.bind('<Configure>', self._configure_interior)
+        self.canvas.bind('<Configure>', self._configure_canvas)
+        self.canvas.bind('<Enter>', self._bind_to_mousewheel)
+        self.canvas.bind('<Leave>', self._unbind_from_mousewheel)
+        # track changes to the canvas and frame width and sync them,
+        # also updating the scrollbar
+
+    def _configure_interior(self, event):
+        # update the scrollbars to match the size of the inner frame
+        size = (self.interior.winfo_reqwidth(), self.interior.winfo_reqheight())
+        print(size)
+        self.canvas.config(scrollregion="0 0 %s %s" % size)
+        if self.interior.winfo_reqwidth() != self.root.winfo_width():
+            # update the canvas's width to fit the inner frame
+            self.canvas.config(width=self.interior.winfo_reqwidth())
+
+    def _configure_canvas(self, event):
+        if self.interior.winfo_reqwidth() != self.root.winfo_width():
+            # update the inner frame's width to fill the canvas
+            self.canvas.itemconfigure(self.interior_id, width=self.root.winfo_width())
+
+    # This can now handle either windows or linux platforms
+    def _on_mousewheel(self, event):
+        if self.scrollable == TRUE :
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        else :
+            self.canvas.yview_scroll(0, "units")
+            
+    def _bind_to_mousewheel(self, event):
+        self.root.bind_all("<MouseWheel>", self._on_mousewheel)
+
+    def _unbind_from_mousewheel(self, event):
+        self.root.unbind_all("<MouseWheel>")
+        
 
 class SignIn(Frame):
     def __init__(self, controllerFrame):
@@ -266,24 +317,24 @@ class SignUp(Frame):
                     self.controllerFrame.switch_frame(SignUp)
                
                 def signup_validator(self):
-                    for i,data in enumerate(self.regisVarData):
-                        if data.get() == "" or data.get().isspace():
-                            register_error("Sign Up Form Information not Complete")
-                            break
-                    signup_email_validate(self)
-
-                def signup_email_validate(self):
-                    if "@bumail.net" in self.regisVarData[0].get():
-                        signup_password_validate(self)
-                    register_error("BU Friends Exclusive for \nBangkok University Student Mail (bumail.net) only")
-                            
-                def signup_password_validate(self):
-                    for i,data in enumerate(self.regisVarData):
+                    def local_validator(self):
+                        if "@bumail.net" not in self.regisVarData[0].get():
+                            register_error("BU Friends Exclusive for Bangkok University\nStudent Mail (bumail.net) only")
                         if self.regisVarData[1].get() != self.regisVarData[2].get():
-                            register_error("Password do not Matching")
-                            break
-                        else:self.regisDataSubmit.append(data.get())
-                    self.regisDataSubmit.pop(2)    #remove second password
+                                register_error("Sign Up Password do not Matching")
+                        for i,data in enumerate(self.regisVarData):
+                            if data.get() == "" or data.get().isspace():
+                                register_error("Sign Up Form Information do not Blank")
+                                break
+                            else:
+                                self.regisDataSubmit.append(data.get())
+                        self.regisDataSubmit.pop(2)
+                        print(*self.regisDataSubmit)
+                    def database_validator():
+                        pass
+                    
+                    local_validator()
+                    database_validator()
                     signup_confirm(self)
                     
                 def signup_confirm(self):
@@ -297,6 +348,7 @@ class SignUp(Frame):
                     messagebox.showinfo('Redirecting',"Going to BU Friends  | Sign-in")
                     self.controllerFrame.switch_frame(SignIn)
                 signup_validator(self)
+            
 
 
 class DashBoard(Frame):
