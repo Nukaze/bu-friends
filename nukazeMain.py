@@ -1,6 +1,7 @@
 '''
     Nukaze BU Friends
 '''
+
 from tkinter import *
 from tkinter import ttk,messagebox
 from tkinter import font
@@ -204,7 +205,7 @@ class SignIn(Frame):
             def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
                 self.imgBtn = self.controller.get_image('assets/buttons/buttonRaw.png')
-                self.loginBtn = Button(self.frameBtn, text="Sign-In", command=lambda:self.controller.switch_frame(ProfilePage), image=self.imgBtn
+                self.loginBtn = Button(self.frameBtn, text="Sign-In", command=lambda:self.controller.switch_frame(DashBoard), image=self.imgBtn
                                        , foreground="white", bg=self.bg,
                                     activebackground=self.bg,activeforeground="white",bd=0,compound="center")
                 self.loginBtn.pack(side=TOP,pady=10,ipady=0,padx=3,expand=1)
@@ -324,19 +325,22 @@ class SignUp(Frame):
                             register_error("BU Friends Exclusive for Bangkok University\nStudent Mail (bumail.net) only")
                         if self.regisVarData[1].get() != self.regisVarData[2].get():
                                 register_error("Sign Up Password do not Matching")
+                        if not len(self.regisVarData[1].get()) > 8 and (self.regisVarData[1].get()).isalnum():
+                                register_error("Sign Up Password Again\nRequired At Least 8 Characters & Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarData[1].get())))
                         for i,data in enumerate(self.regisVarData):
                             if data.get() == "" or data.get().isspace():
                                 register_error("Sign Up Form Information do not Blank")
                                 break
+                            if i == 2:continue 
                             else:
                                 self.regisDataSubmit.append(data.get())
-                        self.regisDataSubmit.pop(2)
                         print(*self.regisDataSubmit)
-                    def database_validator():
+                        
+                    def database_validator(self):
                         pass
                     
-                    local_validator()
-                    database_validator()
+                    local_validator(self)
+                    database_validator(self)
                     signup_confirm(self)
                     
                 def signup_confirm(self):
@@ -357,8 +361,9 @@ class DashBoard(Frame):
         Frame.__init__(self,controllerFrame)
         self.bgColor = "grey"
         Frame.configure(self,bg=self.bgColor)
-        self.pack(expand=1)
-        self.DashBoardContent(self,controllerFrame)
+        self.pack()
+        self.root = ScrollFrame(self,True).interior
+        self.DashBoardContent(self.root,controllerFrame)
 
     class DashBoardContent:
         def __init__(self, root,controllerFrame):
