@@ -14,16 +14,15 @@ import datetime
 def BUFriends_Time():
     timeFull = datetime.datetime.now()
     timeNow = timeFull.strftime("%d-%b-%Y") + " " + timeFull.strftime("( %H:%M:%S )")
-    print(timeFull, timeNow)
+    print("[{}]\n[{}]".format(timeFull,timeNow))
     return timeNow
-
 
 class DBController() :
     def create_connection():
         conn = None
         try:
             conn = sqlite3.connect(r"./database/BUFriends.db")
-            conn.execute("PRAGMA foreign_keys = 1")
+            conn.execute("PRAGMA foreign_keys = 1")                 # Allow Foreign Key
             print(sqlite3.version)
         except Error as e:
             print(e)
@@ -46,7 +45,6 @@ class DBController() :
     
 
 class BUcontrollerFrame(Tk):
-
     def __init__(self):
         Tk.__init__(self)
         self.frame = None
@@ -82,7 +80,6 @@ class BUcontrollerFrame(Tk):
     
 
 class SignIn(Frame):
-
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
         self.bgColor,self.fg = "#B6E0F7","#cc07e6"
@@ -91,7 +88,6 @@ class SignIn(Frame):
         self.SignInContent(self, controllerFrame)
 
     class SignInContent:
-        
         def __init__(self, root, controllerFrame):
             self.bg,self.bgentry,self.fghead,self.fg,self.fgHolder = "#B6E0F7","#ffffff","#000000","#333333","#999999"
             self.controllerFrame = controllerFrame
@@ -125,13 +121,19 @@ class SignIn(Frame):
                 Label(self.entryFrame,image=self.entryImg,bg=self.bg).pack(pady=10)
                 Label(self.entryFrame,image=self.entryImg,bg=self.bg,width=350,height=50).pack()
                 self.userName = Entry(self.entryFrame,width=25,justify="left",relief="flat")
-                self.userPass = Entry(self.entryFrame,width=25,show="*",justify="left",relief="flat")
+                self.userPass = Entry(self.entryFrame,width=25,justify="left",relief="flat")
                 self.userEntryLst = [[self.userName,"Enter BU-Mail"],[self.userPass,"Enter Password"]]
+                self.userName.place(relx=0.17,rely=0.18)
+                self.userPass.place(relx=0.17,rely=0.68)
                 def binding_events():
                     def clear_event(index):    
+                        if index == 1:
+                            self.userEntryLst[index][0].config(show="*")
                         self.userEntryLst[index][0].delete(0,END)
                         self.userEntryLst[index][0].config(fg=self.fg)
                     def key_event(index):
+                        if index == 1:
+                            self.userEntryLst[index][0].config(show="*")
                         self.userEntryLst[index][0].config(fg=self.fg)
                     def entry_binding(index):
                         self.userEntryLst[index][0].insert(0,self.userEntryLst[index][1])
@@ -141,8 +143,6 @@ class SignIn(Frame):
                     for i in range(len(self.userEntryLst)):
                         entry_binding(i)
                 binding_events()
-                self.userName.place(relx=0.17,rely=0.18)
-                self.userPass.place(relx=0.17,rely=0.70)
             def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
                 self.imgBtn = self.controllerFrame.get_image('assets/buttons/buttonRaw.png')
@@ -186,7 +186,6 @@ class SignIn(Frame):
             
 
 class SignUp(Frame):
-
     def __init__(self,controllerFrame):
         Frame.__init__(self,controllerFrame)
         self.bgColor = "#ccefff"
@@ -200,13 +199,13 @@ class SignUp(Frame):
             self.root = root
             self.controllerFrame.title("BU Friends |  Sign-Up")
             self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
-            self.regisInfoLst = ["Enter your BU-Mail", "enter Password1", "enter Password2", "Enter your Display Name"]
-            self.regisVarData,self.regisDataSubmit = [],[]         
             self.canvasFrame = Canvas(root,width=900,height=600,bd=0)
             self.canvasFrame.pack(expand=1,fill="both")
             self.bgImg = self.controllerFrame.get_image("assets/images/regisbg.png")
             self.canvasFrame.create_image(0,0,image=self.bgImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
+            self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
+            self.regisVarData,self.regisDataSubmit = [],[]
             def zone_widgets():
                 self.entryLst = []
                 self.entryimg = self.controllerFrame.get_image('assets/entrys/entry2rz.png')
@@ -215,19 +214,23 @@ class SignUp(Frame):
                     self.entryLst.append(self.signup_form(self.root, i, self.regisVarData[i]))
                     x,y = 260,70*(i+2)
                     self.canvasFrame.create_image(x,y,image=self.entryimg,anchor="nw")
-                    self.entryLst[i].place(x=x+20,y=y+10)
+                    self.entryLst[i].place(x=x+20, y=y+10)
                 def events():
                     def clear_event(index):
+                        if index == 1 or index == 2:
+                            self.entryLst[index].config(show="*")
                         self.entryLst[index].delete(0,END)
                         self.entryLst[index].config(fg=self.fg)
                     def key_event(index):
+                        if index == 1 or index == 2:
+                            self.entryLst[index].config(show="*")
                         self.entryLst[index].config(fg=self.fg)
                     def entry_binding(index):
                         self.entryLst[index].bind('<Button-1>',lambda e, index=index:clear_event(index))
                         self.entryLst[index].bind('<Key>', lambda e, index=index:key_event(index))
                     for i in range(len(self.entryLst)):
                         entry_binding(i)
-                events()                
+                events()        
             def zone_buttons():
                 self.imgBtn = self.controllerFrame.get_image('assets/buttons/signup_newrz.png')
                 self.imgBtn2 = self.controllerFrame.get_image('assets/buttons/back_newrz.png')
@@ -243,34 +246,33 @@ class SignUp(Frame):
         def signup_form(self,_root, _index, _entVar):
             entry = Entry(_root, textvariable=_entVar, justify="left",relief="flat",fg=self.fgHolder,width=30)
             entry.insert(0,self.regisInfoLst[_index])
-            if _index == 1 or _index == 2:
-                entry.config(show="*")
             return entry
             
         def signup_submit(self):
                 def register_error(errorFormat="unknow error"):
                     self.regisVarData.clear()
                     self.regisDataSubmit.clear()
-                    messagebox.showinfo('Sign Up Error', '{}\nPlease Register Form Again'.format(errorFormat))
+                    messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
                     self.controllerFrame.switch_frame(SignUp)
                
-                def signup_validate(self):
+                def signup_validator(self):
                     for i,data in enumerate(self.regisVarData):
                         if data.get() == "" or data.get().isspace():
-                            register_error("Register Form Information not Complete")
+                            register_error("Sign Up Form Information not Complete")
                             break
                     signup_email_validate(self)
 
                 def signup_email_validate(self):
-                    if "@bumail.net" not in self.regisVarData[0].get():
-                        register_error("BU controllerFrame Exclusive for BU Mail only")
-                    signup_password_validate(self)
+                    if "@bumail.net" in self.regisVarData[0].get():
+                        signup_password_validate(self)
+                    register_error("BU Friends Exclusive for \nBangkok University Student Mail (bumail.net) only")
                             
                 def signup_password_validate(self):
-                    #for i,data in enumerate(self.regisVarData):
-                    if self.regisVarData[1].get() != self.regisVarData[2].get():
-                        register_error("Password is not Matching")
-                    else:self.regisDataSubmit.append(data.get())
+                    for i,data in enumerate(self.regisVarData):
+                        if self.regisVarData[1].get() != self.regisVarData[2].get():
+                            register_error("Password do not Matching")
+                            break
+                        else:self.regisDataSubmit.append(data.get())
                     self.regisDataSubmit.pop(2)    #remove second password
                     signup_confirm(self)
                     
@@ -284,14 +286,10 @@ class SignUp(Frame):
                                         ,"BUMail : {} Password1 {}\nDisplayName : {}".format(*self.regisDataSubmit))
                     messagebox.showinfo('Redirecting',"Going to BU Friends  | Sign-in")
                     self.controllerFrame.switch_frame(SignIn)
-                for i,data in enumerate(self.regisVarData):
-                    print(data.get())
-                    
-                signup_validate(self)
+                signup_validator(self)
 
 
 class DashBoard(Frame):
-
     def __init__(self,controllerFrame):
         Frame.__init__(self,controllerFrame)
         self.bgColor = "grey"
@@ -300,7 +298,6 @@ class DashBoard(Frame):
         self.DashBoardContent(self,controllerFrame)
 
     class DashBoardContent:
-
         def __init__(self, root,controllerFrame):
             self.bg,self.fg = "#ccefff","#cc07e6"
             self.controllerFrame = controllerFrame
@@ -337,4 +334,5 @@ if __name__ == '__main__':
         #DBController.execute_sql(conn, sqlinto)
     else:
         print("Error Connection incomplete!")
+    BUFriends_Time()
     BUcontrollerFrame().mainloop()
