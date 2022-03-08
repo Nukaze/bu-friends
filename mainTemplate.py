@@ -24,8 +24,8 @@ class DBController() :
             conn.commit()
         except Error as e:
             print(e)
+            
 class BUFriends(Tk):
-    
     def __init__(self):
         Tk.__init__(self)
         self.frame = None
@@ -47,7 +47,7 @@ class BUFriends(Tk):
         self.frame = new_frame
         self.configure(bg = self.frame.bgColor)
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
-# get image from path
+# get image raw and resize from path
     def get_image(self, _path):
         img = PhotoImage(file = _path)
         return img
@@ -55,6 +55,8 @@ class BUFriends(Tk):
         origin = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
         img = ImageTk.PhotoImage(origin)
         return img
+    
+    
 class ScrollFrame():
     def __init__(self,root,scrollable):
         # creating
@@ -105,6 +107,8 @@ class ScrollFrame():
 
     def _unbind_from_mousewheel(self, event):
         self.root.unbind_all("<MouseWheel>")
+        
+        
 class PageOne(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -121,6 +125,8 @@ class PageOne(Frame):
             item.pack(side=TOP, fill=X, expand=TRUE)
         Button(master, text="Go to second page",
                   command=lambda: self.controller.switch_frame(PageTwo)).pack()  
+        
+        
 class PageTwo(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -136,6 +142,8 @@ class PageTwo(Frame):
         Label(root, text="Page two", font=self.controller.fontHeaing).pack(side="top", pady=5)
         Button(root, text="Go to third page",
                   command=lambda: self.controller.switch_frame(PageThree)).pack() 
+        
+        
 class PageThree(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -147,6 +155,7 @@ class PageThree(Frame):
         # widget หลังจากนี้จะทำเป็น def หรือ class หรือเป็นพรืดก็ตามสะดวกใจเลย
         # ex.ปุ่มดปลี่ยนหน้าแบบclass
         self.widget(master,controller)
+        
     class widget() :
         def __init__(self,master,controller):
             self.controller = controller
@@ -157,5 +166,4 @@ class PageThree(Frame):
                     command=lambda: self.controller.switch_frame(PageOne)).pack() 
  
 if __name__ == '__main__':
-    app = BUFriends()
-    app.mainloop()
+    BUFriends().mainloop()
