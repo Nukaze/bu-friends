@@ -1,4 +1,5 @@
 from doctest import master
+import enum
 import sqlite3
 from sqlite3 import Error
 from tkinter import *
@@ -39,7 +40,7 @@ class BUFriends(Tk):
         self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(ProfilePage)
+        self.switch_frame(ProfileReviewPage)
 # switch page event
     def switch_frame(self, frameClass):
         new_frame = frameClass(self)
@@ -103,7 +104,16 @@ class ScrollFrame():
 
     def _unbind_from_mousewheel(self, event):
         self.root.unbind_all("<MouseWheel>")
-
+class ProfileReviewPage(Frame):
+    def __init__(self,controller):
+        Frame.__init__(self,controller)
+        self.bgColor = 'white'
+        self.controller = controller
+        Frame.config(self,bg=self.bgColor)
+        scroll = ScrollFrame(self,TRUE)
+        self.root = scroll.interior
+        self.profile = infoOnProfile(self.root,self.bgColor,self.controller)
+        postOnProfile(self.root,self.bgColor)
 class ProfilePage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -114,7 +124,7 @@ class ProfilePage(Frame):
         self.root = scroll.interior
         self.profile = infoOnProfile(self.root,self.bgColor,self.controller)
         self.createPostFrame()
-        postOnProfile(self.root)
+        postOnProfile(self.root,self.bgColor)
         # postFrame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
     def createPostFrame(self) :
         self.img3 = self.controller.get_imagerz('./assets/buttons/buttonPurplerz.png',200,65)
@@ -123,12 +133,13 @@ class ProfilePage(Frame):
         frame = Frame(self.root,bg=self.bgColor)
         fontTag = Font(family='leelawadee',size=13)
         frame.option_add('*font',fontTag)
-        Label(frame,text="Create Post",font="leelawadee 20 bold",bg=self.bgColor).pack(anchor=W,padx=35)
+        Label(frame,text="Create Post",font="leelawadee 20 bold",bg=self.bgColor).pack(anchor=W,padx=25,pady=5)
         Text(frame,width=90,height=4,relief=SUNKEN).pack()
         Button(frame,text="Post",font='leelawadee 13 bold',fg='white',
         activeforeground='white',image=self.img3,compound=CENTER,bd=0,
         bg=self.bgColor,activebackground=self.bgColor).pack(side=RIGHT,padx=35,pady=10)
         frame.pack(fill=X)   
+
 class infoOnProfile() :
     def __init__(self, root, bgcolor,controller):
         self.root = root
@@ -161,10 +172,10 @@ class infoOnProfile() :
         bioWidget.config(height=line,state=DISABLED)
         bioWidget.pack()
         topFrame.pack(fill=X)
-        bottomFrame.pack(fill=X)
+        bottomFrame.pack(fill=X,pady=20)
     def tagFrame(self) :
         outerFrame = Frame(self.root,bg=self.bgColor,highlightthickness=2)
-        outerFrame.pack(fill=X,pady=20)
+        outerFrame.pack(fill=X)
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         outerFrame.option_add('*font',fontTag)
         imgPathList = ( ('./assets/buttons/mbtiCyan.png',120,40),
@@ -188,21 +199,34 @@ class infoOnProfile() :
                 Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
             else :
                 Label(frame,text=data,image=self.img2,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
+
 class postOnProfile() :
-    def __init__(self,root):
+    def __init__(self,root,bgColor):
         self.root = root
+        self.bgColor = bgColor
         self.frame = Frame(self.root,bg='#E6EEFD')
-        Label(self.frame,text="Posting Frame").pack()
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=1)
-# class postOnProfile(Frame):
-#     def __init__(self,root):
-#         Frame.__init__(self,root)
-#         Frame.config(self,bg='#E6EEFD')
-#         fontTag = Font(family='leelawadee',size=13,weight='bold')
-#         self.option_add('*font',fontTag)
-#         self.root = root  
-#         Label(self,text="Posting Frame").pack(fill=X)    
-#         self.pack(side=BOTTOM, fill=BOTH, expand=1)
+        fontTag = Font(family='leelawadee',size=13)
+        self.frame.option_add('*font',fontTag)
+        Label(self.frame,text="Post",font="leelawadee 20 bold",bg='#E6EEFD').pack(anchor=W,padx=20,pady=5)
+        self.postList = (
+        ("""HEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight"""),
+        ("""Shoto so handsome!!!\nShoto so handsome!!!\nShoto so handsome!!!"""))
+        self.post()
+    def post(self):
+        for i,data in enumerate(self.postList):
+            innerFrame = Frame(self.frame,bg=self.bgColor)
+            Label(innerFrame,text="Midoriya Izuku",font="leelawadee 18 bold",bg=self.bgColor).pack(anchor=W,padx=15)
+            # Text(innerFrame,width=90,relief=SUNKEN).pack()
+            textPost = Text(innerFrame,width=90,relief=SUNKEN,bd=0)  
+            textPost.insert(END,data)     
+            textPost.tag_configure("center")
+            textPost.tag_add("center",1.0,END)
+            line = float(textPost.index(END)) - 1
+            textPost.config(height=line,state=DISABLED)
+            textPost.pack(pady=5)
+            innerFrame.pack(ipadx=20,pady=10,ipady=15)
+
     
 if __name__ == '__main__':
     app = BUFriends()
