@@ -270,7 +270,12 @@ class SignUp(Frame):
             self.canvasFrame.create_image(0,0,image=self.bgImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
             self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
-            self.regisVarLst, self.regisSubmitLst = [], []
+            self.regisVarLst = []
+            self.regisSubmitLst  = {'bumail':"",
+                                    'password':"",
+                                    'salt':"",
+                                    'displayname':"",
+                                    'bio':""}
             def zone_widgets():
                 self.entryLst = []
                 self.entryimg = self.controller.get_image('assets/entrys/entry2rz.png')
@@ -322,19 +327,21 @@ class SignUp(Frame):
                 
                 def signup_commit(self):
                     print(*self.regisSubmitLst)
-                    sqlInsertUser = """INSERT INTO users (email, passHash, passSalt, displayName)
-                                                    VALUES("{}", "{}", "{}", "{}");""".format(self.regisSubmitLst[0],self.regisSubmitLst[1],self.regisSubmitLst[1],self.regisSubmitLst[2])
+                    sqlInsertUser = """INSERT INTO users (email, passHash, passSalt, displayName, bio)
+                                        VALUES("{}", "{}", "{}", "{}", "{}");""".format(self.regisSubmitLst['bumail'],
+                                                                                        self.regisSubmitLst['password'],
+                                                                                        self.regisSubmitLst['salt'],
+                                                                                        self.regisSubmitLst['displayname'],
+                                                                                        self.regisSubmitLst['bio'])
                     conn = DBController.create_connection()
                     if conn is None:
                         print("DB can't connect.")
                     else:
                         print("DB Connected!")
                         cur = DBController.execute_sql(conn, sqlInsertUser)
-                        rows = cur.fetchall()
-                        print(*rows)
-                    # conn.execute_sql(sqlSignupUser)
+                        #conn.execute_sql(sqlSignupUser)
                     messagebox.showinfo('Sign Up Successfully'
-                                        ,"BUMail : {} Password1 {}\nDisplayName : {}".format(*self.regisSubmitLst))
+                                        ,"Welcome to BU Friends {} Have a Great Time".format(*self.regisSubmitLst))
                     messagebox.showinfo('Redirecting',"Going to BU Friends  | Sign-in")
                     self.controller.switch_frame(SignIn)
                
@@ -351,7 +358,13 @@ class SignUp(Frame):
                             register_error("Sign Up Form Information do not Blank")
                             break
                         if i == 2:continue #skip secondpass
-                        else:self.regisSubmitLst.append(data.get())
+                        else:#self.regisSubmitLst.append(data.get())
+                            self.regisSubmitLst['bumail']=self.regisVarLst[0].get()
+                            self.regisSubmitLst['password']=self.regisVarLst[1].get()
+                            self.regisSubmitLst['salt']=self.regisVarLst[1].get()
+                            self.regisSubmitLst['displayname']=self.regisVarLst[3].get()
+                            self.regisSubmitLst['bio']=""
+                        
                     print(*self.regisSubmitLst)
                     def database_validator(self):
                         print("Hehe now you check by My Database boi~")
@@ -360,7 +373,7 @@ class SignUp(Frame):
                             print("DB Can't Create Connection.")
                         else:
                             print("DB Connected!")
-                            sqlquery = """SELECT * FROM users WHERE email="{}";""".format(self.regisSubmitLst[0])
+                            sqlquery = """SELECT * FROM users WHERE email="{}";""".format(self.regisSubmitLst['bumail'])
                             print(sqlquery)
                             cur = DBController.execute_sql(conn, sqlquery)
                             row = cur.fetchall()
