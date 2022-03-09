@@ -51,6 +51,7 @@ class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.frame = None
+        self.uid = 0
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
         self.y = ((self.winfo_screenheight()//2-50) - (self.height // 2))
@@ -146,6 +147,7 @@ class SignIn(Frame):
         def __init__(self, root, controllerFrame):
             self.bg,self.bgentry,self.fghead,self.fg,self.fgHolder = "#B6E0F7","#ffffff","#000000","#333333","#999999"
             self.controller = controllerFrame
+            self.controller.uid = "primary key user login"
             self.root = root
             self.controller.title("BU Friends  |  Sign-In")
             self.timeNow = BUFriends_Time()
@@ -272,7 +274,7 @@ class SignUp(Frame):
             self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
             self.regisVarLst = []
             self.regisSubmitLst  = {'bumail':"",
-                                    'password':"",
+                                    'passhash':"",
                                     'salt':"",
                                     'displayname':"",
                                     'bio':""}
@@ -318,6 +320,25 @@ class SignUp(Frame):
             entry.insert(0,self.regisInfoLst[_index])
             return entry
             
+        def signup_commit(self):
+            print(*self.regisSubmitLst)
+            sqlInsertUser = """INSERT INTO users (email, passHash, passSalt, displayName, bio)
+                                VALUES("{}", "{}", "{}", "{}", "{}");""".format(self.regisSubmitLst['bumail'],
+                                                                                self.regisSubmitLst['passhash'],
+                                                                                self.regisSubmitLst['salt'],
+                                                                                self.regisSubmitLst['displayname'],
+                                                                                self.regisSubmitLst['bio'])
+            conn = DBController.create_connection()
+            if conn is None:
+                print("DB can't connect.")
+            else:
+                print("DB Connected!")
+                DBController.execute_sql(conn, sqlInsertUser)
+            messagebox.showinfo('Sign Up Successfully'
+                                ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitLst['displayname']))
+            messagebox.showinfo('Redirecting..',"Going to BU Friends  |  Sign-in")
+            self.controller.switch_frame(SignIn)
+            
         def signup_submit(self):
                 def register_error(errorFormat="Unknow error, Please Contact Moderater"):
                     self.regisVarLst.clear()
@@ -325,26 +346,6 @@ class SignUp(Frame):
                     messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
                     self.controller.switch_frame(SignUp)
                 
-                def signup_commit(self):
-                    print(*self.regisSubmitLst)
-                    sqlInsertUser = """INSERT INTO users (email, passHash, passSalt, displayName, bio)
-                                        VALUES("{}", "{}", "{}", "{}", "{}");""".format(self.regisSubmitLst['bumail'],
-                                                                                        self.regisSubmitLst['password'],
-                                                                                        self.regisSubmitLst['salt'],
-                                                                                        self.regisSubmitLst['displayname'],
-                                                                                        self.regisSubmitLst['bio'])
-                    conn = DBController.create_connection()
-                    if conn is None:
-                        print("DB can't connect.")
-                    else:
-                        print("DB Connected!")
-                        cur = DBController.execute_sql(conn, sqlInsertUser)
-                        #conn.execute_sql(sqlSignupUser)
-                    messagebox.showinfo('Sign Up Successfully'
-                                        ,"Welcome to BU Friends {} Have a Great Time".format(*self.regisSubmitLst))
-                    messagebox.showinfo('Redirecting',"Going to BU Friends  | Sign-in")
-                    self.controller.switch_frame(SignIn)
-               
                 def signup_validator(self):
                     self.regisSubmitLst.clear()
                     if "@bumail.net" not in self.regisVarLst[0].get():
@@ -357,32 +358,42 @@ class SignUp(Frame):
                         if data.get() == "" or data.get().isspace():
                             register_error("Sign Up Form Information do not Blank")
                             break
-                        if i == 2:continue #skip secondpass
-                        else:#self.regisSubmitLst.append(data.get())
+                        else:
                             self.regisSubmitLst['bumail']=self.regisVarLst[0].get()
-                            self.regisSubmitLst['password']=self.regisVarLst[1].get()
-                            self.regisSubmitLst['salt']=self.regisVarLst[1].get()
                             self.regisSubmitLst['displayname']=self.regisVarLst[3].get()
-                            self.regisSubmitLst['bio']=""
-                        
-                    print(*self.regisSubmitLst)
+                            self.regisSubmitLst['bio']="Add Something in Bio"
+                            
                     def database_validator(self):
-                        print("Hehe now you check by My Database boi~")
                         conn = DBController.create_connection()
                         if conn is None:
                             print("DB Can't Create Connection.")
                         else:
                             print("DB Connected!")
                             sqlquery = """SELECT * FROM users WHERE email="{}";""".format(self.regisSubmitLst['bumail'])
-                            print(sqlquery)
                             cur = DBController.execute_sql(conn, sqlquery)
-                            row = cur.fetchall()
-                            print(row)
-                            if row != []: register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitLst[0]))
-                            else: signup_commit(self)
-                            print("End here")
+                            rowbumail = cur.fetchall()
+                            print(rowbumail)
+                            if rowbumail != []: register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitLst['bumail']))
+                            else: self.password_encryption()
                     database_validator(self)
                 signup_validator(self)
+                
+        def password_encryption(self):
+            stdhash = 'sha256'
+            stdencode = 'utf-8'
+            salt = os.urandom(32)
+            password = self.regisVarLst[1].get()
+            passkey = hashlib.pbkdf2_hmac(stdhash, password.encode(stdencode), salt, 161803)
+            self.regisSubmitLst['passhash'],self.regisSubmitLst['salt'] = passkey, salt
+            print("bumail = ",self.regisSubmitLst.get('bumail'))
+            print("PassKey =",self.regisSubmitLst.get('passhash'))
+            print("Salty = ",self.regisSubmitLst.get('salt'))
+            print("Displayname = ",self.regisSubmitLst.get('displayname'))
+            print("Bio User = ",self.regisSubmitLst.get('bio'))
+            self.signup_commit()
+            
+            pass
+                
                     
             
 
