@@ -269,7 +269,7 @@ class SignUp(Frame):
             self.canvasFrame.create_image(0,0,image=self.bgImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
             self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
-            self.regisVarLst, self.regisDataSubmit = [], []
+            self.regisVarLst, self.regisSubmitLst = [], []
             def zone_widgets():
                 self.entryLst = []
                 self.entryimg = self.controller.get_image('assets/entrys/entry2rz.png')
@@ -315,12 +315,12 @@ class SignUp(Frame):
         def signup_submit(self):
                 def register_error(errorFormat="Unknow error, Please Contact Moderater"):
                     self.regisVarLst.clear()
-                    self.regisDataSubmit.clear()
+                    self.regisSubmitLst.clear()
                     messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
                     self.controller.switch_frame(SignUp)
                
                 def signup_validator(self):
-                    self.regisDataSubmit.clear()
+                    self.regisSubmitLst.clear()
                     if "@bumail.net" not in self.regisVarLst[0].get():
                         register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
                     if self.regisVarLst[1].get() != self.regisVarLst[2].get():
@@ -332,8 +332,8 @@ class SignUp(Frame):
                             register_error("Sign Up Form Information do not Blank")
                             break
                         if i == 2:continue 
-                        else:self.regisDataSubmit.append(data.get())
-                    print(*self.regisDataSubmit)
+                        else:self.regisSubmitLst.append(data.get())
+                    print(*self.regisSubmitLst)
                     def database_validator(self):
                         print("Hehe now you check by My Database boi~")
                         pass
@@ -341,13 +341,13 @@ class SignUp(Frame):
                 signup_validator(self)
                     
                 def signup_commit(self):
-                    print(self.regisDataSubmit)
+                    print(self.regisSubmitLst)
                     # sqlSignupUser = """INSERT INTO user (email, password, displayname)
                     #                                 VALUES({},{},{});""".format(self.sign)
                     # conn = DBController()
                     # conn.execute_sql(sqlSignupUser)
                     messagebox.showinfo('Sign Up Successfully'
-                                        ,"BUMail : {} Password1 {}\nDisplayName : {}".format(*self.regisDataSubmit))
+                                        ,"BUMail : {} Password1 {}\nDisplayName : {}".format(*self.regisSubmitLst))
                     messagebox.showinfo('Redirecting',"Going to BU Friends  | Sign-in")
                     self.controller.switch_frame(SignIn)
                 #signup_validator(self)
