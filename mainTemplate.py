@@ -56,7 +56,6 @@ class BUFriends(Tk):
         img = ImageTk.PhotoImage(origin)
         return img
     
-    
 class ScrollFrame():
     def __init__(self,root,scrollable):
         # creating
