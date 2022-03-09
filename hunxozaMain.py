@@ -1,3 +1,4 @@
+from doctest import master
 import sqlite3
 from sqlite3 import Error
 from tkinter import *
@@ -108,11 +109,13 @@ class ProfilePage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
-        Frame.configure(self,bg=self.bgColor)
+        Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
         self.profile = infoOnProfile(self.root,self.bgColor,self.controller)
         self.createPostFrame()
+        postOnProfile(self.root)
+        # postFrame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
     def createPostFrame(self) :
         self.img3 = self.controller.get_imagerz('./assets/buttons/buttonPurplerz.png',200,65)
         var = StringVar()
@@ -126,7 +129,7 @@ class ProfilePage(Frame):
         activeforeground='white',image=self.img3,compound=CENTER,bd=0,
         bg=self.bgColor,activebackground=self.bgColor).pack(side=RIGHT,padx=35,pady=10)
         frame.pack(fill=X)   
-class infoOnProfile :
+class infoOnProfile() :
     def __init__(self, root, bgcolor,controller):
         self.root = root
         self.bgColor = bgcolor
@@ -185,6 +188,22 @@ class infoOnProfile :
                 Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
             else :
                 Label(frame,text=data,image=self.img2,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
+class postOnProfile() :
+    def __init__(self,root):
+        self.root = root
+        self.frame = Frame(self.root,bg='#E6EEFD')
+        Label(self.frame,text="Posting Frame").pack()
+        self.frame.pack(side=BOTTOM, fill=BOTH, expand=1)
+# class postOnProfile(Frame):
+#     def __init__(self,root):
+#         Frame.__init__(self,root)
+#         Frame.config(self,bg='#E6EEFD')
+#         fontTag = Font(family='leelawadee',size=13,weight='bold')
+#         self.option_add('*font',fontTag)
+#         self.root = root  
+#         Label(self,text="Posting Frame").pack(fill=X)    
+#         self.pack(side=BOTTOM, fill=BOTH, expand=1)
+    
 if __name__ == '__main__':
     app = BUFriends()
     # conn = DBController.create_connection()
