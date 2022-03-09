@@ -25,6 +25,7 @@ class DBController() :
             conn.commit()
         except Error as e:
             print(e)
+        return c
 class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -40,7 +41,8 @@ class BUFriends(Tk):
         self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(ProfileReviewPage)
+        self.uid = 0
+        self.switch_frame(ProfilePage)
 # switch page event
     def switch_frame(self, frameClass):
         new_frame = frameClass(self)
@@ -119,25 +121,34 @@ class ProfilePage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
+        controller.uid = 1
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
         self.profile = infoOnProfile(self.root,self.bgColor,self.controller)
         self.createPostFrame()
         postOnProfile(self.root,self.bgColor)
-        # postFrame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
+    def postEvent(self):
+        txt = self.post.get(1.0,END)
+        if not txt.isspace() and len(txt) <=300 :
+            conn = DBController.create_connection()
+            sql = """INSERT INTO posting(detail,uid) VALUES ("{}",{})""".format(txt,self.controller.uid)
+            if conn is not None:
+                    c = DBController.execute_sql(conn, sql)
+                    self.controller.switch_frame(ProfilePage)
+            else:
+                print("Error! cannot create the database connection.")
     def createPostFrame(self) :
         self.img3 = self.controller.get_imagerz('./assets/buttons/buttonPurplerz.png',200,65)
-        var = StringVar()
-        var.set("Hi")
         frame = Frame(self.root,bg=self.bgColor)
         fontTag = Font(family='leelawadee',size=13)
         frame.option_add('*font',fontTag)
         Label(frame,text="Create Post",font="leelawadee 20 bold",bg=self.bgColor).pack(anchor=W,padx=25,pady=5)
-        Text(frame,width=90,height=4,relief=SUNKEN).pack()
+        self.post = Text(frame,width=90,height=4,relief=SUNKEN)
+        self.post.pack()
         Button(frame,text="Post",font='leelawadee 13 bold',fg='white',
         activeforeground='white',image=self.img3,compound=CENTER,bd=0,
-        bg=self.bgColor,activebackground=self.bgColor).pack(side=RIGHT,padx=35,pady=10)
+        bg=self.bgColor,activebackground=self.bgColor,command=self.postEvent).pack(side=RIGHT,padx=35,pady=10)
         frame.pack(fill=X)   
 
 class infoOnProfile() :
@@ -145,6 +156,16 @@ class infoOnProfile() :
         self.root = root
         self.bgColor = bgcolor
         self.controller=controller
+        conn = DBController.create_connection()
+        sql = """SELECT displayName,bio FROM users WHERE uid={}""".format(controller.uid)
+        if conn is not None:
+                c = DBController.execute_sql(conn, sql)
+                # self.name = c.fetchall()[0]
+                self.name = c.fetchall()[0][0]
+                # print(c.fetchall()[0][1])
+                # self.bio = c.fetchall()[0][1]
+        else:
+            print("Error! cannot create the database connection.")
         self.profileFrame()
         self.tagFrame()
     def profileFrame(self) :
@@ -163,7 +184,7 @@ class infoOnProfile() :
         Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=LEFT)
         Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=RIGHT,padx=20)
         Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
-        Label(bottomFrame,text="Midoriya Izuku",font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
+        Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
         bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)  
         bioWidget.insert(END,bioText)     
         bioWidget.tag_configure("center",justify=CENTER)
