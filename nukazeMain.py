@@ -329,9 +329,8 @@ class SignUp(Frame):
                                                                                 self.regisSubmitLst['bio'])
             conn = DBController.create_connection()
             if conn is None:
-                print("DB can't connect.")
+                print("DB can't connect in signup commit.")
             else:
-                print("DB Connected!")
                 DBController.execute_sql(conn, sqlInsertUser)
             messagebox.showinfo('Sign Up Successfully'
                                 ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitLst['displayname']))
@@ -365,9 +364,8 @@ class SignUp(Frame):
                     def database_validator(self):
                         conn = DBController.create_connection()
                         if conn is None:
-                            print("DB Can't Create Connection.")
+                            print("DB Can't Create Connection in db validator.")
                         else:
-                            print("DB Connected!")
                             sqlquery = """SELECT * FROM users WHERE email="{}";""".format(self.regisSubmitLst['bumail'])
                             cur = DBController.execute_sql(conn, sqlquery)
                             rowbumail = cur.fetchall()
@@ -394,8 +392,6 @@ class SignUp(Frame):
             pass
                 
                     
-            
-
 class DashBoard(Frame):
     def __init__(self,controllerFrame):
         Frame.__init__(self,controllerFrame)
@@ -441,9 +437,8 @@ if __name__ == '__main__':
     sqldrop = """ DROP TABLE testTable;"""
     conn = DBController.create_connection()
     if conn is not None:
-        print("connection completely!")
-        #DBController.execute_sql(conn, sqldel)
+        print("init DB connection completely!")
     else:
-        print("Error Connection incomplete!")
+        print("inti DB Connection incomplete!")
     #BUFriends_Time()
     BUFriends().mainloop()
