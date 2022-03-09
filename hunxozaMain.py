@@ -114,7 +114,7 @@ class ProfileReviewPage(Frame):
         scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
         self.profile = infoOnProfile(self.root,self.bgColor,self.controller)
-        postOnProfile(self.root,self.bgColor,self.controller)
+        postOnProfile(self.root,self.bgColor)
 class ProfilePage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -125,7 +125,7 @@ class ProfilePage(Frame):
         self.root = scroll.interior
         self.profile = infoOnProfile(self.root,self.bgColor,self.controller)
         self.createPostFrame()
-        postOnProfile(self.root,self.bgColor,self.controller)
+        postOnProfile(self.root,self.bgColor)
     def postEvent(self):
         txt = self.post.get(1.0,END)
         if not txt.isspace() and len(txt) <=300 :
@@ -155,13 +155,13 @@ class infoOnProfile() :
         self.bgColor = bgcolor
         self.controller=controller
         conn = DBController.create_connection()
-        sql = """SELECT displayName,bio FROM users WHERE uid={}""".format(self.controller.uid)
+        sql = """SELECT displayName,bio FROM users WHERE uid={}""".format(controller.uid)
         if conn is not None:
                 c = DBController.execute_sql(conn, sql)
                 # self.name = c.fetchall()[0]
-                userData = c.fetchall()[0]
-                self.name = userData[0]
-                self.bio = userData[1]
+                self.name = c.fetchall()[0][0]
+                # print(c.fetchall()[0][1])
+                # self.bio = c.fetchall()[0][1]
         else:
             print("Error! cannot create the database connection.")
         self.profileFrame()
@@ -172,6 +172,7 @@ class infoOnProfile() :
         imgPathList = ( ('./assets/icons/goback.png',50,50),
                         ('./assets/icons/hamberger.png',25,25),
                         ('./assets/icons/profile.png',180,180))
+        bioText = """HEllo \nID LINE:Dekuloveallmight"""
         fontTag = Font(family='leelawadee',size=13)
         bottomFrame.option_add('*font',fontTag)
         self.imgList = []
@@ -183,7 +184,7 @@ class infoOnProfile() :
         Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
         bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)  
-        bioWidget.insert(END,self.bio)     
+        bioWidget.insert(END,bioText)     
         bioWidget.tag_configure("center",justify=CENTER)
         bioWidget.tag_add("center",1.0,END)
         line = float(bioWidget.index(END)) - 1
@@ -219,48 +220,31 @@ class infoOnProfile() :
                 Label(frame,text=data,image=self.img2,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
 
 class postOnProfile() :
-    def __init__(self,root,bgColor,controller):
+    def __init__(self,root,bgColor):
         self.root = root
         self.bgColor = bgColor
-        self.controller = controller
         self.frame = Frame(self.root,bg='#E6EEFD')
-        self.postList = []
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=1)
         fontTag = Font(family='leelawadee',size=13)
         self.frame.option_add('*font',fontTag)
-        conn = DBController.create_connection()
-        sql = """SELECT detail FROM posting WHERE uid={}""".format(self.controller.uid)
-        sql2 = """SELECT displayName FROM users WHERE uid={}""".format(self.controller.uid)
-        if conn is not None:
-                c = DBController.execute_sql(conn, sql)
-                c2 = DBController.execute_sql(conn, sql2)
-                userData = c.fetchall()
-                self.name = c2.fetchall()[0][0]
-                for i,data in enumerate(userData) :
-                    self.postList.append(data[0])
-                    
-        else:
-            print("Error! cannot create the database connection.")
         Label(self.frame,text="Post",font="leelawadee 20 bold",bg='#E6EEFD').pack(anchor=W,padx=20,pady=5)
-        # self.postList = (
-        # ("""HEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight"""),
-        # ("""Shoto so handsome!!!\nShoto so handsome!!!\nShoto so handsome!!!"""))
-        print(len(self.postList))
+        self.postList = (
+        ("""HEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight"""),
+        ("""Shoto so handsome!!!\nShoto so handsome!!!\nShoto so handsome!!!"""))
         self.post()
     def post(self):
-        for i in range(1,len(self.postList)+1):
+        for i,data in enumerate(self.postList):
             innerFrame = Frame(self.frame,bg=self.bgColor)
-            Label(innerFrame,text=self.name,font="leelawadee 18 bold",bg=self.bgColor).pack(anchor=W,padx=15)
+            Label(innerFrame,text="Midoriya Izuku",font="leelawadee 18 bold",bg=self.bgColor).pack(anchor=W,padx=15)
             # Text(innerFrame,width=90,relief=SUNKEN).pack()
             textPost = Text(innerFrame,width=90,relief=SUNKEN,bd=0)  
-            # print(self.postList[-2])
-            textPost.insert(END,self.postList[-i])     
+            textPost.insert(END,data)     
             textPost.tag_configure("center")
             textPost.tag_add("center",1.0,END)
             line = float(textPost.index(END)) - 1
             textPost.config(height=line,state=DISABLED)
             textPost.pack(pady=5)
-            innerFrame.pack(ipadx=20,pady=10)
+            innerFrame.pack(ipadx=20,pady=10,ipady=15)
 
 if __name__ == '__main__':
     app = BUFriends()
