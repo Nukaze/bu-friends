@@ -252,10 +252,10 @@ class SignIn(Frame):
             
 
 class SignUp(Frame):
-    def __init__(self,controllerFrame):
-        Frame.__init__(self,controllerFrame)
+    def __init__(self, controllerFrame):
+        Frame.__init__(self, controllerFrame)
         self.bgColor = "#ccefff"
-        Frame.configure(self,bg=self.bgColor)
+        Frame.config(self,bg=self.bgColor)
         self.pack()
         self.root = ScrollFrame(self,True).interior
         self.SignUpContent(self.root, controllerFrame)
@@ -266,7 +266,7 @@ class SignUp(Frame):
             self.root = root
             self.controller.title("BU Friends  |  Sign-Up")
             self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
-            self.canvasFrame = Canvas(root,width=900,height=600,bd=-2)
+            self.canvasFrame = Canvas(self.root,width=900,height=600,bd=-2)
             self.canvasFrame.pack(expand=1,fill="both")
             self.bgImg = self.controller.get_image("assets/images/regisbg.png")
             self.canvasFrame.create_image(0,0,image=self.bgImg,anchor="nw")
@@ -334,8 +334,8 @@ class SignUp(Frame):
                 DBController.execute_sql(conn, sqlInsertUser)
             messagebox.showinfo('Sign Up Successfully'
                                 ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitLst['displayname']))
-            messagebox.showinfo('Redirecting..',"Going to BU Friends  |  Sign-in")
-            self.controller.switch_frame(SignIn)
+            self.SignUpComplete(self.root,self.controller)
+            #self.controller.switch_frame(SignIn)
             
         def signup_submit(self):
                 def register_error(errorFormat="Unknow error, Please Contact Moderater"):
@@ -388,10 +388,25 @@ class SignUp(Frame):
             print("Displayname = ",self.regisSubmitLst.get('displayname'))
             print("Bio User = ",self.regisSubmitLst.get('bio'))
             self.signup_commit()
-            
+        
+        def signup_complete(self):    
             pass
-                
-                    
+    # class SignUpComplete:
+    #     def __init__(self, root, controllerFrame) :
+    #         Frame.__init__(self, controllerFrame)
+    #         self.bgColor = "#ccefff"
+    #         Frame.config(self,bg=self.bgColor)
+    #         self.root = root
+    #         self.controller = controllerFrame
+    #         self.controller.title('BU Friends  |  Redirecting')
+    #         self.canvasFrame = Canvas(self.root,width=900,height=600,bd=0)
+    #         self.canvasFrame.pack(expand=1)
+    #         self.bgimg = self.controller.get_image('assets/images/regisbg.png')
+    #         self.canvasFrame.create_image(0,0,image=self.bgimg,anchor="nw")
+            
+            
+
+
 class DashBoard(Frame):
     def __init__(self,controllerFrame):
         Frame.__init__(self,controllerFrame)
@@ -433,11 +448,12 @@ if __name__ == '__main__':
     sqlinto = """INSERT INTO users (email, passhash, passsalt, displayname)
                                     VALUES("{}","{}","{}","{}");""".format("hehe%@bumail","12345","12345","Woohoo~")
                                     
-    sqldel = """DELETE FROM users WHERE uid={}""".format(4) 
+    sqldel = """DELETE FROM users WHERE uid={}""".format(7) 
     sqldrop = """ DROP TABLE testTable;"""
     conn = DBController.create_connection()
     if conn is not None:
         print("init DB connection completely!")
+        DBController.execute_sql(conn, sqldel)
     else:
         print("inti DB Connection incomplete!")
     #BUFriends_Time()
