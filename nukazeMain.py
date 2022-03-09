@@ -321,8 +321,7 @@ class SignUp(Frame):
             return entry
             
         def signup_commit(self):
-            print(*self.regisSubmitLst)
-            sqlInsertUser = """INSERT INTO users (email, passHash, passSalt, displayName, bio)
+            sqlInsertUser = """ INSERT INTO users(email, passHash, passSalt, displayName, bio)
                                 VALUES("{}", "{}", "{}", "{}", "{}");""".format(self.regisSubmitLst['bumail'],
                                                                                 self.regisSubmitLst['passhash'],
                                                                                 self.regisSubmitLst['salt'],
