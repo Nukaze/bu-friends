@@ -16,7 +16,7 @@ import datetime
 def BUFriends_Time():
     timeFull = datetime.datetime.now()
     timeNow = timeFull.strftime("%d-%b-%Y") + " " + timeFull.strftime("( %H:%M:%S )")
-    print("[{}]\n[{}]".format(timeFull,timeNow))
+    #print("[{}]\n[{}]".format(timeFull,timeNow))
     return timeNow
 
 class DBController() :
@@ -37,6 +37,7 @@ class DBController() :
             conn.commit()
         except Error as e:
             print(e)
+        return c
     ''' เวลาเรียกใช้
         conn = DBController.create_connection()
         sql = """คำสั่ง SQL"""
@@ -269,7 +270,12 @@ class SignUp(Frame):
             self.canvasFrame.create_image(0,0,image=self.bgImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
             self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
-            self.regisVarLst, self.regisSubmitLst = [], []
+            self.regisVarLst = []
+            self.regisSubmitLst  = {'bumail':"",
+                                    'password':"",
+                                    'salt':"",
+                                    'displayname':"",
+                                    'bio':""}
             def zone_widgets():
                 self.entryLst = []
                 self.entryimg = self.controller.get_image('assets/entrys/entry2rz.png')
@@ -318,6 +324,26 @@ class SignUp(Frame):
                     self.regisSubmitLst.clear()
                     messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
                     self.controller.switch_frame(SignUp)
+                
+                def signup_commit(self):
+                    print(*self.regisSubmitLst)
+                    sqlInsertUser = """INSERT INTO users (email, passHash, passSalt, displayName, bio)
+                                        VALUES("{}", "{}", "{}", "{}", "{}");""".format(self.regisSubmitLst['bumail'],
+                                                                                        self.regisSubmitLst['password'],
+                                                                                        self.regisSubmitLst['salt'],
+                                                                                        self.regisSubmitLst['displayname'],
+                                                                                        self.regisSubmitLst['bio'])
+                    conn = DBController.create_connection()
+                    if conn is None:
+                        print("DB can't connect.")
+                    else:
+                        print("DB Connected!")
+                        cur = DBController.execute_sql(conn, sqlInsertUser)
+                        #conn.execute_sql(sqlSignupUser)
+                    messagebox.showinfo('Sign Up Successfully'
+                                        ,"Welcome to BU Friends {} Have a Great Time".format(*self.regisSubmitLst))
+                    messagebox.showinfo('Redirecting',"Going to BU Friends  | Sign-in")
+                    self.controller.switch_frame(SignIn)
                
                 def signup_validator(self):
                     self.regisSubmitLst.clear()
@@ -331,26 +357,33 @@ class SignUp(Frame):
                         if data.get() == "" or data.get().isspace():
                             register_error("Sign Up Form Information do not Blank")
                             break
-                        if i == 2:continue 
-                        else:self.regisSubmitLst.append(data.get())
+                        if i == 2:continue #skip secondpass
+                        else:#self.regisSubmitLst.append(data.get())
+                            self.regisSubmitLst['bumail']=self.regisVarLst[0].get()
+                            self.regisSubmitLst['password']=self.regisVarLst[1].get()
+                            self.regisSubmitLst['salt']=self.regisVarLst[1].get()
+                            self.regisSubmitLst['displayname']=self.regisVarLst[3].get()
+                            self.regisSubmitLst['bio']=""
+                        
                     print(*self.regisSubmitLst)
                     def database_validator(self):
                         print("Hehe now you check by My Database boi~")
-                        pass
+                        conn = DBController.create_connection()
+                        if conn is None:
+                            print("DB Can't Create Connection.")
+                        else:
+                            print("DB Connected!")
+                            sqlquery = """SELECT * FROM users WHERE email="{}";""".format(self.regisSubmitLst['bumail'])
+                            print(sqlquery)
+                            cur = DBController.execute_sql(conn, sqlquery)
+                            row = cur.fetchall()
+                            print(row)
+                            if row != []: register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitLst[0]))
+                            else: signup_commit(self)
+                            print("End here")
                     database_validator(self)
                 signup_validator(self)
                     
-                def signup_commit(self):
-                    print(self.regisSubmitLst)
-                    # sqlSignupUser = """INSERT INTO user (email, password, displayname)
-                    #                                 VALUES({},{},{});""".format(self.sign)
-                    # conn = DBController()
-                    # conn.execute_sql(sqlSignupUser)
-                    messagebox.showinfo('Sign Up Successfully'
-                                        ,"BUMail : {} Password1 {}\nDisplayName : {}".format(*self.regisSubmitLst))
-                    messagebox.showinfo('Redirecting',"Going to BU Friends  | Sign-in")
-                    self.controller.switch_frame(SignIn)
-                #signup_validator(self)
             
 
 class DashBoard(Frame):
@@ -387,17 +420,20 @@ if __name__ == '__main__':
                                     passwordx password NOT NULL,
                                     displayname varchar(50) NOT NULL
                                     );"""
+    
+    sqlselect = """ SELECT * FROM users """
+                # (next step) # rows = 
+                                        
+    sqlinto = """INSERT INTO users (email, passhash, passsalt, displayname)
+                                    VALUES("{}","{}","{}","{}");""".format("hehe%@bumail","12345","12345","Woohoo~")
                                     
-    sqlinto = """INSERT INTO user (email, password, displayname)
-                                    VALUES("{}","{}","{}");""".format("hehe@bumail","12345","Woohoo~")
-                                    
-    sqldel = """DELETE FROM user WHERE id={}"""#.format(needDel) 
+    sqldel = """DELETE FROM users WHERE uid={}""".format(4) 
     sqldrop = """ DROP TABLE testTable;"""
     conn = DBController.create_connection()
     if conn is not None:
         print("connection completely!")
-        #DBController.execute_sql(conn, sqlinto)
+        #DBController.execute_sql(conn, sqldel)
     else:
         print("Error Connection incomplete!")
-    BUFriends_Time()
+    #BUFriends_Time()
     BUFriends().mainloop()
