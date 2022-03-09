@@ -1,5 +1,3 @@
-from doctest import master
-import enum
 import sqlite3
 from sqlite3 import Error
 from tkinter import *
@@ -41,7 +39,7 @@ class BUFriends(Tk):
         self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.uid = 0
+        self.uid = 1
         self.switch_frame(ProfilePage)
 # switch page event
     def switch_frame(self, frameClass):
@@ -56,6 +54,7 @@ class BUFriends(Tk):
         origin = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
         img = ImageTk.PhotoImage(origin)
         return img
+
 class ScrollFrame():
     def __init__(self,root,scrollable):
         # creating
@@ -111,7 +110,6 @@ class ProfileReviewPage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
-        controller.uid = 1
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
@@ -122,7 +120,6 @@ class ProfilePage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
-        controller.uid = 1
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
@@ -265,13 +262,6 @@ class postOnProfile() :
             textPost.pack(pady=5)
             innerFrame.pack(ipadx=20,pady=10)
 
-    
 if __name__ == '__main__':
     app = BUFriends()
-    # conn = DBController.create_connection()
-    # sql = """INSERT INTO test(score) VALUES ("8")"""
-    # if conn is not None:
-    #         DBController.execute_sql(conn, sql)
-    # else:
-    #     print("Error! cannot create the database connection.")
     app.mainloop()
