@@ -1,7 +1,6 @@
 '''
     Nukaze BU Friends
 '''
-
 from tkinter import *
 from tkinter import ttk,messagebox
 from tkinter import font
@@ -208,9 +207,9 @@ class SignIn(Frame):
             def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
                 self.imgBtn = self.controller.get_image('assets/buttons/buttonRaw.png')
-                self.loginBtn = Button(self.frameBtn, text="Sign-In", command=lambda:self.controller.switch_frame(DashBoard), image=self.imgBtn
-                                       , foreground="white", bg=self.bg,
-                                    activebackground=self.bg,activeforeground="white",bd=0,compound="center")
+                self.loginBtn = Button(self.frameBtn, text="Sign-In", command=lambda:self.controller.switch_frame(DashBoard)
+                                       , image=self.imgBtn, foreground="white", bg=self.bg,activebackground=self.bg
+                                       , activeforeground="white",bd=0,compound="center")
                 self.loginBtn.pack(side=TOP,pady=10,ipady=0,padx=3,expand=1)
                 self.frameDonthave = Frame(self.frameBtn,bg=self.bg)
                 Label(self.frameDonthave,text="Don't have an account?",font="leelawadee 10",bg=self.bg).pack(side="left",expand=1)
@@ -257,7 +256,9 @@ class SignUp(Frame):
         self.bgColor = "#ccefff"
         Frame.config(self,bg=self.bgColor)
         self.pack()
-        self.root = ScrollFrame(self,True).interior
+        self.controller = controllerFrame
+        self.controller.uid = 0
+        self.root = ScrollFrame(self,False).interior
         self.SignUpContent(self.root, controllerFrame)
 
     class SignUpContent:
@@ -266,7 +267,7 @@ class SignUp(Frame):
             self.root = root
             self.controller.title("BU Friends  |  Sign-Up")
             self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
-            self.canvasFrame = Canvas(self.root,width=900,height=600,bd=-2)
+            self.canvasFrame = Canvas(self.root,width=900,height=600,bd=0,bg="#ffffff",highlightthickness=0)
             self.canvasFrame.pack(expand=1,fill="both")
             self.bgImg = self.controller.get_image("assets/images/regisbg.png")
             self.canvasFrame.create_image(0,0,image=self.bgImg,anchor="nw")
@@ -306,10 +307,12 @@ class SignUp(Frame):
             def zone_buttons():
                 self.imgBtn = self.controller.get_image('assets/buttons/signup_newrz.png')
                 self.imgBtn2 = self.controller.get_image('assets/buttons/back_newrz.png')
-                self.signupBtn = Button(root, text="Sign Up", command=self.signup_submit, image=self.imgBtn,fg="#ffffff"
-                                       ,bd=-10,compound="center")
+                self.signupBtn = Button(root, text="Sign Up", command=self.signup_submitreq, image=self.imgBtn,fg="#ffffff"
+                                    ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
+                # self.signupBtn = Button(root, text="Sign Up", command=self.signup_complete, image=self.imgBtn,fg="#ffffff"
+                #                     ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
                 self.backBtn = Button(root, text="Cancel", command=lambda:self.controller.switch_frame(SignIn), image=self.imgBtn2
-                                       , foreground="white",bd=-10,compound="center")
+                                    ,bg="#ffffff", foreground="white",bd=-10,compound="center",activebackground="#ffffff")
                 self.signupWin = self.canvasFrame.create_window(250,430,anchor="nw",window=self.signupBtn)
                 self.backWin = self.canvasFrame.create_window(455,430,anchor="nw",window=self.backBtn)
             zone_widgets()
@@ -327,17 +330,22 @@ class SignUp(Frame):
                                                                                 self.regisSubmitLst['salt'],
                                                                                 self.regisSubmitLst['displayname'],
                                                                                 self.regisSubmitLst['bio'])
+            sqlGetuid = """SELECT uid FROM users WHERE email = "{}";""".format(self.regisSubmitLst['bumail'])
             conn = DBController.create_connection()
             if conn is None:
                 print("DB can't connect in signup commit.")
+                messagebox.showerror("Database Problem","Can't in SignUp Commit.")
             else:
                 DBController.execute_sql(conn, sqlInsertUser)
-            messagebox.showinfo('Sign Up Successfully'
-                                ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitLst['displayname']))
-            self.SignUpComplete(self.root,self.controller)
-            #self.controller.switch_frame(SignIn)
+                cur = DBController.execute_sql(conn, sqlGetuid)
+                getuid = cur.fetchall()
+                self.controller.uid = (getuid[0][0])
+                print("user id = [{}]".format(self.controller.uid))
+                messagebox.showinfo('Sign Up Successfully'
+                                    ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitLst['displayname']))
+                self.signup_complete()
             
-        def signup_submit(self):
+        def signup_submitreq(self):
                 def register_error(errorFormat="Unknow error, Please Contact Moderater"):
                     self.regisVarLst.clear()
                     self.regisSubmitLst.clear()
@@ -346,20 +354,19 @@ class SignUp(Frame):
                 
                 def signup_validator(self):
                     self.regisSubmitLst.clear()
+                    for i,data in enumerate(self.regisVarLst):
+                        if data.get() == "" or data.get().isspace():
+                            register_error("Sign Up Form Information do not Blank")
+                            break
                     if "@bumail.net" not in self.regisVarLst[0].get():
                         register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
                     if self.regisVarLst[1].get() != self.regisVarLst[2].get():
                             register_error("Sign Up Password do not Matching")
                     if not len(self.regisVarLst[1].get()) > 8 and (self.regisVarLst[1].get()).isalnum():
                             register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
-                    for i,data in enumerate(self.regisVarLst):
-                        if data.get() == "" or data.get().isspace():
-                            register_error("Sign Up Form Information do not Blank")
-                            break
-                        else:
-                            self.regisSubmitLst['bumail']=self.regisVarLst[0].get()
-                            self.regisSubmitLst['displayname']=self.regisVarLst[3].get()
-                            self.regisSubmitLst['bio']="Add Something in Bio"
+                    self.regisSubmitLst['bumail']=self.regisVarLst[0].get()
+                    self.regisSubmitLst['displayname']=self.regisVarLst[3].get()
+                    self.regisSubmitLst['bio']="Add Something in Bio"
                             
                     def database_validator(self):
                         conn = DBController.create_connection()
@@ -389,8 +396,48 @@ class SignUp(Frame):
             print("Bio User = ",self.regisSubmitLst.get('bio'))
             self.signup_commit()
         
-        def signup_complete(self):    
-            pass
+        def signup_complete(self):
+            #bgComplete = "#edf6fb"
+            bgComplete = "#dbf2ff"
+            bgOverlay = "#ffffff"
+            font = Font(family="leelawadee",size= 14,weight="bold")
+            self.canvasFrame.config(bg=bgComplete,bd=0,highlightthickness=0)
+            self.canvasFrame.propagate(0)
+            width, height = 500, 410
+            x = (self.controller.width//2) - (width//2)
+            y = (self.controller.height//2-25) - (height//2)
+            self.overlayFrame = LabelFrame(self.root,bg=bgOverlay,width=width,height=height)
+            self.overlayFrame.option_add("*background",bgOverlay)
+            self.overlayFrame.option_add("*font",self.controller.fontBody)
+            self.overlayFrame.place(x=x,y=y)
+            self.titleFrame = LabelFrame(self.overlayFrame)
+            self.titleFrame.pack(expand=0,pady=40)
+            Label(self.titleFrame, text="Sign Up Complete!",font=self.controller.fontHeading,fg=self.fgHead)\
+                .pack(side=TOP,expand=1,fill=BOTH,padx=50,pady=40)
+            self.widgetLst = [["Personality Test ( MBTI ){}".format(" "*30)],["Let's Go have fun with BU Friends.{}".format(" "*12)]]
+            redirectLst = [lambda:self.controller.switch_frame(DashBoard), lambda:self.controller.switch_frame(SignIn)]
+            imgPathLst = ['assets/buttons/blueButton.png','assets/buttons/mbtiFree.png']
+            self.arrowImg = self.controller.get_image('assets/icons/arrow.png')
+            for i,path in enumerate(imgPathLst):
+                img = self.controller.get_image(path)
+                self.widgetLst[i].append(img)
+            self.btnFrame = LabelFrame(self.titleFrame)
+            self.btnFrame.pack(expand=1,pady=20)
+            def get_widget(_index,_command):
+                Button(self.btnFrame, text=self.widgetLst[_index][0], image=self.widgetLst[_index][1], command=_command
+                       , compound=CENTER, justify=LEFT, bd=0, font=font)\
+                    .pack(expand=1,pady=10)
+            for i,data in enumerate(self.widgetLst):
+                get_widget(i,redirectLst[i])
+            Label(self.root,image=self.arrowImg,bd=0,bg="#B6E0F7").place(x=620,y=305,anchor="nw")
+            Label(self.root,image=self.arrowImg,bd=0,bg="#CCEABA").place(x=620,y=395,anchor="nw")
+                    
+            
+            
+            #self.canvasFrame.create_window(x,y,window=self.overlayFrame,anchor="nw")
+            
+            
+            
     # class SignUpComplete:
     #     def __init__(self, root, controllerFrame) :
     #         Frame.__init__(self, controllerFrame)
@@ -453,7 +500,7 @@ if __name__ == '__main__':
     conn = DBController.create_connection()
     if conn is not None:
         print("init DB connection completely!")
-        DBController.execute_sql(conn, sqldel)
+        #DBController.execute_sql(conn, )
     else:
         print("inti DB Connection incomplete!")
     #BUFriends_Time()
