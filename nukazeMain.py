@@ -363,7 +363,7 @@ class SignUp(Frame):
                             register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
                         if self.regisVarLst[1].get() != self.regisVarLst[2].get():
                             register_error("Sign Up Password do not Matching")
-                        if not len(self.regisVarLst[1].get()) > 8 and (self.regisVarLst[1].get()).isalnum():
+                        if not len(self.regisVarLst[1].get()) > 7 and (self.regisVarLst[1].get()).isalnum():
                             register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
                         else:
                             self.regisSubmitLst['bumail']=self.regisVarLst[0].get()
