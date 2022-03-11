@@ -24,6 +24,7 @@ class DBController() :
             conn.commit()
         except Error as e:
             print(e)
+        return c
             
 class BUFriends(Tk):
     def __init__(self):
