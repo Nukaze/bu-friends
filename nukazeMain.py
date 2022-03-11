@@ -269,8 +269,8 @@ class SignUp(Frame):
             self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
             self.canvasFrame = Canvas(self.root,width=900,height=600,bd=0,bg="#ffffff",highlightthickness=0)
             self.canvasFrame.pack(expand=1,fill="both")
-            self.bgImg = self.controller.get_image("assets/images/regisbg.png")
-            self.canvasFrame.create_image(0,0,image=self.bgImg,anchor="nw")
+            self.bgCanvaImg = self.controller.get_image("assets/images/regisbg.png")
+            self.canvasFrame.create_image(0,0,image=self.bgCanvaImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
             self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
             self.regisVarLst = []
@@ -284,7 +284,7 @@ class SignUp(Frame):
                 self.entryimg = self.controller.get_image('assets/entrys/entry2rz.png')
                 for i in range(len(self.regisInfoLst)):
                     self.regisVarLst.append(StringVar())
-                    self.entryLst.append(self.signup_form(self.root, i, self.regisVarLst[i]))
+                    self.entryLst.append(self.signup_form(self.canvasFrame, i, self.regisVarLst[i]))
                     x,y = 260,70*(i+2)
                     self.canvasFrame.create_image(x,y,image=self.entryimg,anchor="nw")
                     self.entryLst[i].place(x=x+20, y=y+10)
@@ -308,13 +308,13 @@ class SignUp(Frame):
                 self.imgBtn = self.controller.get_image('assets/buttons/signup_newrz.png')
                 self.imgBtn2 = self.controller.get_image('assets/buttons/back_newrz.png')
                 self.signupBtn = Button(root, text="Sign Up", command=self.signup_submitreq, image=self.imgBtn,fg="#ffffff"
-                                    ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
+                                   ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
                 # self.signupBtn = Button(root, text="Sign Up", command=self.signup_complete, image=self.imgBtn,fg="#ffffff"
                 #                     ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
                 self.backBtn = Button(root, text="Cancel", command=lambda:self.controller.switch_frame(SignIn), image=self.imgBtn2
                                     ,bg="#ffffff", foreground="white",bd=-10,compound="center",activebackground="#ffffff")
-                self.signupWin = self.canvasFrame.create_window(250,430,anchor="nw",window=self.signupBtn)
-                self.backWin = self.canvasFrame.create_window(455,430,anchor="nw",window=self.backBtn)
+                self.canvasFrame.create_window(250,430,anchor="nw",window=self.signupBtn)
+                self.canvasFrame.create_window(455,430,anchor="nw",window=self.backBtn)
             zone_widgets()
             zone_buttons() 
         # class method
@@ -353,33 +353,35 @@ class SignUp(Frame):
                     self.controller.switch_frame(SignUp)
                 
                 def signup_validator(self):
-                    self.regisSubmitLst.clear()
-                    for i,data in enumerate(self.regisVarLst):
-                        if data.get() == "" or data.get().isspace():
-                            register_error("Sign Up Form Information do not Blank")
-                            break
-                    if "@bumail.net" not in self.regisVarLst[0].get():
-                        register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
-                    if self.regisVarLst[1].get() != self.regisVarLst[2].get():
+                    try :
+                        self.regisSubmitLst.clear()
+                        for i,data in enumerate(self.regisVarLst):
+                            if data.get() == "" or data.get().isspace():
+                                register_error("Sign Up Form Information do not Blank")
+                                break
+                        if "@bumail.net" not in self.regisVarLst[0].get():
+                            register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
+                        if self.regisVarLst[1].get() != self.regisVarLst[2].get():
                             register_error("Sign Up Password do not Matching")
-                    if not len(self.regisVarLst[1].get()) > 8 and (self.regisVarLst[1].get()).isalnum():
+                        if not len(self.regisVarLst[1].get()) > 8 and (self.regisVarLst[1].get()).isalnum():
                             register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
-                    self.regisSubmitLst['bumail']=self.regisVarLst[0].get()
-                    self.regisSubmitLst['displayname']=self.regisVarLst[3].get()
-                    self.regisSubmitLst['bio']="Add Something in Bio"
-                            
-                    def database_validator(self):
-                        conn = DBController.create_connection()
-                        if conn is None:
-                            print("DB Can't Create Connection in db validator.")
                         else:
-                            sqlquery = """SELECT * FROM users WHERE email="{}";""".format(self.regisSubmitLst['bumail'])
-                            cur = DBController.execute_sql(conn, sqlquery)
-                            rowbumail = cur.fetchall()
-                            print(rowbumail)
-                            if rowbumail != []: register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitLst['bumail']))
-                            else: self.password_encryption()
-                    database_validator(self)
+                            self.regisSubmitLst['bumail']=self.regisVarLst[0].get()
+                            self.regisSubmitLst['displayname']=self.regisVarLst[3].get()
+                            self.regisSubmitLst['bio']=""
+                            def database_validator(self):
+                                conn = DBController.create_connection()
+                                if conn is None:
+                                    print("DB Can't Create Connection in db validator.")
+                                else:
+                                    sqlquery = """SELECT * FROM users WHERE email="{}";""".format(self.regisSubmitLst['bumail'])
+                                    cur = DBController.execute_sql(conn, sqlquery)
+                                    rowbumail = cur.fetchall()
+                                    print(rowbumail)
+                                    if rowbumail != []: register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitLst['bumail']))
+                                    else: self.password_encryption()
+                        database_validator(self)
+                    except:print("[SignUp Validator Reject]")
                 signup_validator(self)
                 
         def password_encryption(self):
@@ -397,63 +399,35 @@ class SignUp(Frame):
             self.signup_commit()
         
         def signup_complete(self):
-            #bgComplete = "#edf6fb"
-            bgComplete = "#dbf2ff"
-            bgOverlay = "#ffffff"
+            print(self.controller.uid)
+            self.controller.title("BU Friends  |  Sign-Up Complete!")
+            self.canvasFrame.delete(ALL)
+            for widget in self.entryLst:
+                widget.destroy()
+            bgComplete = "#fbf6ce"
             font = Font(family="leelawadee",size= 14,weight="bold")
             self.canvasFrame.config(bg=bgComplete,bd=0,highlightthickness=0)
             self.canvasFrame.propagate(0)
-            width, height = 500, 410
-            x = (self.controller.width//2) - (width//2)
-            y = (self.controller.height//2-25) - (height//2)
-            self.overlayFrame = LabelFrame(self.root,bg=bgOverlay,width=width,height=height)
-            self.overlayFrame.option_add("*background",bgOverlay)
-            self.overlayFrame.option_add("*font",self.controller.fontBody)
-            self.overlayFrame.place(x=x,y=y)
-            self.titleFrame = LabelFrame(self.overlayFrame)
-            self.titleFrame.pack(expand=0,pady=40)
-            Label(self.titleFrame, text="Sign Up Complete!",font=self.controller.fontHeading,fg=self.fgHead)\
-                .pack(side=TOP,expand=1,fill=BOTH,padx=50,pady=40)
-            self.widgetLst = [["Personality Test ( MBTI ){}".format(" "*30)],["Let's Go have fun with BU Friends.{}".format(" "*12)]]
+            self.completeImg = self.controller.get_image('assets/images/regiscompleterz.png')
+            self.canvasFrame.create_image(0,0, image=self.completeImg,anchor="nw")
+            self.widgetLst = [["Personality Test ( MBTI ){}".format(" "*22)],["Let's Go! Have fun in BU Friends.{}".format(" "*8)]]
             redirectLst = [lambda:self.controller.switch_frame(DashBoard), lambda:self.controller.switch_frame(SignIn)]
-            imgPathLst = ['assets/buttons/blueButton.png','assets/buttons/mbtiFree.png']
-            self.arrowImg = self.controller.get_image('assets/icons/arrow.png')
+            imgPathLst = ['assets/buttons/rectangleGreenrz.png','assets/buttons/rectangleWhiterz.png']
             for i,path in enumerate(imgPathLst):
                 img = self.controller.get_image(path)
                 self.widgetLst[i].append(img)
-            self.btnFrame = LabelFrame(self.titleFrame)
-            self.btnFrame.pack(expand=1,pady=20)
             def get_widget(_index,_command):
-                Button(self.btnFrame, text=self.widgetLst[_index][0], image=self.widgetLst[_index][1], command=_command
-                       , compound=CENTER, justify=LEFT, bd=0, font=font)\
-                    .pack(expand=1,pady=10)
-            for i,data in enumerate(self.widgetLst):
-                get_widget(i,redirectLst[i])
-            Label(self.root,image=self.arrowImg,bd=0,bg="#B6E0F7").place(x=620,y=305,anchor="nw")
-            Label(self.root,image=self.arrowImg,bd=0,bg="#CCEABA").place(x=620,y=395,anchor="nw")
-                    
-            
-            
-            #self.canvasFrame.create_window(x,y,window=self.overlayFrame,anchor="nw")
-            
-            
-            
-    # class SignUpComplete:
-    #     def __init__(self, root, controllerFrame) :
-    #         Frame.__init__(self, controllerFrame)
-    #         self.bgColor = "#ccefff"
-    #         Frame.config(self,bg=self.bgColor)
-    #         self.root = root
-    #         self.controller = controllerFrame
-    #         self.controller.title('BU Friends  |  Redirecting')
-    #         self.canvasFrame = Canvas(self.root,width=900,height=600,bd=0)
-    #         self.canvasFrame.pack(expand=1)
-    #         self.bgimg = self.controller.get_image('assets/images/regisbg.png')
-    #         self.canvasFrame.create_image(0,0,image=self.bgimg,anchor="nw")
-            
+                return Button(self.canvasFrame, text=self.widgetLst[_index][0], image=self.widgetLst[_index][1], command=_command
+                       , compound=CENTER, justify=LEFT, bd=0, font=font,bg=bgComplete,activebackground=bgComplete)
+            x,y1,y2 = 440, 335,435
+            self.canvasFrame.create_window(x,y1,anchor="nw",window=get_widget(0,redirectLst[0]))
+            self.canvasFrame.create_window(x,y2,anchor="nw",window=get_widget(1,redirectLst[1]))
+            self.arrowImg = self.controller.get_image('assets/icons/arrow.png')
+            Label(self.canvasFrame,image=self.arrowImg,bd=0,bg="#CCEABA").place(x=x+340,y=y1+30,anchor="nw")
+            Label(self.canvasFrame,image=self.arrowImg,bd=0,bg="#FFFFFF").place(x=x+340,y=y2+30,anchor="nw")
             
 
-
+           
 class DashBoard(Frame):
     def __init__(self,controllerFrame):
         Frame.__init__(self,controllerFrame)
