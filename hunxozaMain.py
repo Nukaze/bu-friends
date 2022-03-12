@@ -164,9 +164,10 @@ class infoOnProfile() :
                 self.tagList = []
                 self.tagList.append(tagData[0])
                 for i in range(1,len(tagData)):
-                    sql3 = """SELECT TagName FROM Tags WHERE Tid={}""".format(tagData[i])
-                    c3 = DBController.execute_sql(conn, sql3)
-                    self.tagList.append(c3.fetchall()[0][0])
+                    if tagData[i] != None :
+                        sql3 = """SELECT TagName FROM Tags WHERE Tid={}""".format(tagData[i])
+                        c3 = DBController.execute_sql(conn, sql3)
+                        self.tagList.append(c3.fetchall()[0][0])
                 # print(c2.fetchall())
                 # self.name = c.fetchall()[0]
                 userData = c.fetchall()[0]
