@@ -13,9 +13,11 @@ import hashlib
 import datetime
 import random
 import testSpace.mbtiQuiz as qz
+
+
 def BUFriends_Time():
     timeFull = datetime.datetime.now()
-    timeNow = timeFull.strftime("%d-%b-%Y") + " " + timeFull.strftime("( %H:%M:%S )")
+    timeNow = timeFull.strftime("%d-%b-%Y",) + " " + timeFull.strftime("( %H:%M:%S )")
     #print("[{}]\n[{}]".format(timeFull,timeNow))
     return timeNow
 
