@@ -41,7 +41,7 @@ class BUFriends(Tk):
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
         self.uid = 3
-        self.switch_frame(ProfileReviewPage)
+        self.switch_frame(ProfilePage)
 # switch page event
     def switch_frame(self, frameClass):
         new_frame = frameClass(self)
@@ -111,7 +111,7 @@ class ProfileReviewPage(Frame):
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
-        self.profile = InfoOnProfile(self.root,self.bgColor,self.controller)
+        self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1)
         PostOnProfile(self.root,self.bgColor,self.controller)
 class ProfilePage(Frame):
     def __init__(self,controller):
@@ -121,8 +121,8 @@ class ProfilePage(Frame):
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
-        self.profile = InfoOnProfile(self.root,self.bgColor,self.controller)
-        self.createPostFrame()
+        self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,2)
+        self.create_post_frame()
         PostOnProfile(self.root,self.bgColor,self.controller)
     def post_event(self):
         txt = self.post.get(1.0,END)
@@ -144,15 +144,16 @@ class ProfilePage(Frame):
         self.post.pack()
         Button(frame,text="Post",font='leelawadee 13 bold',fg='white',
         activeforeground='white',image=self.img3,compound=CENTER,bd=0,
-        bg=self.bgColor,activebackground=self.bgColor,command=self.postEvent).pack(side=RIGHT,padx=35,pady=10)
+        bg=self.bgColor,activebackground=self.bgColor,command=self.post_event).pack(side=RIGHT,padx=35,pady=10)
         frame.pack(fill=X)   
 
 class InfoOnProfile() :
-    def __init__(self, root, bgcolor,controller):
+    def __init__(self, root, bgcolor,controller,parent):
         self.root = root
         self.bgColor = bgcolor
         self.controller=controller
         self.optionFrame = None
+        self.parent = parent
         conn = DBController.create_connection()
         sql = """SELECT DisplayName,Bio FROM Users WHERE Uid={}""".format(self.controller.uid)
         sql2 = """SELECT Mbti,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid={}""".format(self.controller.uid)
@@ -178,16 +179,27 @@ class InfoOnProfile() :
         self.tag_frame()    
     def option_click(self) :
         bgColor = '#686DE0'
+        if self.parent == 2 :
+            optionList = ["Edit","Log out"]
+            imgOptionList = ['./assets/icons/edit.png','./assets/icons/signOut.png']
+        else :
+            optionList = ["Report"]
+            imgOptionList = [None]
+        self.imgOption = []
+        for i in range(len(optionList)) :
+            if imgOptionList[i] is not None :
+                self.imgOption.append(self.controller.get_imagerz(imgOptionList[i],20,20))
+            else :
+                self.imgOption.append(None)
         if self.optionFrame is None :
             self.optionFrame = Frame(self.root)
-            self.imgEdit = self.controller.get_imagerz('./assets/icons/edit.png',20,20)
-            self.imgLogOut = self.controller.get_imagerz('./assets/icons/signOut.png',20,20)
-            Button(self.optionFrame,text="Edit",bd=0,bg=bgColor,activebackground=bgColor,anchor=W
-            ,padx=10,fg='white',activeforeground='white',font='leelawadee 13 bold',width=175
-            ,image=self.imgEdit,compound=LEFT).pack(ipady=10)
-            Button(self.optionFrame,text="Log out",bd=0,bg=bgColor,activebackground=bgColor,anchor=W
-            ,padx=10,fg='white',activeforeground='white',font='leelawadee 13 bold'
-            ,image=self.imgLogOut,compound=LEFT).pack(fill=X,ipady=10)
+            for i,data in enumerate(optionList) :
+                Button(self.optionFrame,text=data,bd=0,bg=bgColor,activebackground=bgColor,anchor=W
+                ,padx=10,fg='white',activeforeground='white',font='leelawadee 13 bold',width=175
+                ,image=self.imgOption[i],compound=LEFT).pack(ipady=10)
+            # Button(self.optionFrame,text="Log out",bd=0,bg=bgColor,activebackground=bgColor,anchor=W
+            # ,padx=10,fg='white',activeforeground='white',font='leelawadee 13 bold',width=175
+            # ,image=self.imgLogOut,compound=LEFT).pack(ipady=10)
             self.optionFrame.place(x=704,y=45)
         else :
             self.optionFrame.destroy()
