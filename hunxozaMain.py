@@ -2,7 +2,6 @@ import sqlite3
 from sqlite3 import Error
 from tkinter import *
 from tkinter.font import Font
-from turtle import bgcolor
 from PIL import Image, ImageTk
 
 # connecting to database
