@@ -155,9 +155,19 @@ class infoOnProfile() :
         self.bgColor = bgcolor
         self.controller=controller
         conn = DBController.create_connection()
-        sql = """SELECT DisplayName,Bio FROM users WHERE Uid={}""".format(self.controller.uid)
+        sql = """SELECT DisplayName,Bio FROM Users WHERE Uid={}""".format(self.controller.uid)
+        sql2 = """SELECT Mbti,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid={}""".format(self.controller.uid)
         if conn is not None:
                 c = DBController.execute_sql(conn, sql)
+                c2 = DBController.execute_sql(conn, sql2)
+                tagData = c2.fetchall()[0]
+                self.tagList = []
+                self.tagList.append(tagData[0])
+                for i in range(1,len(tagData)):
+                    sql3 = """SELECT TagName FROM Tags WHERE Tid={}""".format(tagData[i])
+                    c3 = DBController.execute_sql(conn, sql3)
+                    self.tagList.append(c3.fetchall()[0][0])
+                # print(c2.fetchall())
                 # self.name = c.fetchall()[0]
                 userData = c.fetchall()[0]
                 self.name = userData[0]
@@ -196,23 +206,26 @@ class infoOnProfile() :
         outerFrame.pack(fill=X)
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         outerFrame.option_add('*font',fontTag)
-        imgPathList = ( ('./assets/buttons/mbtiCyan.png',120,40),
+        imgPathList = ( ('./assets/buttons/mbtiPurple.png',120,40),
                         ('./assets/buttons/mbtiGreen.png',120,40),
-                        ('./assets/buttons/mbtiPurple.png',120,40),
+                        ('./assets/buttons/mbtiCyan.png',120,40),
                         ('./assets/buttons/mbtiYellow.png',120,40))   
-        tagList = ("INFJ","ITI","game","travel","sport")
-        if tagList[0][1:3] == "NT" :
-            self.img = self.controller.get_imagerz(imgPathList[0][0],imgPathList[0][1],imgPathList[0][2])
-        elif tagList[0][1:3] == "NF" :
-            self.img = self.controller.get_imagerz(imgPathList[1][0],imgPathList[1][1],imgPathList[1][2])
-        elif tagList[0][1:3] == "ST" :
-            self.img = self.controller.get_imagerz(imgPathList[2][0],imgPathList[2][1],imgPathList[2][2])
-        elif tagList[0][1:3] == "SF" :
-            self.img = self.controller.get_imagerz(imgPathList[3][0],imgPathList[3][1],imgPathList[3][2])
+        # tagList = ("INFJ","ITI","game","travel","sport")
+        if self.tagList[0][1] == "N" :
+            if self.tagList[0][2] == "T" :
+                self.img = self.controller.get_imagerz(imgPathList[0][0],imgPathList[0][1],imgPathList[0][2])
+            else :
+                self.img = self.controller.get_imagerz(imgPathList[1][0],imgPathList[1][1],imgPathList[1][2])
+        elif self.tagList[0][1] == "S" :
+            if self.tagList[0][3] == "J" :
+                self.img = self.controller.get_imagerz(imgPathList[2][0],imgPathList[2][1],imgPathList[2][2])
+            else :
+                self.img = self.controller.get_imagerz(imgPathList[3][0],imgPathList[3][1],imgPathList[3][2])     
+
         self.img2 = self.controller.get_imagerz('./assets/buttons/tagButton.png',120,40)  
         frame = Frame(outerFrame,bg=self.bgColor)
         frame.pack(pady=30)            
-        for i,data in enumerate(tagList) :
+        for i,data in enumerate(self.tagList) :
             if i == 0 :
                 Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
             else :
