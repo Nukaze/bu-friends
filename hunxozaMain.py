@@ -39,7 +39,7 @@ class BUFriends(Tk):
         self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.uid = 1
+        self.uid = 3
         self.switch_frame(ProfilePage)
 # switch page event
     def switch_frame(self, frameClass):
@@ -130,7 +130,7 @@ class ProfilePage(Frame):
         txt = self.post.get(1.0,END)
         if not txt.isspace() and len(txt) <=300 :
             conn = DBController.create_connection()
-            sql = """INSERT INTO posting(detail,uid) VALUES ("{}",{})""".format(txt,self.controller.uid)
+            sql = """INSERT INTO Postings(Detail,Uid) VALUES ("{}",{})""".format(txt,self.controller.uid)
             if conn is not None:
                     c = DBController.execute_sql(conn, sql)
                     self.controller.switch_frame(ProfilePage)
@@ -155,7 +155,7 @@ class infoOnProfile() :
         self.bgColor = bgcolor
         self.controller=controller
         conn = DBController.create_connection()
-        sql = """SELECT displayName,bio FROM users WHERE uid={}""".format(self.controller.uid)
+        sql = """SELECT DisplayName,Bio FROM users WHERE Uid={}""".format(self.controller.uid)
         if conn is not None:
                 c = DBController.execute_sql(conn, sql)
                 # self.name = c.fetchall()[0]
@@ -182,7 +182,7 @@ class infoOnProfile() :
         Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=RIGHT,padx=20)
         Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
-        bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)  
+        bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
         bioWidget.insert(END,self.bio)     
         bioWidget.tag_configure("center",justify=CENTER)
         bioWidget.tag_add("center",1.0,END)
@@ -229,8 +229,8 @@ class postOnProfile() :
         fontTag = Font(family='leelawadee',size=13)
         self.frame.option_add('*font',fontTag)
         conn = DBController.create_connection()
-        sql = """SELECT detail FROM posting WHERE uid={}""".format(self.controller.uid)
-        sql2 = """SELECT displayName FROM users WHERE uid={}""".format(self.controller.uid)
+        sql = """SELECT Detail FROM Postings WHERE Uid={}""".format(self.controller.uid)
+        sql2 = """SELECT DisplayName FROM Users WHERE Uid={}""".format(self.controller.uid)
         if conn is not None:
                 c = DBController.execute_sql(conn, sql)
                 c2 = DBController.execute_sql(conn, sql2)
