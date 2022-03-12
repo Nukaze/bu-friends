@@ -1,5 +1,7 @@
 import sqlite3
 import hashlib
+import random
+import os
 from sqlite3 import Error
 from tkinter import *
 from tkinter import ttk,messagebox
@@ -64,7 +66,7 @@ class ScrollFrame():
         self.root = root
         self.scrollable = scrollable
         self.scrollbar = Scrollbar(self.root, orient=VERTICAL,width=0)
-        self.scrollbar.pack(fill=Y, side=RIGHT, expand=0)
+        #self.scrollbar.pack(fill=Y, side=RIGHT, expand=0)
         self.canvas = Canvas(self.root,bg=self.root.bgColor, highlightthickness=0, yscrollcommand=self.scrollbar.set)
         self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
         self.scrollbar.config(command=self.canvas.yview)
