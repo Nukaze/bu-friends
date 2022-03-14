@@ -12,7 +12,7 @@ import os
 import hashlib
 import datetime
 import random
-import testSpace.mbtiQuiz as qz
+import assets.mbti.mbtiData as qz
 
 
 def BUFriends_Time():
@@ -65,7 +65,8 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(SignIn)
+        #self.switch_frame(SignIn)
+        self.switch_frame(Mbti)
 
     def switch_frame(self, frame_class):
         print("switching to {}".format(frame_class))
