@@ -54,6 +54,7 @@ class BUFriends(Tk):
         Tk.__init__(self)
         self.frame = None
         self.uid = 0
+        self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
         self.y = ((self.winfo_screenheight()//2-50) - (self.height // 2))
@@ -84,6 +85,12 @@ class BUFriends(Tk):
         img = ImageTk.PhotoImage(origin)
         return img
     
+    def password_encryptioncheck(self, _password, _salt):
+            stdhash = 'sha256'
+            stdencode = 'utf-8'
+            passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
+            return passkey
+  
     
 class ScrollFrame():
     def __init__(self,root,scrollable):
@@ -153,7 +160,10 @@ class SignIn(Frame):
             self.controller.title("BU Friends  |  Sign-In")
             print("uidcheck", self.controller.uid)
             self.root = root
-            self.timeNow = BUFriends_Time()
+            self.loginDict = {"usermail":"",
+                              "userpass":""
+                                }
+            
             #BannerCanva
             def zone_canvas():
                 self.canvasFrame = Canvas(root, width=400, height=600, bd=0,highlightthickness=0)
@@ -210,7 +220,7 @@ class SignIn(Frame):
             def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
                 self.imgBtn = self.controller.get_image(r'assets/buttons/buttonRaw.png')
-                self.loginBtn = Button(self.frameBtn, text="Sign-In", command=lambda:self.controller.switch_frame(Mbti)
+                self.loginBtn = Button(self.frameBtn, text="Sign-In", command=self.login_query
                                        , image=self.imgBtn, foreground="white", bg=self.bg,activebackground=self.bg
                                        , activeforeground="white",bd=0,compound="center")
                 self.loginBtn.pack(side=TOP,pady=10,ipady=0,padx=3,expand=1)
@@ -219,7 +229,7 @@ class SignIn(Frame):
                 self.signupBtn = Label(self.frameDonthave,text="Sign-Up",font="leelawadee 10 underline",bg=self.bg,fg="#0000ff")
                 self.signupBtn.bind('<Enter>',self.signup_mouseover)    
                 self.signupBtn.bind('<Leave>',self.signup_mouseleave)
-                self.signupBtn.bind('<Button-1>',self.signup_req)
+                self.signupBtn.bind('<Button-1>',self.goto_signup)
             #callwidgets
             zone_canvas()
             zone_entrys()
@@ -237,19 +247,46 @@ class SignIn(Frame):
         def signup_mouseleave(self,e):
             self.signupBtn.config(fg="#0000ff")
         
-        def login_req(self):
-            print(self.userName.get())
-            print(self.userPass.get())
+        def login_query(self):
+            sqlQuery = """SELECT Uid, PassHash, PassSalt FROM Users WHERE Email = "{}";""".format(self.userName.get())
+            print(sqlQuery)
+            self.loginDict['usermail'] = (self.userName.get())
+            conn = DBController.create_connection()
+            if conn is None:
+                print("DB Can't Connect!")
+            else:
+                q = DBController.execute_sql(conn, sqlQuery)
+                rowExist = q.fetchall()
+                print(rowExist)
+                print("checkfetch = ",len(rowExist))
+                if rowExist == []:
+                    messagebox.showinfo('Sign-in Imcomplete', "Sorry [ {} ] Doesn't Exist Please Check BU-Mail Carefully and Try Again.".format(self.userName.get()))
+                    self.controller.switch_frame(SignIn)
+                else:
+                    self.row = rowExist[0]
+                    self.login_validation()
+            
+        def login_validation(self):
+            print("row0 here = ",self.row[0])
+            print("rowhash here = ",self.row[1])
+            print("rowsalt here = ",self.row[2])
+            logPasskey = self.controller.password_encryptioncheck(self.userPass.get(), self.row[2])
+            print("loghash {}\ndbhash  {}".format(logPasskey, self.row[1]))
+            self.loginDict['userpass'] = logPasskey
+            print(self.loginDict)
             if messagebox.askyesno('Sign-In',"{}, {}".format(self.userName.get(),self.userPass.get())):
                 self.login_submit()
             else:
-                self.controller.switch_frame(SignIn)
+                #self.controller.switch_frame(SignIn)
+                pass
+            pass    
             
+        
         def login_submit(self):
             print("go")
-            self.controller.switch_frame(DashBoard)
+            self.controller.switch_frame(Mbti)
         
-        def signup_req(self,e):
+        def goto_signup(self,e):
             self.controller.switch_frame(SignUp)
             
 
@@ -372,9 +409,8 @@ class SignUp(Frame):
             self.regisSubmitLst['passhash'],self.regisSubmitLst['salt'] = passkey, salt
             print("bumail = ",self.regisSubmitLst.get('bumail'))
             print("Displayname = ",self.regisSubmitLst.get('displayname'))
-            print("Displayname = ",self.regisSubmitLst.get('passhash'))
-            print("Displayname = ",self.regisSubmitLst.get('salt'))
-            print("Displayname = ",self.regisSubmitLst.get('displayname'))
+            print("Passhash = ",self.regisSubmitLst.get('passhash'))
+            print("salt = ",self.regisSubmitLst.get('salt'))
             self.signup_commit()
                    
         def signup_commit(self):
@@ -387,6 +423,10 @@ class SignUp(Frame):
                             self.regisSubmitLst['bio'])
             sqlGetuid = """SELECT uid FROM users WHERE email = "{}";""".format(self.regisSubmitLst['bumail'])
             conn = DBController.create_connection()
+            print(self.regisSubmitLst['passhash'])
+            print(type(self.regisSubmitLst['passhash']))
+            print(self.regisSubmitLst['salt'])
+            print(type(self.regisSubmitLst['salt']))
             if conn is None:
                 print("DB can't connect in signup commit.")
                 messagebox.showerror("Database Problem","Can't SignUp Commit.")
@@ -564,19 +604,16 @@ if __name__ == '__main__':
                                     displayname varchar(50) NOT NULL
                                     );"""
     
-    sqlselect = """ SELECT * FROM Users WHERE Uid = {}""".format(13)
+    sqlselect = """ SELECT * FROM Users WHERE Uid = {}""".format(1)
                 # (next step) # rows = 
                                         
     sqlinto = """INSERT INTO tableName (email, passhash, passsalt, displayname)
                                     VALUES("{}","{}","{}","{}");""".format("hehe%@bumail","12345","12345","Woohoo~")
                                     
-    sqlupdate = """UPDATE Users SET PassHash = ?, PassSalt = ? WHERE Uid = 1"""
-    pw,salt = pw_encryption()
-    print(pw, salt)
-    sqlupvalue = (pw,salt)
-  
+    
    
-    sqldel = """DELETE FROM tableName WHERE uid={}""".format(13) 
+   
+    sqldel = """DELETE FROM Users"""#.format() 
     
     sqldrop = """ DROP TABLE tableName;"""
     
@@ -585,11 +622,21 @@ if __name__ == '__main__':
         print("init DB Connection incomplete!")
     else:
         print("init DB connection completely!")
-        #c = DBController.execute_sql(conn, sqlselect)
-       
-        conn.cursor().execute(sqlupdate, sqlupvalue)
+        #c = DBController.execute_sql(conn, sqlupdate1)
+        #c2 = DBController.execute_sql(conn, sqlupdate2)
+        sqlupdate1 = """UPDATE Users SET PassHash = ? WHERE Uid = 6;"""
+        sqlupdate2 = """UPDATE Users SET PassSalt = ? WHERE Uid = 6;"""
+        pw,salt = pw_encryption()
+        print(pw)
+        print(type(pw))
+        print(salt)
+        print(type(salt))
+        #conn.cursor().execute(sqlupdate1, "1")
+        #conn.cursor().execute(sqlupdate2, "1")
+        
         
         
         
     #BUFriends_Time()
     BUFriends().mainloop()
+    
