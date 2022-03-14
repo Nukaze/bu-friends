@@ -2,8 +2,9 @@ import sqlite3
 from sqlite3 import Error
 from tkinter import *
 from tkinter.font import Font
-from turtle import bgcolor
 from PIL import Image, ImageTk
+import hashlib
+import os
 
 # connecting to database
 class DBController() :
@@ -25,6 +26,7 @@ class DBController() :
         except Error as e:
             print(e)
         return c
+
 class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -40,8 +42,8 @@ class BUFriends(Tk):
         self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.uid = 3
-        self.switch_frame(ProfilePage)
+        self.uid = 11
+        self.switch_frame(EditPage)
 # switch page event
     def switch_frame(self, frameClass):
         new_frame = frameClass(self)
@@ -55,7 +57,11 @@ class BUFriends(Tk):
         origin = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
         img = ImageTk.PhotoImage(origin)
         return img
-
+    def password_encryptioncheck(self, _password, _salt):
+            stdhash = 'sha256'
+            stdencode = 'utf-8'
+            passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
+            return passkey
 class ScrollFrame():
     def __init__(self,root,scrollable):
         # creating
@@ -103,6 +109,7 @@ class ScrollFrame():
 
     def _unbind_from_mousewheel(self, event):
         self.root.unbind_all("<MouseWheel>")
+
 class ProfileReviewPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -113,6 +120,7 @@ class ProfileReviewPage(Frame):
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1)
         PostOnProfile(self.root,self.bgColor,self.controller)
+
 class ProfilePage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -147,6 +155,52 @@ class ProfilePage(Frame):
         bg=self.bgColor,activebackground=self.bgColor,command=self.post_event).pack(side=RIGHT,padx=35,pady=10)
         frame.pack(fill=X)   
 
+class EditPage(Frame):
+    def __init__(self,controller):
+        Frame.__init__(self,controller)
+        self.bgColor = 'lightpink'
+        self.controller = controller
+        Frame.configure(self,bg=self.bgColor)
+        scroll = ScrollFrame(self,FALSE)
+        master = scroll.interior
+        self.widget(master)
+    def change_password(self) :
+        print("Start")
+        conn = DBController.create_connection()
+        sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid={}""".format(self.controller.uid)
+        if conn is not None:
+                c = DBController.execute_sql(conn, sql)
+                data = c.fetchall()
+                passHash = data[0][0]
+                passSalt = bytes(data[0][1],'utf-8')
+                print(passSalt)
+        print(type(passSalt))
+        passkey = self.controller.password_encryptioncheck("test1234",passSalt)
+        print(type(passkey))
+        print(passkey.decode('utf-8'))
+        # if passHash == passkey :
+        #     print("same")
+        # else :
+        #     print("not same")
+    def widget(self,root) :
+        Label(root, text="Edit", font=self.controller.fontHeaing).pack(side="top", pady=5)
+        Button(root, text="Processing",command=self.change_password).pack() 
+
+class MyAccountPage(Frame):
+    def __init__(self,controller):
+        Frame.__init__(self,controller)
+        self.bgColor = 'lightpink'
+        self.controller = controller
+        Frame.configure(self,bg=self.bgColor)
+        scroll = ScrollFrame(self,FALSE)
+        master = scroll.interior
+        self.widget(master)
+
+    def widget(self,root) :
+        Label(root, text="My Account", font=self.controller.fontHeaing).pack(side="top", pady=5)
+        Button(root, text="Go back"
+        ,command=lambda: self.controller.switch_frame(ProfilePage)).pack() 
+
 class InfoOnProfile() :
     def __init__(self, root, bgcolor,controller,parent):
         self.root = root
@@ -168,8 +222,6 @@ class InfoOnProfile() :
                         sql3 = """SELECT TagName FROM Tags WHERE Tid={}""".format(tagData[i])
                         c3 = DBController.execute_sql(conn, sql3)
                         self.tagList.append(c3.fetchall()[0][0])
-                # print(c2.fetchall())
-                # self.name = c.fetchall()[0]
                 userData = c.fetchall()[0]
                 self.name = userData[0]
                 self.bio = userData[1]
@@ -177,11 +229,12 @@ class InfoOnProfile() :
             print("Error! cannot create the database connection.")
         self.profile_frame()
         self.tag_frame()    
+
     def option_click(self) :
         bgColor = '#686DE0'
         if self.parent == 2 :
-            optionList = ["Edit","Log out"]
-            imgOptionList = ['./assets/icons/edit.png','./assets/icons/signOut.png']
+            optionList = ["Edit","My account","Log out"]
+            imgOptionList = ['./assets/icons/edit.png','./assets/icons/user.png','./assets/icons/signOut.png']
         else :
             optionList = ["Report"]
             imgOptionList = [None]
@@ -191,19 +244,19 @@ class InfoOnProfile() :
                 self.imgOption.append(self.controller.get_imagerz(imgOptionList[i],20,20))
             else :
                 self.imgOption.append(None)
+        pageList = [EditPage,MyAccountPage]
         if self.optionFrame is None :
             self.optionFrame = Frame(self.root)
             for i,data in enumerate(optionList) :
                 Button(self.optionFrame,text=data,bd=0,bg=bgColor,activebackground=bgColor,anchor=W
                 ,padx=10,fg='white',activeforeground='white',font='leelawadee 13 bold',width=175
-                ,image=self.imgOption[i],compound=LEFT).pack(ipady=10)
-            # Button(self.optionFrame,text="Log out",bd=0,bg=bgColor,activebackground=bgColor,anchor=W
-            # ,padx=10,fg='white',activeforeground='white',font='leelawadee 13 bold',width=175
-            # ,image=self.imgLogOut,compound=LEFT).pack(ipady=10)
+                ,image=self.imgOption[i],compound=LEFT
+                ,command=lambda c=i : self.controller.switch_frame(pageList[c])).pack(ipady=10)
             self.optionFrame.place(x=704,y=45)
         else :
             self.optionFrame.destroy()
             self.optionFrame = None
+
     def profile_frame(self) :
         topFrame = Frame(self.root,bg=self.bgColor)
         bottomFrame = Frame(self.root,bg=self.bgColor)
@@ -231,6 +284,7 @@ class InfoOnProfile() :
         bioWidget.pack()
         topFrame.pack(fill=X)
         bottomFrame.pack(fill=X,pady=20)
+
     def tag_frame(self) :
         outerFrame = Frame(self.root,bg=self.bgColor,highlightthickness=2)
         outerFrame.pack(fill=X)
@@ -240,7 +294,6 @@ class InfoOnProfile() :
                         ('./assets/buttons/mbtiGreen.png',120,40),
                         ('./assets/buttons/mbtiCyan.png',120,40),
                         ('./assets/buttons/mbtiYellow.png',120,40))   
-        # tagList = ("INFJ","ITI","game","travel","sport")
         if self.tagList[0] is not None :
             if self.tagList[0][1] == "N" :
                 if self.tagList[0][2] == "T" :
@@ -282,23 +335,18 @@ class PostOnProfile() :
                 userData = c.fetchall()
                 self.name = c2.fetchall()[0][0]
                 for i,data in enumerate(userData) :
-                    self.postList.append(data[0])
-                    
+                    self.postList.append(data[0])        
         else:
             print("Error! cannot create the database connection.")
         Label(self.frame,text="Post",font="leelawadee 20 bold",bg='#E6EEFD').pack(anchor=W,padx=20,pady=5)
-        # self.postList = (
-        # ("""HEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight\nHEllo,ID LINE:Dekuloveallmight"""),
-        # ("""Shoto so handsome!!!\nShoto so handsome!!!\nShoto so handsome!!!"""))
         print(len(self.postList))
         self.post()
+
     def post(self):
         for i in range(1,len(self.postList)+1):
             innerFrame = Frame(self.frame,bg=self.bgColor)
             Label(innerFrame,text=self.name,font="leelawadee 18 bold",bg=self.bgColor).pack(anchor=W,padx=15)
-            # Text(innerFrame,width=90,relief=SUNKEN).pack()
             textPost = Text(innerFrame,width=90,relief=SUNKEN,bd=0)  
-            # print(self.postList[-2])
             textPost.insert(END,self.postList[-i])     
             textPost.tag_configure("center")
             textPost.tag_add("center",1.0,END)
