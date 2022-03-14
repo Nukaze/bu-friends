@@ -41,7 +41,7 @@ class BUFriends(Tk):
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
         self.uid = 3
-        self.switch_frame(ProfilePage)
+        self.switch_frame(EditPage)
 # switch page event
     def switch_frame(self, frameClass):
         new_frame = frameClass(self)
@@ -158,11 +158,12 @@ class EditPage(Frame):
         scroll = ScrollFrame(self,FALSE)
         master = scroll.interior
         self.widget(master)
-        
+    def update_sql() :
+        pass
     def widget(self,root) :
         Label(root, text="Edit", font=self.controller.fontHeaing).pack(side="top", pady=5)
-        Button(root, text="Go back"
-        ,command=lambda: self.controller.switch_frame(ProfilePage)).pack() 
+        Button(root, text="Processing"
+        ,command=lambda: self.controller.switch_frame(self.update_sql)).pack() 
 
 class MyAccountPage(Frame):
     def __init__(self,controller):
