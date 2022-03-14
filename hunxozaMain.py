@@ -3,6 +3,8 @@ from sqlite3 import Error
 from tkinter import *
 from tkinter.font import Font
 from PIL import Image, ImageTk
+import hashlib
+import os
 
 # connecting to database
 class DBController() :
@@ -40,7 +42,7 @@ class BUFriends(Tk):
         self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.uid = 3
+        self.uid = 11
         self.switch_frame(EditPage)
 # switch page event
     def switch_frame(self, frameClass):
@@ -55,7 +57,11 @@ class BUFriends(Tk):
         origin = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
         img = ImageTk.PhotoImage(origin)
         return img
-
+    def password_encryptioncheck(self, _password, _salt):
+            stdhash = 'sha256'
+            stdencode = 'utf-8'
+            passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
+            return passkey
 class ScrollFrame():
     def __init__(self,root,scrollable):
         # creating
@@ -158,12 +164,27 @@ class EditPage(Frame):
         scroll = ScrollFrame(self,FALSE)
         master = scroll.interior
         self.widget(master)
-    def update_sql() :
-        pass
+    def change_password(self) :
+        print("Start")
+        conn = DBController.create_connection()
+        sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid={}""".format(self.controller.uid)
+        if conn is not None:
+                c = DBController.execute_sql(conn, sql)
+                data = c.fetchall()
+                passHash = data[0][0]
+                passSalt = bytes(data[0][1],'utf-8')
+                print(passSalt)
+        print(type(passSalt))
+        passkey = self.controller.password_encryptioncheck("test1234",passSalt)
+        print(type(passkey))
+        print(passkey.decode('utf-8'))
+        # if passHash == passkey :
+        #     print("same")
+        # else :
+        #     print("not same")
     def widget(self,root) :
         Label(root, text="Edit", font=self.controller.fontHeaing).pack(side="top", pady=5)
-        Button(root, text="Processing"
-        ,command=lambda: self.controller.switch_frame(self.update_sql)).pack() 
+        Button(root, text="Processing",command=self.change_password).pack() 
 
 class MyAccountPage(Frame):
     def __init__(self,controller):
