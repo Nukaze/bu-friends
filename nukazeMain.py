@@ -125,7 +125,7 @@ class ScrollFrame():
     # This can now handle either windows or linux platforms
     def _on_mousewheel(self, event):
         if self.scrollable == TRUE :
-            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            self.canvas.yview_scroll(int(-1*(event.delta/100)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
             
@@ -156,7 +156,7 @@ class SignIn(Frame):
             self.timeNow = BUFriends_Time()
             #BannerCanva
             def zone_canvas():
-                self.canvasFrame = Canvas(root, width=400, height=600, bd=0)
+                self.canvasFrame = Canvas(root, width=400, height=600, bd=0,highlightthickness=0)
                 self.canvasFrame.pack(side=LEFT,expand=1,fill="both")
                 pathLst = [r'assets/images/banner.png',r'assets/images/character.png']
                 self.imgLst = []
@@ -271,8 +271,8 @@ class SignUp(Frame):
             self.root = root
             self.controller.title("BU Friends  |  Sign-Up")
             self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
-            self.canvasFrame = Canvas(self.root,width=900,height=600,bd=-2,bg="#ffffff")
-            self.canvasFrame.pack(expand=1,fill="both")
+            self.canvasFrame = Canvas(self.root,width=900,height=600,bd=0,bg="#ffffff",highlightthickness=0)
+            self.canvasFrame.pack(expand=1,fill=BOTH)
             self.bgCanvaImg = self.controller.get_image(r"assets/images/regisbg.png")
             self.canvasFrame.create_image(0,0,image=self.bgCanvaImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
@@ -313,8 +313,6 @@ class SignUp(Frame):
                 self.imgBtn2 = self.controller.get_image(r'assets/buttons/back_newrz.png')
                 self.signupBtn = Button(root, text="Sign Up", command=self.signup_submitreq, image=self.imgBtn,fg="#ffffff"
                                    ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
-                # self.signupBtn = Button(root, text="Sign Up", command=self.signup_complete, image=self.imgBtn,fg="#ffffff"
-                #                     ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
                 self.backBtn = Button(root, text="Cancel", command=lambda:self.controller.switch_frame(SignIn), image=self.imgBtn2
                                     ,bg="#ffffff", foreground="white",bd=-10,compound="center",activebackground="#ffffff")
                 self.canvasFrame.create_window(250,430,anchor="nw",window=self.signupBtn)
@@ -374,10 +372,13 @@ class SignUp(Frame):
             self.regisSubmitLst['passhash'],self.regisSubmitLst['salt'] = passkey, salt
             print("bumail = ",self.regisSubmitLst.get('bumail'))
             print("Displayname = ",self.regisSubmitLst.get('displayname'))
+            print("Displayname = ",self.regisSubmitLst.get('passhash'))
+            print("Displayname = ",self.regisSubmitLst.get('salt'))
+            print("Displayname = ",self.regisSubmitLst.get('displayname'))
             self.signup_commit()
                    
         def signup_commit(self):
-            sqlInsertInto = """ INSERT INTO Users(Email, PassHash, PassSalt, DisplayName, Bio)
+            sqlInsertInto = """ INSERT INTO Users(Email, PassHash, PassSalt, DisplayName, Bio)  
                                 VALUES(?, ?, ?, ?, ?);"""
             sqlPassValue = (self.regisSubmitLst['bumail'],
                             self.regisSubmitLst['passhash'],
@@ -444,54 +445,58 @@ class Mbti(Frame):
             self.controller = controllerFrame
             self.controller.title("BU Friends  |  Personality Test (MBTi)")
             print("Checkuid",self.controller.uid)
-            bg, bg2 = "#779da8", "#1f5f4f"
+            bg, bg2 = "#779da8", "#502913"
             fg, fg2 = "#ffffff", "#74348a"
-            font = Font(family="leelawadee",size=18,weight="bold")
-            
-            
-            
-            self.mbtiFrame = Canvas(self.root)
+            font = Font(family="leelawadee",size=12,weight="bold")
+            self.mbtiFrame = Canvas(self.root,width=900,bd=0,highlightthickness=0)
             self.mbtiFrame.option_add("*font",font)
             self.mbtiFrame.pack(expand=1,fill=BOTH)
             self.bannerFrame = Frame(self.root)
             self.bannerMbti = self.controller.get_image(r'assets/mbti/banner.png')
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
-            
-            self.lab = Label(self.mbtiFrame, text="Myers–Briggs Type Indicator\n(MBTI)",font=self.controller.fontHeading,compound=TOP)
-            #self.lab.pack()
-            #Label(self.mbtiFrame, text="[28 Choice]",font=self.controller.fontBody).pack(side=TOP)
             self.mbtiCode,self.mbtiCodeLst = "",[]
             self.mbtiProgress = {'ie':[],
                                  'ns':[],
                                  'ft':[],
                                  'pj':[]
                                  }
+            self.quizLst = qz.get_MbtiQuizTH()
+            self.answLst = qz.get_MbtiAnsTH()
+            self.answVar = [IntVar() for i in range(len(self.quizLst))]
+            self.randLst = random.sample(range(len(self.quizLst)), len(self.quizLst))
+            print(self.answVar)
+            def call_quiz(_i, _data):
+                bg = ["#1f5f4f","#107582"]
+                bgbtn = ["#cce9ef","#394CDC"]
+                btnfg = "#000000"
+                frame = Frame(self.mbtiFrame,bg="pink")
+                frame.pack(expand=1,fill=BOTH)
+                Label(frame ,text="[{}] {}".format(i+1, _data[1]),bg=bg[_i%2],fg=fg).pack(expand=1,fill=X,ipady=100)
+                subFrame = Frame(frame,bg=bg2)
+                subFrame.pack(expand=1,fill=X)
+                self.a1 = Radiobutton(subFrame ,variable=self.answVar[i],value=self.answLst[i][0],text="{} {}".format("A :", self.answLst[i][2])\
+                    ,bg=bgbtn[0],fg=btnfg,font=font,indicatoron=0,activebackground=btnfg)
+                self.a1.pack(side=LEFT,expand=1,fill=X,ipady=40)
+                self.a2 = Radiobutton(subFrame ,variable=self.answVar[i],value=self.answLst[i][1],text="{} {}".format("B :", self.answLst[i][3])\
+                    ,bg=bgbtn[0],fg=btnfg,font=font,indicatoron=0,activebackground=btnfg)
+                self.a2.pack(side=LEFT,expand=1,fill=X,ipady=40)
+
+            for i,data in enumerate(self.quizLst):
+                call_quiz(i,data)
+                pass
+            #self.mbti_calculator()
+            #print(self.mbtiCode)
+    
+            
+        def mbti_updateprogress(self, key, index, value):
+            pass
+
             # self.mbtiProgress["ie"].append(1)
             # self.mbtiProgress["ns"].append(1)
             # self.mbtiProgress["ft"].append(1)
             # self.mbtiProgress["pj"].append(1)
-           
-            def getquiz():
-                self.quizLst = qz.get_MbtiQuizTH()
-                print(self.quizLst)
-                self.randLst = random.sample(range(len(self.quizLst)), len(self.quizLst))
-            getquiz()
-                
-            def call_quiz(_i, _data):
-                frame = Frame(self.mbtiFrame, bg="pink")
-                frame.pack(expand=1,fill=X)
-                Label(frame ,text="{} {}".format(i+1, _data[2]),bg=bg,fg=fg).pack(expand=1,fill=X,ipady=100)
-                Label(frame ,text="{} {}".format("A :", _data[0]),bg=bg2,fg=fg).pack(side=LEFT,expand=1,fill=X,ipady=100)
-                Label(frame ,text="{} {}".format("B :", _data[1]),bg=bg2,fg=fg).pack(side=LEFT,expand=1,fill=X,ipady=100)
-            for i,data in enumerate(qz.get_MbtiQuizTH()):
-                call_quiz(i,data)
-                pass
             
-            
-            
-            #self.mbti_calculator()
-            #print(self.mbtiCode)
             
         
         def mbti_calculator(self):
@@ -542,6 +547,15 @@ class DashBoard(Frame):
             print("ehe nun dayo")
 
 
+def pw_encryption():
+        pw = "1aaaaaaaaaaa"
+        stdhash = 'sha256'
+        stdencode = 'utf-8'
+        salt = os.urandom(32)
+        password = pw
+        passkey = hashlib.pbkdf2_hmac(stdhash, password.encode(stdencode), salt, 161803)
+        return passkey, salt
+
 if __name__ == '__main__':
     sqlnewtable = """ CREATE TABLE IF NOT EXISTS tableName(
                                     id integer(20) PRIMARY KEY,
@@ -550,19 +564,32 @@ if __name__ == '__main__':
                                     displayname varchar(50) NOT NULL
                                     );"""
     
-    sqlselect = """ SELECT * FROM tableName """
+    sqlselect = """ SELECT * FROM Users WHERE Uid = {}""".format(13)
                 # (next step) # rows = 
                                         
     sqlinto = """INSERT INTO tableName (email, passhash, passsalt, displayname)
                                     VALUES("{}","{}","{}","{}");""".format("hehe%@bumail","12345","12345","Woohoo~")
                                     
-    sqldel = """DELETE FROM tableName WHERE uid={}""".format(7) 
+    sqlupdate = """UPDATE Users SET PassHash = ?, PassSalt = ? WHERE Uid = 1"""
+    pw,salt = pw_encryption()
+    print(pw, salt)
+    sqlupvalue = (pw,salt)
+  
+   
+    sqldel = """DELETE FROM tableName WHERE uid={}""".format(13) 
+    
     sqldrop = """ DROP TABLE tableName;"""
+    
     conn = DBController.create_connection()
-    if conn is not None:
-        print("init DB connection completely!")
-        #DBController.execute_sql(conn, )
-    else:
+    if conn is None:
         print("init DB Connection incomplete!")
+    else:
+        print("init DB connection completely!")
+        #c = DBController.execute_sql(conn, sqlselect)
+       
+        conn.cursor().execute(sqlupdate, sqlupvalue)
+        
+        
+        
     #BUFriends_Time()
     BUFriends().mainloop()
