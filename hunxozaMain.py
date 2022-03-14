@@ -177,7 +177,6 @@ class EditPage(Frame):
         passkey = self.controller.password_encryptioncheck("oldPassHash",passSalt)
         if passkey == passHash :
             print("same password")
-<<<<<<< HEAD
             # newSalt = os.urandom(32)
             # newpass = self.controller.password_encryptioncheck("test1234",newSalt)
             # sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
@@ -187,17 +186,6 @@ class EditPage(Frame):
             #     conn.commit()
             # except Error as e:
             #     print(e)
-=======
-            newpass = self.controller.password_encryptioncheck("newPassInput",passSalt)
-            sql2 = """UPDATE Users SET PassHash = ? WHERE uid = ?"""
-            try:
-                cur = conn.cursor()
-                cur.execute(sql2, (newpass,self.controller.uid))
-                conn.commit()
-                print("password has been changed!")
-            except Error as e:
-                print(e)
->>>>>>> 0e51feb548e3d427a1563e1e28901d302cfbaf34
         else :
             print("do not same password")
             print("password can not change.")
