@@ -60,6 +60,12 @@ class BUFriends(Tk):
         img = ImageTk.PhotoImage(origin)
         return img
     
+    def password_encryptioncheck(self, _password, _salt):
+            stdhash = 'sha256'
+            stdencode = 'utf-8'
+            passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
+            return passkey
+    
 class ScrollFrame():
     def __init__(self,root,scrollable):
         # creating
