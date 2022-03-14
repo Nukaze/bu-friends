@@ -579,14 +579,11 @@ class DashBoard(Frame):
             print("ehe nun dayo")
 
 
-def pw_encryption():
-        pw = "1aaaaaaaa"
-        stdhash = 'sha256'
-        stdencode = 'utf-8'
-        salt = os.urandom(32)
-        password = pw
-        passkey = hashlib.pbkdf2_hmac(stdhash, password.encode(stdencode), salt, 161803)
-        return passkey, salt
+def password_encryptioncheck( _password, _salt):
+            stdhash = 'sha256'
+            stdencode = 'utf-8'
+            passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
+            return passkey
 
 if __name__ == '__main__':
     sqlnewtable = """ CREATE TABLE IF NOT EXISTS tableName(
@@ -614,18 +611,6 @@ if __name__ == '__main__':
         print("init DB Connection incomplete!")
     else:
         print("init DB connection completely!")
-        #c = DBController.execute_sql(conn, sqlupdate1)
-        #c2 = DBController.execute_sql(conn, sqlupdate2)
-        pw,salt = pw_encryption()
-        updateValues = [pw,salt,1]
-        for data in updateValues:
-            print(type(data))
-            #print(data.decode('utf-8'))
-        sqlupdate1 = """UPDATE Users SET PassHash = ?, PassSalt = ? WHERE Uid = ?;"""
-        sqlupdate2 = """UPDATE Users SET PassSalt = ? WHERE Uid = 1;"""
-        #DBController.execute_sql(conn, sqlupdate1)
-        conn.cursor().execute(sqlupdate1, updateValues)
-        #conn.cursor().execute(sqlupdate2, saltvalue)
         
     #BUFriends_Time()
     BUFriends().mainloop()
