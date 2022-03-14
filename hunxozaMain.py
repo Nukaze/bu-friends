@@ -179,8 +179,8 @@ class InfoOnProfile() :
     def option_click(self) :
         bgColor = '#686DE0'
         if self.parent == 2 :
-            optionList = ["Edit","Log out"]
-            imgOptionList = ['./assets/icons/edit.png','./assets/icons/signOut.png']
+            optionList = ["Edit","My account","Log out"]
+            imgOptionList = ['./assets/icons/edit.png','./assets/icons/edit.png','./assets/icons/signOut.png']
         else :
             optionList = ["Report"]
             imgOptionList = [None]
