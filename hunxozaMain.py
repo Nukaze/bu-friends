@@ -174,19 +174,21 @@ class EditPage(Frame):
                 data = c.fetchall()
                 passHash = data[0][0]
                 passSalt = data[0][1]
-        passkey = self.controller.password_encryptioncheck("test1234",passSalt)
+        passkey = self.controller.password_encryptioncheck("oldPassHash",passSalt)
         if passkey == passHash :
             print("same password")
-            newpass = self.controller.password_encryptioncheck("test1234",passSalt)
+            newpass = self.controller.password_encryptioncheck("newPassInput",passSalt)
             sql2 = """UPDATE Users SET PassHash = ? WHERE uid = ?"""
             try:
                 cur = conn.cursor()
                 cur.execute(sql2, (newpass,self.controller.uid))
                 conn.commit()
+                print("password has been changed!")
             except Error as e:
                 print(e)
         else :
             print("do not same password")
+            print("password can not change.")
     def widget(self,root) :
         Label(root, text="Edit", font=self.controller.fontHeaing).pack(side="top", pady=5)
         Button(root, text="Processing",command=self.change_password).pack() 
