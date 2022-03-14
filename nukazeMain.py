@@ -250,7 +250,6 @@ class SignIn(Frame):
         
         def login_query(self):
             sqlQuery = """SELECT Uid, PassHash, PassSalt, DisplayName FROM Users WHERE Email = "{}";""".format(self.userName.get())
-            print(sqlQuery)
             self.loginDict['usermail'] = (self.userName.get())
             conn = DBController.create_connection()
             if conn is None:
@@ -258,7 +257,6 @@ class SignIn(Frame):
             else:
                 q = DBController.execute_sql(conn, sqlQuery)
                 rowExist = q.fetchall()
-                print(rowExist)
                 print("checkfetch = ",len(rowExist))
                 if rowExist == []:
                     messagebox.showwarning('Sign-in Incomplete', "Sorry [ {} ] Doesn't Exist \nPlease Check BU-Mail Carefully and Try Again.".format(self.userName.get()))
@@ -274,12 +272,12 @@ class SignIn(Frame):
             self.loginDict['userpass'] = logPasskey
             if self.loginDict['userpass'] == self.row[1]:
                 messagebox.showinfo('Sign-In Complete!',"Welcome Back [ {} ] \nHave a great time in BU Friends.".format(self.row[3]))
+                self.controller.uid = self.row[0]
                 self.login_submit()
             else:
                 messagebox.showwarning('Sign-in Incomplete', "Sorry Your Password Did not Match \nPlease Check Your Password Carefully and Try Again.")
         
         def login_submit(self):
-            self.controller.uid = self.row[0]
             self.controller.switch_frame(Mbti)
         
             
@@ -407,9 +405,9 @@ class SignUp(Frame):
             self.signup_commit()
                    
         def signup_commit(self):
-            sqlInsertInto = """ INSERT INTO Users(Email, PassHash, PassSalt, DisplayName, Bio)  
+            sqlInsert = """ INSERT INTO Users(Email, PassHash, PassSalt, DisplayName, Bio)  
                                 VALUES(?, ?, ?, ?, ?);"""
-            sqlPassValue = (self.regisSubmitLst['bumail'],
+            values = (self.regisSubmitLst['bumail'],
                             self.regisSubmitLst['passhash'],
                             self.regisSubmitLst['salt'],
                             self.regisSubmitLst['displayname'],
@@ -424,7 +422,7 @@ class SignUp(Frame):
                 print("DB can't connect in signup commit.")
                 messagebox.showerror("Database Problem","Can't SignUp Commit.")
             else:
-                conn.cursor().execute(sqlInsertInto, sqlPassValue)
+                conn.cursor().execute(sqlInsert, values)
                 cur = DBController.execute_sql(conn, sqlGetuid)
                 getuid = cur.fetchall()
                 self.controller.uid = (getuid[0][0])
@@ -579,14 +577,11 @@ class DashBoard(Frame):
             print("ehe nun dayo")
 
 
-def pw_encryption():
-        pw = "1aaaaaaaa"
-        stdhash = 'sha256'
-        stdencode = 'utf-8'
-        salt = os.urandom(32)
-        password = pw
-        passkey = hashlib.pbkdf2_hmac(stdhash, password.encode(stdencode), salt, 161803)
-        return passkey, salt
+def password_encryptioncheck( _password, _salt):
+            stdhash = 'sha256'
+            stdencode = 'utf-8'
+            passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
+            return passkey
 
 if __name__ == '__main__':
     sqlnewtable = """ CREATE TABLE IF NOT EXISTS tableName(
@@ -614,18 +609,6 @@ if __name__ == '__main__':
         print("init DB Connection incomplete!")
     else:
         print("init DB connection completely!")
-        #c = DBController.execute_sql(conn, sqlupdate1)
-        #c2 = DBController.execute_sql(conn, sqlupdate2)
-        pw,salt = pw_encryption()
-        updateValues = [pw,salt,1]
-        for data in updateValues:
-            print(type(data))
-            #print(data.decode('utf-8'))
-        sqlupdate1 = """UPDATE Users SET PassHash = ?, PassSalt = ? WHERE Uid = ?;"""
-        sqlupdate2 = """UPDATE Users SET PassSalt = ? WHERE Uid = 1;"""
-        #DBController.execute_sql(conn, sqlupdate1)
-        conn.cursor().execute(sqlupdate1, updateValues)
-        #conn.cursor().execute(sqlupdate2, saltvalue)
         
     #BUFriends_Time()
     BUFriends().mainloop()
