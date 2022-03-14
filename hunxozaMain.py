@@ -42,7 +42,7 @@ class BUFriends(Tk):
         self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.uid = 11
+        self.uid = 2
         self.switch_frame(EditPage)
 # switch page event
     def switch_frame(self, frameClass):
@@ -163,7 +163,8 @@ class EditPage(Frame):
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
         master = scroll.interior
-        self.widget(master)
+        # self.widget(master)
+        self.change_password()
     def change_password(self) :
         print("Start")
         conn = DBController.create_connection()
@@ -172,16 +173,20 @@ class EditPage(Frame):
                 c = DBController.execute_sql(conn, sql)
                 data = c.fetchall()
                 passHash = data[0][0]
-                passSalt = bytes(data[0][1],'utf-8')
-                print(passSalt)
-        print(type(passSalt))
+                passSalt = data[0][1]
         passkey = self.controller.password_encryptioncheck("test1234",passSalt)
-        print(type(passkey))
-        print(passkey.decode('utf-8'))
-        # if passHash == passkey :
-        #     print("same")
-        # else :
-        #     print("not same")
+        if passkey == passHash :
+            print("same password")
+            newpass = self.controller.password_encryptioncheck("test1234",passSalt)
+            sql2 = """UPDATE Users SET PassHash = ? WHERE uid = ?"""
+            try:
+                cur = conn.cursor()
+                cur.execute(sql2, (newpass,self.controller.uid))
+                conn.commit()
+            except Error as e:
+                print(e)
+        else :
+            print("do not same password")
     def widget(self,root) :
         Label(root, text="Edit", font=self.controller.fontHeaing).pack(side="top", pady=5)
         Button(root, text="Processing",command=self.change_password).pack() 
