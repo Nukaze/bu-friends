@@ -156,14 +156,13 @@ class SignIn(Frame):
         def __init__(self, root, controllerFrame):
             self.bg,self.bgentry,self.fghead,self.fg,self.fgHolder = "#B6E0F7","#ffffff","#000000","#333333","#999999"
             self.controller = controllerFrame
-            self.controller.uid = "[key user login]"
+            self.controller.uid = 0
             self.controller.title("BU Friends  |  Sign-In")
             print("uidcheck", self.controller.uid)
             self.root = root
             self.loginDict = {"usermail":"",
                               "userpass":""
-                                }
-            
+                              }
             #BannerCanva
             def zone_canvas():
                 self.canvasFrame = Canvas(root, width=400, height=600, bd=0,highlightthickness=0)
@@ -246,9 +245,11 @@ class SignIn(Frame):
             self.signupBtn.config(fg="#7700ff")
         def signup_mouseleave(self,e):
             self.signupBtn.config(fg="#0000ff")
+        def goto_signup(self,e):
+            self.controller.switch_frame(SignUp)
         
         def login_query(self):
-            sqlQuery = """SELECT Uid, PassHash, PassSalt FROM Users WHERE Email = "{}";""".format(self.userName.get())
+            sqlQuery = """SELECT Uid, PassHash, PassSalt, DisplayName FROM Users WHERE Email = "{}";""".format(self.userName.get())
             print(sqlQuery)
             self.loginDict['usermail'] = (self.userName.get())
             conn = DBController.create_connection()
@@ -260,36 +261,28 @@ class SignIn(Frame):
                 print(rowExist)
                 print("checkfetch = ",len(rowExist))
                 if rowExist == []:
-                    messagebox.showinfo('Sign-in Imcomplete', "Sorry [ {} ] Doesn't Exist Please Check BU-Mail Carefully and Try Again.".format(self.userName.get()))
+                    messagebox.showwarning('Sign-in Incomplete', "Sorry [ {} ] Doesn't Exist \nPlease Check BU-Mail Carefully and Try Again.".format(self.userName.get()))
                     self.controller.switch_frame(SignIn)
                 else:
                     self.row = rowExist[0]
                     self.login_validation()
             
         def login_validation(self):
-            print("row0 here = ",self.row[0])
-            print("rowhash here = ",self.row[1])
-            print("rowsalt here = ",self.row[2])
             logPasskey = self.controller.password_encryptioncheck(self.userPass.get(), self.row[2])
             print("loghash {}\ndbhash  {}".format(logPasskey, self.row[1]))
+            print(type(logPasskey), type(self.row[1]))
             self.loginDict['userpass'] = logPasskey
-            print(self.loginDict)
-            if messagebox.askyesno('Sign-In',"{}, {}".format(self.userName.get(),self.userPass.get())):
+            if self.loginDict['userpass'] == self.row[1]:
+                messagebox.showinfo('Sign-In Complete!',"Welcome Back [ {} ] \nHave a great time in BU Friends.".format(self.row[3]))
                 self.login_submit()
             else:
-                #self.controller.switch_frame(SignIn)
-                pass
-            pass    
-            
+                messagebox.showwarning('Sign-in Incomplete', "Sorry Your Password Did not Match \nPlease Check Your Password Carefully and Try Again.")
         
         def login_submit(self):
-            print("go")
+            self.controller.uid = self.row[0]
             self.controller.switch_frame(Mbti)
         
-        def goto_signup(self,e):
-            self.controller.switch_frame(SignUp)
             
-
 class SignUp(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
@@ -495,17 +488,17 @@ class Mbti(Frame):
             self.bannerMbti = self.controller.get_image(r'assets/mbti/banner.png')
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
-            self.mbtiCode,self.mbtiCodeLst = "",[]
             self.mbtiProgress = {'ie':[],
                                  'ns':[],
                                  'ft':[],
                                  'pj':[]
                                  }
+            self.mbtiCode,self.mbtiCodeLst = "",[]
             self.quizLst = qz.get_MbtiQuizTH()
             self.answLst = qz.get_MbtiAnsTH()
             self.answVar = [IntVar() for i in range(len(self.quizLst))]
+            self.answSubmitLst = []
             self.randLst = random.sample(range(len(self.quizLst)), len(self.quizLst))
-            print(self.answVar)
             def call_quiz(_i, _data):
                 bg = ["#1f5f4f","#107582"]
                 bgbtn = ["#cce9ef","#394CDC"]
@@ -559,8 +552,7 @@ class Mbti(Frame):
                     self.mbtiCode = "".join(self.mbtiCodeLst)
             except ValueError: print("mbti calculator error")
 
-
-        
+     
 class DashBoard(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
@@ -588,7 +580,7 @@ class DashBoard(Frame):
 
 
 def pw_encryption():
-        pw = "1aaaaaaaaaaa"
+        pw = "1aaaaaaaa"
         stdhash = 'sha256'
         stdencode = 'utf-8'
         salt = os.urandom(32)
@@ -624,18 +616,16 @@ if __name__ == '__main__':
         print("init DB connection completely!")
         #c = DBController.execute_sql(conn, sqlupdate1)
         #c2 = DBController.execute_sql(conn, sqlupdate2)
-        sqlupdate1 = """UPDATE Users SET PassHash = ? WHERE Uid = 6;"""
-        sqlupdate2 = """UPDATE Users SET PassSalt = ? WHERE Uid = 6;"""
         pw,salt = pw_encryption()
-        print(pw)
-        print(type(pw))
-        print(salt)
-        print(type(salt))
-        #conn.cursor().execute(sqlupdate1, "1")
-        #conn.cursor().execute(sqlupdate2, "1")
-        
-        
-        
+        updateValues = [pw,salt,1]
+        for data in updateValues:
+            print(type(data))
+            #print(data.decode('utf-8'))
+        sqlupdate1 = """UPDATE Users SET PassHash = ?, PassSalt = ? WHERE Uid = ?;"""
+        sqlupdate2 = """UPDATE Users SET PassSalt = ? WHERE Uid = 1;"""
+        #DBController.execute_sql(conn, sqlupdate1)
+        conn.cursor().execute(sqlupdate1, updateValues)
+        #conn.cursor().execute(sqlupdate2, saltvalue)
         
     #BUFriends_Time()
     BUFriends().mainloop()
