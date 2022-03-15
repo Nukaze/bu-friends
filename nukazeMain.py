@@ -522,6 +522,16 @@ class Mbti(Frame):
             #self.mbti_calculator()
             #print(self.mbtiCode)
     
+        def clear_values(self):
+            self.answLst.clear()
+            self.mbtiProgress.clear()
+            self.mbtiCode,self.mbtiCodeLst = "",[]
+            self.mbtiProgress = {'ie':[],
+                            'ns':[],
+                            'ft':[],
+                            'pj':[]
+                            }
+        
         def mbti_calculator(self):
             print(len(self.answVar))
             for i,data in enumerate(self.answVar):
@@ -573,15 +583,12 @@ class Mbti(Frame):
                     self.natureLst.clear()
                     self.tacticLst.clear()
             except: print("mbti calculator error")
-        def clear_values(self):
-            self.answLst.clear()
-            self.mbtiProgress.clear()
-            self.mbtiCode,self.mbtiCodeLst = "",[]
-            self.mbtiProgress = {'ie':[],
-                            'ns':[],
-                            'ft':[],
-                            'pj':[]
-                            }
+            
+        def mbti_commit(self):
+            #get mbti code 
+            #get mbti image
+            #update mbti tag
+            pass
 
 class DashBoard(Frame):
     def __init__(self, controllerFrame):
