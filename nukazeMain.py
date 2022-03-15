@@ -40,14 +40,6 @@ class DBController() :
         except Error as e:
             print(e)
         return c
-    ''' เวลาเรียกใช้
-        conn = DBController.create_connection()
-        sql = """คำสั่ง SQL"""
-    if conn is not None:
-            DBController.exucute_sql(conn, sql)
-    else:
-        print("Error! cannot create the database connection.")'''
-    
 
 class BUFriends(Tk):
     def __init__(self):
@@ -65,8 +57,8 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        #self.switch_frame(SignIn)
-        self.switch_frame(Mbti)
+        self.switch_frame(SignIn)
+        #self.switch_frame(Mbti)
 
     def switch_frame(self, frame_class):
         print("switching to {}".format(frame_class))
@@ -250,13 +242,13 @@ class SignIn(Frame):
             self.controller.switch_frame(SignUp)
         
         def login_query(self):
-            sqlQuery = """SELECT Uid, PassHash, PassSalt, DisplayName FROM Users WHERE Email = "{}";""".format(self.userName.get())
+            sqlQuery = """SELECT Uid, PassHash, PassSalt, DisplayName FROM Users WHERE Email = ?;"""
             self.loginDict['usermail'] = (self.userName.get())
             conn = DBController.create_connection()
             if conn is None:
                 print("DB Can't Connect!")
             else:
-                q = DBController.execute_sql(conn, sqlQuery)
+                q = conn.cursor().execute(sqlQuery, [self.userName.get()])
                 rowExist = q.fetchall()
                 print("checkfetch = ",len(rowExist))
                 if rowExist == []:
@@ -365,8 +357,8 @@ class SignUp(Frame):
                 def signup_validator(self):
                     self.regisSubmitLst.clear()
                     for i,data in enumerate(self.regisVarLst):
-                        if data.get() == "" or data.get().isspace():
-                            register_error("Sign Up Form Information do not Blank")
+                        if data.get() == "" or data.get().isspace() or " " in self.regisVarLst[0].get():
+                            register_error("Sign Up Form Information do not Blank or Space")
                             break
                     if "@bumail.net" not in self.regisVarLst[0].get():
                         register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
@@ -406,28 +398,31 @@ class SignUp(Frame):
             self.signup_commit()
                    
         def signup_commit(self):
-            sqlInsert = """ INSERT INTO Users(Email, PassHash, PassSalt, DisplayName, Bio)  
+            sqlRegis = """INSERT INTO Users(Email, PassHash, PassSalt, DisplayName, Bio)  
                                 VALUES(?, ?, ?, ?, ?);"""
-            values = (self.regisSubmitLst['bumail'],
+            userinfoValues = (self.regisSubmitLst['bumail'],
                             self.regisSubmitLst['passhash'],
                             self.regisSubmitLst['salt'],
                             self.regisSubmitLst['displayname'],
                             self.regisSubmitLst['bio'])
-            sqlGetuid = """SELECT uid FROM users WHERE email = "{}";""".format(self.regisSubmitLst['bumail'])
+            sqlGetuid = """SELECT Uid FROM Users WHERE Email = "{}";""".format(self.regisSubmitLst['bumail'])
+                      
+            #sqlAddUserTag = """INSERT INTO UsersTag(Mbti) VALUES("xxxx");"""
+            sqlAddUserTag = """INSERT INTO UsersTag;"""
+
             conn = DBController.create_connection()
-            print(self.regisSubmitLst['passhash'])
             print(type(self.regisSubmitLst['passhash']))
-            print(self.regisSubmitLst['salt'])
             print(type(self.regisSubmitLst['salt']))
             if conn is None:
                 print("DB can't connect in signup commit.")
                 messagebox.showerror("Database Problem","Can't SignUp Commit.")
             else:
-                conn.cursor().execute(sqlInsert, values)
+                conn.cursor().execute(sqlRegis, userinfoValues)
+                DBController.execute_sql(conn, sqlAddUserTag)
                 cur = DBController.execute_sql(conn, sqlGetuid)
-                getuid = cur.fetchall()
-                self.controller.uid = (getuid[0][0])
-                print("user id = [{}]".format(self.controller.uid))
+                getUid = (cur.fetchall())[0]
+                self.controller.uid = getUid[0]
+                print("user id = [ {} ]".format(self.controller.uid))
                 messagebox.showinfo('Sign Up Successfully'
                                     ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitLst['displayname']))
                 self.signup_complete()
@@ -597,9 +592,6 @@ if __name__ == '__main__':
                                         
     sqlinto = """INSERT INTO tableName (email, passhash, passsalt, displayname)
                                     VALUES("{}","{}","{}","{}");""".format("hehe%@bumail","12345","12345","Woohoo~")
-                                    
-    
-   
    
     sqldel = """DELETE FROM Users"""#.format() 
     
