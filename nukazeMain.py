@@ -472,11 +472,10 @@ class Mbti(Frame):
             self.controller = controllerFrame
             self.controller.title("BU Friends  |  Personality Test (MBTi)")
             print("Checkuid",self.controller.uid)
-            bg, bg2 = "#779da8", "#502913"
-            fg, fg2 = "#ffffff", "#74348a"
+            bg = "#ffffff"
             fontQuiz = Font(family="leelawadee",size=22,weight="bold")
             font = Font(family="leelawadee",size=14,weight="bold")
-            self.mbtiFrame = Canvas(self.root,width=900,bd=0,highlightthickness=0)
+            self.mbtiFrame = Canvas(self.root,width=900,bd=0,highlightthickness=0,bg=bg)
             self.mbtiFrame.option_add("*font",font)
             self.mbtiFrame.pack(expand=1,fill=BOTH)
             self.bannerFrame = Frame(self.root)
@@ -495,26 +494,31 @@ class Mbti(Frame):
             self.answSubmitLst = []
             self.randLst = random.sample(range(len(self.quizLst)), len(self.quizLst))
             def call_quiz(_i, _data):
-                bg = ["#1f5f4f","#107582"]
-                bgbtn = ["#191B26","#394CDC"]
-                btnfg = "#A6BfD6"
+                bg = "#d0eeff"
+                bgbtn = "#2E3033"
+                btnfg = "#486edf"
                 frame = Frame(self.mbtiFrame,bg="pink")
                 frame.pack(expand=1,fill=BOTH)
-                Label(frame ,text="[{}] {}".format(i+1, _data[1]),font=fontQuiz,bg=bg[_i%2],fg=fg)\
+                Label(frame ,text="[{}] {}".format(i+1, _data[1]),font=fontQuiz,bg=bg,fg="#000000")\
                     .pack(expand=1,fill=X,ipady=150)
-                subFrame = Frame(frame,bg=bg2,width=450,height=155)
+                subFrame = Frame(frame,height=155)
                 subFrame.propagate(0)
                 subFrame.pack(expand=1,fill=X)
                 self.a1 = Radiobutton(subFrame ,variable=self.answVar[i],value=self.answLst[i][0],text="{} {}".format("A :", self.answLst[i][2])\
-                    ,bg=bgbtn[0],fg=btnfg,font=font,indicatoron=0,activebackground=btnfg)
-                self.a1.pack(side=LEFT,expand=1,fill=X,ipady=60)
+                    ,bg=bgbtn,fg=btnfg,font=font,indicatoron=0,activebackground=btnfg,width=40)
+                self.a1.pack(side=LEFT,expand=1,fill=Y,ipady=60)
                 self.a2 = Radiobutton(subFrame ,variable=self.answVar[i],value=self.answLst[i][1],text="{} {}".format("B :", self.answLst[i][3])\
-                    ,bg=bgbtn[0],fg=btnfg,font=font,indicatoron=0,activebackground=btnfg)
-                self.a2.pack(side=LEFT,expand=1,fill=X,ipady=60)
+                    ,bg=bgbtn,fg=btnfg,font=font,indicatoron=0,activebackground=btnfg,width=40)
+                self.a2.pack(side=LEFT,expand=1,fill=Y,ipady=60)
 
             for i,data in enumerate(self.quizLst):
                 call_quiz(i,data)
                 pass
+            self.btnImg = self.controller.get_image(r'assets/buttons/buttonRaw.png')
+            self.mbtiBtn = Button(self.mbtiFrame, text="Submit!", command=lambda:print("go mbit"), image=self.btnImg, compound="center",
+                                  bd=0,activebackground=bg,bg=bg,fg=bg)
+            self.mbtiBtn.image = self.btnImg
+            self.mbtiBtn.pack(expand=1,pady=30)
             #self.mbti_calculator()
             #print(self.mbtiCode)
     
@@ -550,6 +554,7 @@ class Mbti(Frame):
             except ValueError: print("mbti calculator error")
 
      
+
 class DashBoard(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
