@@ -57,8 +57,8 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(SignIn)
-        #self.switch_frame(Mbti)
+        #self.switch_frame(SignIn)
+        self.switch_frame(Mbti)
 
     def switch_frame(self, frame_class):
         print("switching to {}".format(frame_class))
@@ -474,7 +474,8 @@ class Mbti(Frame):
             print("Checkuid",self.controller.uid)
             bg, bg2 = "#779da8", "#502913"
             fg, fg2 = "#ffffff", "#74348a"
-            font = Font(family="leelawadee",size=12,weight="bold")
+            fontQuiz = Font(family="leelawadee",size=22,weight="bold")
+            font = Font(family="leelawadee",size=14,weight="bold")
             self.mbtiFrame = Canvas(self.root,width=900,bd=0,highlightthickness=0)
             self.mbtiFrame.option_add("*font",font)
             self.mbtiFrame.pack(expand=1,fill=BOTH)
@@ -495,19 +496,21 @@ class Mbti(Frame):
             self.randLst = random.sample(range(len(self.quizLst)), len(self.quizLst))
             def call_quiz(_i, _data):
                 bg = ["#1f5f4f","#107582"]
-                bgbtn = ["#cce9ef","#394CDC"]
-                btnfg = "#000000"
+                bgbtn = ["#191B26","#394CDC"]
+                btnfg = "#A6BfD6"
                 frame = Frame(self.mbtiFrame,bg="pink")
                 frame.pack(expand=1,fill=BOTH)
-                Label(frame ,text="[{}] {}".format(i+1, _data[1]),bg=bg[_i%2],fg=fg).pack(expand=1,fill=X,ipady=100)
-                subFrame = Frame(frame,bg=bg2)
+                Label(frame ,text="[{}] {}".format(i+1, _data[1]),font=fontQuiz,bg=bg[_i%2],fg=fg)\
+                    .pack(expand=1,fill=X,ipady=150)
+                subFrame = Frame(frame,bg=bg2,width=450,height=155)
+                subFrame.propagate(0)
                 subFrame.pack(expand=1,fill=X)
                 self.a1 = Radiobutton(subFrame ,variable=self.answVar[i],value=self.answLst[i][0],text="{} {}".format("A :", self.answLst[i][2])\
                     ,bg=bgbtn[0],fg=btnfg,font=font,indicatoron=0,activebackground=btnfg)
-                self.a1.pack(side=LEFT,expand=1,fill=X,ipady=40)
+                self.a1.pack(side=LEFT,expand=1,fill=X,ipady=60)
                 self.a2 = Radiobutton(subFrame ,variable=self.answVar[i],value=self.answLst[i][1],text="{} {}".format("B :", self.answLst[i][3])\
                     ,bg=bgbtn[0],fg=btnfg,font=font,indicatoron=0,activebackground=btnfg)
-                self.a2.pack(side=LEFT,expand=1,fill=X,ipady=40)
+                self.a2.pack(side=LEFT,expand=1,fill=X,ipady=60)
 
             for i,data in enumerate(self.quizLst):
                 call_quiz(i,data)
