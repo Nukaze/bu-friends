@@ -490,7 +490,7 @@ class Mbti(Frame):
             self.mbtiCode,self.mbtiCodeLst = "",[]
             self.quizLst = qz.get_MbtiQuizTH()
             self.answLst = qz.get_MbtiAnsTH()
-            self.answVar = [IntVar() for i in range(len(self.quizLst))]
+            self.answVar = [StringVar() for i in range(len(self.quizLst))]
             self.answSubmitLst = []
             self.randLst = random.sample(range(len(self.quizLst)), len(self.quizLst))
             def call_quiz(_i, _data):
@@ -515,31 +515,47 @@ class Mbti(Frame):
                 call_quiz(i,data)
                 pass
             self.btnImg = self.controller.get_image(r'assets/buttons/buttonRaw.png')
-            self.mbtiBtn = Button(self.mbtiFrame, text="Submit!", command=lambda:print("go mbit"), image=self.btnImg, compound="center",
+            self.mbtiBtn = Button(self.mbtiFrame, text="Submit!", command=self.mbti_calculator, image=self.btnImg, compound="center",
                                   bd=0,activebackground=bg,bg=bg,fg=bg)
             self.mbtiBtn.image = self.btnImg
             self.mbtiBtn.pack(expand=1,pady=30)
             #self.mbti_calculator()
             #print(self.mbtiCode)
     
-            
-        def mbti_updateprogress(self, key, index, value):
-            pass
-
-            # self.mbtiProgress["ie"].append(1)
-            # self.mbtiProgress["ns"].append(1)
-            # self.mbtiProgress["ft"].append(1)
-            # self.mbtiProgress["pj"].append(1)
-            
-            
-        
         def mbti_calculator(self):
+            print(len(self.answVar))
+            for i,data in enumerate(self.answVar):
+                print(", ".join(data.get()))
+                if "I" in data.get():
+                    self.mbtiProgress["ie"].append(0)
+                elif "E" in data.get():
+                    self.mbtiProgress["ie"].append(1)
+                elif "N" in data.get():
+                    self.mbtiProgress["ns"].append(0)
+                elif "S" in data.get():
+                    self.mbtiProgress["ns"].append(1)
+                elif "F" in data.get():
+                    self.mbtiProgress["ft"].append(0)
+                elif "T" in data.get():
+                    self.mbtiProgress["ft"].append(1)
+                elif "P" in data.get():
+                    self.mbtiProgress["pj"].append(0)
+                elif "J" in data.get():
+                    self.mbtiProgress["pj"].append(1)
+                else:
+                    print("out of mbti")
             self.mindLst = self.mbtiProgress.get('ie')
             self.energyLst = self.mbtiProgress.get('ns')
             self.natureLst = self.mbtiProgress.get('ft')
             self.tacticLst = self.mbtiProgress.get('pj')
+            print(self.mindLst)
+            print(self.energyLst)
+            print(self.natureLst)
+            print(self.tacticLst)
             try:
                 if len(self.mindLst) != 7 or len(self.energyLst) != 7 or len(self.natureLst) != 7 or len(self.tacticLst) != 7:
+                    self.clear_values
+                    messagebox.showwarning("MBTi Quiz Incomplete","Sorry Please Answer MBTi Quiz Completely.")
                     print("please answer quiz complete")
                 else:
                     if sum(self.mindLst) > 3:self.mbtiCodeLst.append("E")
@@ -551,9 +567,21 @@ class Mbti(Frame):
                     if sum(self.tacticLst) > 3:self.mbtiCodeLst.append("J")
                     else:self.mbtiCodeLst.append("P")
                     self.mbtiCode = "".join(self.mbtiCodeLst)
-            except ValueError: print("mbti calculator error")
-
-     
+                    print(self.mbtiCode)
+                    self.mindLst.clear()
+                    self.energyLst.clear()
+                    self.natureLst.clear()
+                    self.tacticLst.clear()
+            except: print("mbti calculator error")
+        def clear_values(self):
+            self.answLst.clear()
+            self.mbtiProgress.clear()
+            self.mbtiCode,self.mbtiCodeLst = "",[]
+            self.mbtiProgress = {'ie':[],
+                            'ns':[],
+                            'ft':[],
+                            'pj':[]
+                            }
 
 class DashBoard(Frame):
     def __init__(self, controllerFrame):
