@@ -407,20 +407,20 @@ class SignUp(Frame):
                             self.regisSubmitLst['bio'])
             sqlGetuid = """SELECT Uid FROM Users WHERE Email = "{}";""".format(self.regisSubmitLst['bumail'])
                       
-            #sqlAddUserTag = """INSERT INTO UsersTag(Mbti) VALUES("xxxx");"""
-            sqlAddUserTag = """INSERT INTO UsersTag;"""
+            sqlAddUserTag = """INSERT INTO UsersTag(Mbti) VALUES("xxxx");"""
 
             conn = DBController.create_connection()
             print(type(self.regisSubmitLst['passhash']))
             print(type(self.regisSubmitLst['salt']))
             if conn is None:
                 print("DB can't connect in signup commit.")
-                messagebox.showerror("Database Problem","Can't SignUp Commit.")
+                messagebox.showerror("Database Problem","Can't SignUp ")
             else:
                 conn.cursor().execute(sqlRegis, userinfoValues)
                 DBController.execute_sql(conn, sqlAddUserTag)
                 cur = DBController.execute_sql(conn, sqlGetuid)
                 getUid = (cur.fetchall())[0]
+                print(getUid)
                 self.controller.uid = getUid[0]
                 print("user id = [ {} ]".format(self.controller.uid))
                 messagebox.showinfo('Sign Up Successfully'
