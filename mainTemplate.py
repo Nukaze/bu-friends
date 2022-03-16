@@ -33,6 +33,7 @@ class BUFriends(Tk):
         Tk.__init__(self)
         self.frame = None
         self.uid = 0
+        self.mbtiCode = ""
         w,h = 900,600
         x = (self.winfo_screenwidth()//2) - (w//2)
         y = (self.winfo_screenheight()//2-50) - (h//2)
