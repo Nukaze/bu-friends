@@ -541,7 +541,6 @@ class Mbti(Frame):
                                  'ft':[],
                                  'pj':[]}
         
-
         def mbti_calculator(self):
             print("reqwidth =",self.root.winfo_reqwidth())
             print("reqheight",self.root.winfo_reqheight())
