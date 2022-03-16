@@ -21,6 +21,7 @@ def BUFriends_Time():
     #print("[{}]\n[{}]".format(timeFull,timeNow))
     return timeNow
 
+
 class DBController() :
     def create_connection():
         conn = None
@@ -47,6 +48,7 @@ class BUFriends(Tk):
         Tk.__init__(self)
         self.frame = None
         self.uid = 0
+        self.mbtiCode = ""
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -54,7 +56,7 @@ class BUFriends(Tk):
         self.geometry("{}x{}+{}+{}".format(self.width, self.height, self.x, self.y))
         self.resizable(0,0)
         self.title("BU Friends  |")
-        self.iconbitmap(r'assets/icons/bufriends.ico')
+        self.iconbitmap(r'./assets/icons/bufriends.ico')
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
@@ -161,7 +163,7 @@ class SignIn(Frame):
             def zone_canvas():
                 self.canvasFrame = Canvas(root, width=400, height=600, bd=0,highlightthickness=0)
                 self.canvasFrame.pack(side=LEFT,expand=1,fill="both")
-                pathLst = [r'assets/images/banner.png',r'assets/images/character.png']
+                pathLst = [r'./assets/images/banner.png',r'./assets/images/character.png']
                 self.imgLst = []
                 for i,data in enumerate(pathLst):
                     self.imgLst.append(self.controller.get_image(data))
@@ -174,9 +176,9 @@ class SignIn(Frame):
                 Label(self.mainFrame,text="BU Friends",font=self.controller.fontHeading,bg=self.bg,fg=self.fghead,justify="left")\
                     .pack(side=TOP,expand=1,padx=30,pady=2)
                 self.entryFrame = Frame(self.mainFrame,bg=self.bg)
-                self.entryImg = self.controller.get_image(r'assets/entrys/entry1rz.png')
-                self.entryicon1 = self.controller.get_image(r'assets/icons/user.png')
-                self.entryicon2 = self.controller.get_image(r'assets/icons/lock.png')
+                self.entryImg = self.controller.get_image(r'./assets/entrys/entry1rz.png')
+                self.entryicon1 = self.controller.get_image(r'./assets/icons/user.png')
+                self.entryicon2 = self.controller.get_image(r'./assets/icons/lock.png')
                 self.icon1 = Label(root,image=self.entryicon1,bg=self.bgentry)
                 self.icon2 = Label(root,image=self.entryicon2,bg=self.bgentry)
                 self.icon1.place(relx=0.55,rely=0.38)
@@ -212,7 +214,7 @@ class SignIn(Frame):
                 binding_events()
             def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
-                self.imgBtn = self.controller.get_image(r'assets/buttons/buttonRaw.png')
+                self.imgBtn = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
                 self.loginBtn = Button(self.frameBtn, text="Sign-In", command=self.login_query
                                        , image=self.imgBtn, foreground="white", bg=self.bg,activebackground=self.bg
                                        , activeforeground="white",bd=0,compound="center")
@@ -295,7 +297,7 @@ class SignUp(Frame):
             self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
             self.canvasFrame = Canvas(self.root,width=900,height=600,bd=0,bg="#ffffff",highlightthickness=0)
             self.canvasFrame.pack(expand=1,fill=BOTH)
-            self.bgCanvaImg = self.controller.get_image(r"assets/images/regisbg.png")
+            self.bgCanvaImg = self.controller.get_image(r"./assets/images/regisbg.png")
             self.canvasFrame.create_image(0,0,image=self.bgCanvaImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
             self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
@@ -307,7 +309,7 @@ class SignUp(Frame):
                                     'bio':""}
             def zone_widgets():
                 self.entryLst = []
-                self.entryimg = self.controller.get_image(r'assets/entrys/entry2rz.png')
+                self.entryimg = self.controller.get_image(r'./assets/entrys/entry2rz.png')
                 for i in range(len(self.regisInfoLst)):
                     self.regisVarLst.append(StringVar())
                     self.entryLst.append(self.signup_form(self.canvasFrame, i, self.regisVarLst[i]))
@@ -331,8 +333,8 @@ class SignUp(Frame):
                         entry_binding(i)
                 events()        
             def zone_buttons():
-                self.imgBtn = self.controller.get_image(r'assets/buttons/signup_newrz.png')
-                self.imgBtn2 = self.controller.get_image(r'assets/buttons/back_newrz.png')
+                self.imgBtn = self.controller.get_image(r'./assets/buttons/signup_newrz.png')
+                self.imgBtn2 = self.controller.get_image(r'./assets/buttons/back_newrz.png')
                 self.signupBtn = Button(root, text="Sign Up", command=self.signup_submitreq, image=self.imgBtn,fg="#ffffff"
                                    ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
                 self.backBtn = Button(root, text="Cancel", command=lambda:self.controller.switch_frame(SignIn), image=self.imgBtn2
@@ -443,11 +445,11 @@ class SignUp(Frame):
             font = Font(family="leelawadee",size= 14,weight="bold")
             self.canvasFrame.config(bg=bgComplete,bd=0,highlightthickness=0)
             self.canvasFrame.propagate(0)
-            self.completeImg = self.controller.get_image(r'assets/images/regiscompleterz.png')
-            self.canvasFrame.create_image(0,0, image=self.completeImg,anchor="nw")
+            self.completeImg = self.controller.get_image(r'./assets/images/regiscompleterz.png')
+            self.canvasFrame.create_image(0, 0, image=self.completeImg, anchor="nw")
             self.widgetLst = [["Personality Test ( MBTI ){}".format(" "*22)],["Let's Go! Have fun in BU Friends.{}".format(" "*8)]]
             redirectLst = [lambda:self.controller.switch_frame(Mbti), lambda:self.controller.switch_frame(SignIn)]
-            imgPathLst = [r'assets/buttons/rectangleGreenrz.png',r'assets/buttons/rectangleWhiterz.png']
+            imgPathLst = [r'./assets/buttons/rectangleGreenrz.png',r'./assets/buttons/rectangleWhiterz.png']
             for i,path in enumerate(imgPathLst):
                 img = self.controller.get_image(path)
                 self.widgetLst[i].append(img)
@@ -457,7 +459,7 @@ class SignUp(Frame):
             x,y1,y2 = 440, 335,435
             self.canvasFrame.create_window(x,y1,anchor="nw",window=get_widget(0,redirectLst[0]))
             self.canvasFrame.create_window(x,y2,anchor="nw",window=get_widget(1,redirectLst[1]))
-            self.arrowImg = self.controller.get_image(r'assets/icons/arrow.png')
+            self.arrowImg = self.controller.get_image(r'./assets/icons/arrow.png')
             Label(self.canvasFrame,image=self.arrowImg,bd=0,bg="#CCEABA").place(x=x+340,y=y1+30,anchor="nw")
             Label(self.canvasFrame,image=self.arrowImg,bd=0,bg="#FFFFFF").place(x=x+340,y=y2+30,anchor="nw")
             
@@ -471,12 +473,11 @@ class Mbti(Frame):
         self.root = ScrollFrame(self, True).interior
         self.MbtiContent(self.root, controllerFrame)
         
-        
     class MbtiContent:
         def __init__(self, root, controllerFrame):
             self.root = root
             self.controller = controllerFrame
-            self.controller.title("BU Friends  |  Personality Test (MBTi)")
+            self.controller.title("BU Friends  |  MBTi Test")
             print("Checkuid",self.controller.uid)
             bg = "#ffffff"
             fontQuiz = Font(family="leelawadee",size=22,weight="bold")
@@ -485,7 +486,7 @@ class Mbti(Frame):
             self.mbtiFrame.option_add("*font",font)
             self.mbtiFrame.pack(expand=1,fill=BOTH)
             self.bannerFrame = Frame(self.root)
-            self.bannerMbti = self.controller.get_image(r'assets/mbti/banner.png')
+            self.bannerMbti = self.controller.get_image(r'./assets/mbti/banner.png')
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
             self.mbtiProgress = {'ie':[],
@@ -493,7 +494,7 @@ class Mbti(Frame):
                                  'ft':[],
                                  'pj':[]
                                  }
-            self.mbtiCode,self.mbtiCodeLst = "",[]
+            self.mbtiCodeLst = []
             self.quizLst = qz.get_MbtiQuizTH()
             self.answLst = qz.get_MbtiAnsTH()
             self.answVar = [StringVar() for i in range(len(self.quizLst))]
@@ -503,26 +504,27 @@ class Mbti(Frame):
                 bg = "#d0eeff"
                 bgbtn = "#2E3033"
                 btnfg = "#486edf"
-                frame = Frame(self.mbtiFrame,bg="pink")
-                frame.pack(expand=1,fill=BOTH)
-                Label(frame ,text="[{}] {}".format(i+1, _data[1]),font=fontQuiz,bg=bg,fg="#000000")\
+                self.mainFrame = Frame(self.mbtiFrame,bg="pink")
+                self.mainFrame.pack(expand=1,fill=BOTH)
+                Label(self.mainFrame ,text="[{}] {}".format(i+1, _data[1]),font=fontQuiz,bg=bg,fg="#000000")\
                     .pack(expand=1,fill=X,ipady=150)
-                subFrame = Frame(frame,height=155)
-                subFrame.propagate(0)
-                subFrame.pack(expand=1,fill=X)
-                self.a1 = Radiobutton(subFrame ,variable=self.answVar[i],value=self.answLst[i][0],text="{} {}".format("A :", self.answLst[i][2])\
+                self.subFrame = Frame(self.mainFrame,height=155)
+                self.subFrame.propagate(0)
+                self.subFrame.pack(expand=1,fill=X)
+                self.a1 = Radiobutton(self.subFrame ,variable=self.answVar[i],value=self.answLst[i][0],text="{} {}".format("A :", self.answLst[i][2])\
                     ,bg=bgbtn,fg=btnfg,font=font,indicatoron=0,activebackground=btnfg,width=40)
                 self.a1.pack(side=LEFT,expand=1,fill=Y,ipady=60)
-                self.a2 = Radiobutton(subFrame ,variable=self.answVar[i],value=self.answLst[i][1],text="{} {}".format("B :", self.answLst[i][3])\
+                self.a2 = Radiobutton(self.subFrame ,variable=self.answVar[i],value=self.answLst[i][1],text="{} {}".format("B :", self.answLst[i][3])\
                     ,bg=bgbtn,fg=btnfg,font=font,indicatoron=0,activebackground=btnfg,width=40)
                 self.a2.pack(side=LEFT,expand=1,fill=Y,ipady=60)
-
+            
             for i,data in enumerate(self.quizLst):
                 call_quiz(i,data)
-                pass
-            self.btnImg = self.controller.get_image(r'assets/buttons/buttonRaw.png')
+            self.btnImg = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
             self.mbtiBtn = Button(self.mbtiFrame, text="Submit!", command=self.mbti_calculator, image=self.btnImg, compound="center",
                                   bd=0,activebackground=bg,bg=bg,fg=bg)
+            # self.mbtiBtn = Button(self.mbtiFrame, text="Submit!", command=lambda:self.controller.switch_frame(MbtiSuccess), image=self.btnImg, compound="center",
+            #                       bd=0,activebackground=bg,bg=bg,fg=bg)
             self.mbtiBtn.image = self.btnImg
             self.mbtiBtn.pack(expand=1,pady=30)
     
@@ -533,15 +535,16 @@ class Mbti(Frame):
             self.natureLst.clear()
             self.tacticLst.clear()
             self.mbtiProgress.clear()
-            self.mbtiCode,self.mbtiCodeLst = "",[]
+            self.controller.mbtiCode,self.mbtiCodeLst = "",[]
             self.mbtiProgress = {'ie':[],
-                            'ns':[],
-                            'ft':[],
-                            'pj':[]
-                            }
-            
+                                 'ns':[],
+                                 'ft':[],
+                                 'pj':[]}
         
+
         def mbti_calculator(self):
+            print("reqwidth =",self.root.winfo_reqwidth())
+            print("reqheight",self.root.winfo_reqheight())
             print(len(self.answVar))
             for i,data in enumerate(self.answVar):
                 print(data.get(), end=", ")
@@ -577,52 +580,34 @@ class Mbti(Frame):
                     else:self.mbtiCodeLst.append("F")
                     if sum(self.tacticLst) > 3:self.mbtiCodeLst.append("J")
                     else:self.mbtiCodeLst.append("P")
-                    self.mbtiCode = "".join(self.mbtiCodeLst)
-                    print("{} ".format(self.mbtiCode))
+                    self.controller.mbtiCode = "".join(self.mbtiCodeLst)
+                    print("{} ".format(self.controller.mbtiCode))
                     self.mindLst.clear()
                     self.energyLst.clear()
                     self.natureLst.clear()
                     self.tacticLst.clear()
-            except: print("mbti calculator error")
-            
-        def mbti_commit(self):
-            #get mbti code 
-            #get mbti image
-            #update mbti tag
-            pass
-
-
-class DashBoard(Frame):
+                    self.controller.switch_frame(MbtiSuccess)
+            except: print("mbti calculator catch!!!")   
+    
+class MbtiSuccess(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
-        self.bgColor = "grey"
+        self.bgColor = "#d0eeff"
         Frame.config(self,bg=self.bgColor)
-        self.pack()
-        self.root = ScrollFrame(self,True).interior
-        self.DashBoardContent(self.root, controllerFrame)
-
-    class DashBoardContent:
-        def __init__(self, root,controllerFrame):
-            self.bg,self.fg = "#ccefff","#cc07e6"
-            self.controller = controllerFrame
-            self.controller.title("BU Friends  |  Dashboard")
-            Label(root, text="Dashboard",font=self.controller.fontHeading).pack()
-            self.entryFrame = Canvas(root,bg=self.bg,width=500,height=500)
-            self.entryFrame.propagate(0)
-            self.entryImg = self.controller.get_image(r'assets/entrys/entry1.png')
-            Label(self.entryFrame,image=self.entryImg,bg=self.bg).place(relx=0.5,rely=0.5,anchor="center")
-            Label(root,image=self.entryImg,bg="pink").pack(expand=1,fill=BOTH)
-            self.entryFrame.pack(expand=1)
-
-        def ehe(self):
-            print("ehe nun dayo")
-
-
-def password_encryptioncheck( _password, _salt):
-            stdhash = 'sha256'
-            stdencode = 'utf-8'
-            passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
-            return passkey
+        self.pack(expand=1,fill=BOTH)
+        self.root = ScrollFrame(self, False).interior
+        self.controller = controllerFrame
+        self.controller.title("BUFriends  |  MBTi Test Successfully!")
+        #get mbti code 
+        #get mbti image
+        #update mbti tag
+        bg = "#d0eeff"
+        self.frame = Frame(self.root, width=900, height=600)
+        self.frame.option_add('*font',self.controller.fontBody)
+        self.frame.pack(expand=1,fill=BOTH)
+        Label(self.frame, text=self.controller.mbtiCode, font=self.controller.fontHeading).pack(expand=1)
+        
+        pass
 
 if __name__ == '__main__':
     sqlnewtable = """ CREATE TABLE IF NOT EXISTS tableName(
