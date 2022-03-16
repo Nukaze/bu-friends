@@ -41,6 +41,7 @@ class DBController() :
             print(e)
         return c
 
+
 class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -57,8 +58,8 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        #self.switch_frame(SignIn)
-        self.switch_frame(Mbti)
+        self.switch_frame(SignIn)
+        #self.switch_frame(Mbti)
 
     def switch_frame(self, frame_class):
         print("switching to {}".format(frame_class))
@@ -299,7 +300,7 @@ class SignUp(Frame):
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
             self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
             self.regisVarLst = []
-            self.regisSubmitLst  = {'bumail':"",
+            self.regisSubmitDict  = {'bumail': "",
                                     'passhash':"",
                                     'salt':"",
                                     'displayname':"",
@@ -345,43 +346,48 @@ class SignUp(Frame):
             entry = Entry(_root, textvariable=_entVar, justify="left",relief="flat",fg=self.fgHolder,width=30)
             entry.insert(0,self.regisInfoLst[_index])
             return entry
-          
+        
+        def register_error(self,errorFormat="Unknow error, Please Contact Moderater"):
+            print("[SignUp Validator Reject]")
+            messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
+            for var in self.regisVarLst:
+                var.set("")
+                print("Varget =",var.get())
+            #self.regisSubmitDict.fromkeys(self.regisSubmitDict, "")    reset Submitdict values to = ""
+            self.controller.switch_frame(SignUp)
+                    
         def signup_submitreq(self):
-                def register_error(errorFormat="Unknow error, Please Contact Moderater"):
-                    self.regisVarLst.clear()
-                    self.regisSubmitLst.clear()
-                    print("[SignUp Validator Reject]")
-                    messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
-                    self.controller.switch_frame(SignUp)
-                
+                print("check regis var")
+                print(self.regisSubmitDict)
                 def signup_validator(self):
-                    self.regisSubmitLst.clear()
-                    for i,data in enumerate(self.regisVarLst):
-                        if data.get() == "" or data.get().isspace() or " " in self.regisVarLst[0].get():
-                            register_error("Sign Up Form Information do not Blank or Space")
-                            break
-                    if "@bumail.net" not in self.regisVarLst[0].get():
-                        register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
-                    if self.regisVarLst[1].get() != self.regisVarLst[2].get():
-                        register_error("Sign Up Password do not Matching")
-                    if not len(self.regisVarLst[1].get()) > 7 and (self.regisVarLst[1].get()).isalnum():
-                        register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
-                    else:
-                        self.regisSubmitLst['bumail']=self.regisVarLst[0].get()
-                        self.regisSubmitLst['displayname']=self.regisVarLst[3].get()
-                        self.regisSubmitLst['bio']=""
-                        def database_validator(self):
-                            conn = DBController.create_connection()
-                            if conn is None:
-                                print("DB Can't Create Connection in db validator.")
-                            else:
-                                sqlquery = """SELECT * FROM Users WHERE Email="{}";""".format(self.regisSubmitLst['bumail'])
-                                cur = DBController.execute_sql(conn, sqlquery)
-                                rowbumail = cur.fetchall()
-                                print(rowbumail)
-                                if rowbumail != []: register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitLst['bumail']))
-                                else: self.password_encryption()
-                    database_validator(self)
+                    try:
+                        for i,data in enumerate(self.regisVarLst):
+                            if data.get() == "" or data.get().isspace() or " " in self.regisVarLst[0].get():
+                                self.register_error("Sign Up Form Information do not Blank or Space")
+                                break
+                        if "@bumail.net" not in self.regisVarLst[0].get():
+                            self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
+                        if self.regisVarLst[1].get() != self.regisVarLst[2].get():
+                            self.register_error("Sign Up Password do not Matching")
+                        if not len(self.regisVarLst[1].get()) > 7 and (self.regisVarLst[1].get()).isalnum():
+                            self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
+                        else:
+                            self.regisSubmitDict['bumail']=self.regisVarLst[0].get()
+                            self.regisSubmitDict['displayname']=self.regisVarLst[3].get()
+                            self.regisSubmitDict['bio']= " "
+                            def database_validator(self):
+                                conn = DBController.create_connection()
+                                if conn is None:
+                                    print("DB Can't Create Connection in db validator.")
+                                else:
+                                    sqlquery = """SELECT * FROM Users WHERE Email="{}";""".format(self.regisSubmitDict['bumail'])
+                                    cur = DBController.execute_sql(conn, sqlquery)
+                                    rowbumail = cur.fetchall()
+                                    print(rowbumail)
+                                    if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
+                                    else: self.password_encryption()
+                                    database_validator(self)
+                    except:print("catch!!!")
                 signup_validator(self)
         
         def password_encryption(self):
@@ -390,28 +396,28 @@ class SignUp(Frame):
             salt = os.urandom(32)
             password = self.regisVarLst[1].get()
             passkey = hashlib.pbkdf2_hmac(stdhash, password.encode(stdencode), salt, 161803)
-            self.regisSubmitLst['passhash'],self.regisSubmitLst['salt'] = passkey, salt
-            print("bumail = ",self.regisSubmitLst.get('bumail'))
-            print("Displayname = ",self.regisSubmitLst.get('displayname'))
-            print("Passhash = ",self.regisSubmitLst.get('passhash'))
-            print("salt = ",self.regisSubmitLst.get('salt'))
+            self.regisSubmitDict['passhash'], self.regisSubmitDict['salt'] = passkey, salt
+            print("bumail = ", self.regisSubmitDict.get('bumail'))
+            print("Displayname = ", self.regisSubmitDict.get('displayname'))
+            print("Passhash = ", self.regisSubmitDict.get('passhash'))
+            print("salt = ", self.regisSubmitDict.get('salt'))
             self.signup_commit()
                    
         def signup_commit(self):
             sqlRegis = """INSERT INTO Users(Email, PassHash, PassSalt, DisplayName, Bio)  
                                 VALUES(?, ?, ?, ?, ?);"""
-            userinfoValues = (self.regisSubmitLst['bumail'],
-                            self.regisSubmitLst['passhash'],
-                            self.regisSubmitLst['salt'],
-                            self.regisSubmitLst['displayname'],
-                            self.regisSubmitLst['bio'])
-            sqlGetuid = """SELECT Uid FROM Users WHERE Email = "{}";""".format(self.regisSubmitLst['bumail'])
+            userinfoValues = (self.regisSubmitDict['bumail'],
+                            self.regisSubmitDict['passhash'],
+                            self.regisSubmitDict['salt'],
+                            self.regisSubmitDict['displayname'],
+                            self.regisSubmitDict['bio'])
+            sqlGetuid = """SELECT Uid FROM Users WHERE Email = "{}";""".format(self.regisSubmitDict['bumail'])
                       
             sqlAddUserTag = """INSERT INTO UsersTag(Mbti) VALUES("xxxx");"""
 
             conn = DBController.create_connection()
-            print(type(self.regisSubmitLst['passhash']))
-            print(type(self.regisSubmitLst['salt']))
+            print(type(self.regisSubmitDict['passhash']))
+            print(type(self.regisSubmitDict['salt']))
             if conn is None:
                 print("DB can't connect in signup commit.")
                 messagebox.showerror("Database Problem","Can't SignUp ")
@@ -424,7 +430,7 @@ class SignUp(Frame):
                 self.controller.uid = getUid[0]
                 print("user id = [ {} ]".format(self.controller.uid))
                 messagebox.showinfo('Sign Up Successfully'
-                                    ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitLst['displayname']))
+                                    ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitDict['displayname']))
                 self.signup_complete()
    
         def signup_complete(self):
@@ -519,11 +525,13 @@ class Mbti(Frame):
                                   bd=0,activebackground=bg,bg=bg,fg=bg)
             self.mbtiBtn.image = self.btnImg
             self.mbtiBtn.pack(expand=1,pady=30)
-            #self.mbti_calculator()
-            #print(self.mbtiCode)
     
-        def clear_values(self):
+        def reset_values(self):
             self.answLst.clear()
+            self.mindLst.clear()
+            self.energyLst.clear()
+            self.natureLst.clear()
+            self.tacticLst.clear()
             self.mbtiProgress.clear()
             self.mbtiCode,self.mbtiCodeLst = "",[]
             self.mbtiProgress = {'ie':[],
@@ -531,40 +539,33 @@ class Mbti(Frame):
                             'ft':[],
                             'pj':[]
                             }
+            
         
         def mbti_calculator(self):
             print(len(self.answVar))
             for i,data in enumerate(self.answVar):
-                print(", ".join(data.get()))
-                if "I" in data.get():
-                    self.mbtiProgress["ie"].append(0)
-                elif "E" in data.get():
-                    self.mbtiProgress["ie"].append(1)
-                elif "N" in data.get():
-                    self.mbtiProgress["ns"].append(0)
-                elif "S" in data.get():
-                    self.mbtiProgress["ns"].append(1)
-                elif "F" in data.get():
-                    self.mbtiProgress["ft"].append(0)
-                elif "T" in data.get():
-                    self.mbtiProgress["ft"].append(1)
-                elif "P" in data.get():
-                    self.mbtiProgress["pj"].append(0)
-                elif "J" in data.get():
-                    self.mbtiProgress["pj"].append(1)
+                print(data.get(), end=", ")
+                if "I" in data.get():self.mbtiProgress["ie"].append(0)
+                elif "E" in data.get():self.mbtiProgress["ie"].append(1)
+                elif "N" in data.get():self.mbtiProgress["ns"].append(0)
+                elif "S" in data.get():self.mbtiProgress["ns"].append(1)
+                elif "F" in data.get():self.mbtiProgress["ft"].append(0)
+                elif "T" in data.get():self.mbtiProgress["ft"].append(1)
+                elif "P" in data.get():self.mbtiProgress["pj"].append(0)
+                elif "J" in data.get():self.mbtiProgress["pj"].append(1)
                 else:
-                    print("out of mbti")
+                    print("out of mbti range")
             self.mindLst = self.mbtiProgress.get('ie')
             self.energyLst = self.mbtiProgress.get('ns')
             self.natureLst = self.mbtiProgress.get('ft')
             self.tacticLst = self.mbtiProgress.get('pj')
-            print(self.mindLst)
-            print(self.energyLst)
-            print(self.natureLst)
-            print(self.tacticLst)
+            print("\n  Mind{}".format(self.mindLst))
+            print("Energy{}".format(self.energyLst))
+            print("Nature{}".format(self.natureLst))
+            print("Tactic{}".format(self.tacticLst))
             try:
                 if len(self.mindLst) != 7 or len(self.energyLst) != 7 or len(self.natureLst) != 7 or len(self.tacticLst) != 7:
-                    self.clear_values
+                    self.reset_values()
                     messagebox.showwarning("MBTi Quiz Incomplete","Sorry Please Answer MBTi Quiz Completely.")
                     print("please answer quiz complete")
                 else:
@@ -577,7 +578,7 @@ class Mbti(Frame):
                     if sum(self.tacticLst) > 3:self.mbtiCodeLst.append("J")
                     else:self.mbtiCodeLst.append("P")
                     self.mbtiCode = "".join(self.mbtiCodeLst)
-                    print(self.mbtiCode)
+                    print("{} ".format(self.mbtiCode))
                     self.mindLst.clear()
                     self.energyLst.clear()
                     self.natureLst.clear()
@@ -589,6 +590,7 @@ class Mbti(Frame):
             #get mbti image
             #update mbti tag
             pass
+
 
 class DashBoard(Frame):
     def __init__(self, controllerFrame):
