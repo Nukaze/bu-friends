@@ -489,6 +489,14 @@ class Mbti(Frame):
             self.bannerMbti = self.controller.get_image(r'./assets/mbti/banner.png')
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
+            self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
+            self.back = Button(self.mbtiFrame,command=lambda:self.backto_frame(), image=self.backImg, relief="flat")
+            """if from regis page:
+                self.back.config(command=lambda:self.controller.switch_frame(Matching))
+            else:
+                self.back.config(commnad=lambda:self.controller.switch_frame(EditProfile))
+            """
+            self.back.place(x=20,y=10 ,anchor="nw")
             self.mbtiProgress = {'ie':[],
                                  'ns':[],
                                  'ft':[],
