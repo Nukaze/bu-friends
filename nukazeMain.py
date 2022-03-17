@@ -10,13 +10,14 @@ from sqlite3 import Error
 import sqlite3
 import os
 import hashlib
-import datetime
+from datetime import *
+import time
 import random
 import assets.mbti.mbtiData as qz
 
 
 def BUFriends_Time():
-    timeFull = datetime.datetime.now()
+    timeFull = datetime.now()
     timeNow = timeFull.strftime("%d-%b-%Y",) + " " + timeFull.strftime("( %H:%M:%S )")
     #print("[{}]\n[{}]".format(timeFull,timeNow))
     return timeNow
@@ -25,6 +26,7 @@ def BUFriends_Time():
 class DBController() :
     def __init__(self):
         self.conn = self.create_connection()
+        #self.conn.close
         
     def create_connection(self):
         conn = None
@@ -40,18 +42,18 @@ class DBController() :
         print("sql values = ",values)
         if values is None:
             try:
-                c = self.conn.cursor()
-                c.execute(sql)
+                self.c = self.conn.cursor()
+                self.c.execute(sql)
                 self.conn.commit()
             except Error as e:
                 print(e)
         else:
             try:
-                c = self.conn.cursor()
-                c.execute(sql, values)
+                self.c = self.conn.cursor()
+                self.c.execute(sql, values)
             except Error as e:
                 print(e)
-        return c
+        return self.c
 
 
 class BUFriends(Tk):
@@ -60,7 +62,7 @@ class BUFriends(Tk):
         self.frame = None
         self.uid = 0
         self.mbtiCode = ""
-        #self.conn = DBController.create_connection()
+        self.conn = self.create_connection()
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -83,7 +85,34 @@ class BUFriends(Tk):
         self.frame = new_frame
         self.config(bg=self.frame.bgColor)
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
+        
+    def create_connection(self):
+        conn = None
+        try:
+            conn = sqlite3.connect(r"./database/BUFriends.db")
+            conn.execute("PRAGMA foreign_keys = 1")                 # Allow Foreign Key
+            print(sqlite3.version)
+        except Error as e:
+            print(e)
+        return conn
     
+    def execute_sql(self, sql, values=None):
+        print("sql values = ",values)
+        if values is None:
+            try:
+                self.c = self.conn.cursor()
+                self.c.execute(sql)
+                self.conn.commit()
+            except Error as e:
+                print(e)
+        else:
+            try:
+                self.c = self.conn.cursor()
+                self.c.execute(sql, values)
+                self.conn.commit()
+            except Error as e:
+                print(e)
+        return self.c
     
     def get_image(self, _path):
         img = PhotoImage(file = _path)
@@ -267,9 +296,10 @@ class SignIn(Frame):
                 print("DB Can't Connect!")
             else:
                 #q = conn.cursor().execute(sqlQuery, [self.userName.get()])
-                q = DBController().execute_sql(sqlQuery, [self.userName.get()])
+                q = self.controller.execute_sql(sqlQuery, [self.userName.get()])
                 rowExist = q.fetchall()
                 print("checkfetch = ",len(rowExist))
+                self.controller.conn.close()
                 if rowExist == []:
                     messagebox.showwarning('Sign-in Incomplete', "Sorry [ {} ] Doesn't Exist \nPlease Check BU-Mail Carefully and Try Again.".format(self.userName.get()))
                     self.controller.switch_frame(SignIn)
@@ -375,7 +405,7 @@ class SignUp(Frame):
                 print("check regis var")
                 print(self.regisSubmitDict)
                 def signup_validator(self):
-                    try:
+                    #try:
                         print("signup validator")
                         for i,data in enumerate(self.regisVarLst):
                             print(data.get())
@@ -404,13 +434,14 @@ class SignUp(Frame):
                                     bumail = self.regisSubmitDict['bumail'] 
                                     print("query bumail..")
                                     #cur = DBController.execute_sql(conn, sqlquery, [bumail])    
-                                    cur = self.controller.execute_sql(conn, sqlquery, [bumail])    
+                                    cur = self.controller.execute_sql(sqlquery, [bumail])    
                                     rowbumail = cur.fetchall()
                                     print("rowbumail = ",rowbumail)
+                                    self.controller.conn.close()
                                     if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
                                     else: self.password_encryption()
                             database_validator(self)
-                    except:print("catch!!!")
+                    #except:print("catch!!!")
                 signup_validator(self)
         
         def password_encryption(self):
@@ -440,7 +471,7 @@ class SignUp(Frame):
                       
             sqlAddUserTag = """INSERT INTO UsersTag VALUES(NULL,NULL,NULL,NULL,NULL,NULL);"""    
 
-            conn = DBController.create_connection()
+            conn = DBController().create_connection()
             print(type(self.regisSubmitDict['passhash']))
             print(type(self.regisSubmitDict['salt']))
             
@@ -448,10 +479,11 @@ class SignUp(Frame):
                 print("DB can't connect in signup commit.")
                 messagebox.showerror("Database Problem","Can't SignUp ")
             else:
-                conn.cursor().execute(sqlRegis, userinfoValues)
-                DBController.execute_sql(conn, sqlAddUserTag)
-                cur = DBController.execute_sql(conn, sqlGetuid)
+                self.controller.execute_sql(sqlRegis, userinfoValues)
+                self.controller.execute_sql(sqlAddUserTag)
+                cur = self.controller.execute_sql(sqlGetuid)
                 getUid = (cur.fetchall())[0]
+                self.controller.conn.close()
                 print(getUid)
                 self.controller.uid = getUid[0]
                 print("user id = [ {} ]".format(self.controller.uid))
@@ -625,14 +657,12 @@ class Mbti(Frame):
         def mbti_commit(self):
             print("checkuid b4 mbti commited",self.controller.uid)
             sqlMbti = """UPDATE UsersTag SET UserType = ? WHERE Uid = ? ;"""
-            conn = DBController.create_connection()
-            if conn is None:
+            if self.controller.conn is None:
                 print("DB Cannot Connect!")
             else:
                 try:
-                    conn.cursor().execute(sqlMbti, (self.controller.mbtiCode, self.controller.uid))
-                    conn.commit()
-                    conn.close()
+                    self.controller.conn.cursor().execute(sqlMbti, (self.controller.mbtiCode, self.controller.uid))
+                    self.controller.conn.close()
                     print("mbti commited !")
                 except Error as e:
                     print(e)
