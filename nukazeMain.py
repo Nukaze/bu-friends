@@ -395,18 +395,14 @@ class SignUp(Frame):
                             self.regisSubmitDict['bio']= ""
                             print(self.regisSubmitDict)
                             def database_validator(self):
-                                conn = self.controller.create_connection()
-                                if conn is None:
-                                #if self.controller.conn is None:
+                                if self.controller.conn is None:
                                     print("DB Can't Create Connection in db validator.")
                                 else:
                                     sqlquery = """SELECT * FROM Users WHERE Email=?;"""
                                     bumail = self.regisSubmitDict['bumail'] 
-                                    print("query bumail..")
-                                    conn.cursor().execute(conn, sqlquery, [bumail])    
-                                    #cur = self.controller.execute_sql(sqlquery, [bumail])
+                                    print("query bumail..")   
+                                    cur = self.controller.execute_sql(sqlquery, [bumail])
                                     rowbumail = cur.fetchall()
-                                    conn.close()
                                     print("rowbumail = ",rowbumail)
                                     if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
                                     else: self.password_encryption()
@@ -437,19 +433,22 @@ class SignUp(Frame):
                             self.regisSubmitDict['salt'],
                             self.regisSubmitDict['displayname']
                             )
-            sqlGetuid = """SELECT Uid FROM Users WHERE Email = "{}";""".format(self.regisSubmitDict['bumail'])
+            
+            sqlGetuid = """SELECT Uid FROM Users WHERE Email = ?;"""
             sqlMail = (self.regisSubmitDict['bumail'])          
-            sqlAddUserTag = """INSERT INTO UsersTag VALUES(NULL,NULL,NULL,NULL,NULL,NULL);"""    
+            
+            sqlAddUserTag = """INSERT INTO UsersTag VALUES(NULL,NULL,NULL,NULL,NULL,NULL);"""
 
             print(type(self.regisSubmitDict['passhash']))
             print(type(self.regisSubmitDict['salt']))
-            if self.controller.conn is None:
+            conn = self.controller.create_connection()
+            if conn is None:
                 print("DB can't connect in signup commit.")
                 messagebox.showerror("Database Problem","Can't SignUp ")
             else:
                 self.controller.execute_sql(sqlRegis, userinfoValues)
                 self.controller.execute_sql(sqlAddUserTag)
-                cur = self.controller.execute_sql(sqlGetuid)
+                cur = self.controller.execute_sql(sqlGetuid, [sqlMail])
                 getUid = (cur.fetchall())[0]
                 print(getUid)
                 self.controller.uid = getUid[0]
