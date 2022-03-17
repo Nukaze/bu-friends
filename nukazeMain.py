@@ -364,12 +364,12 @@ class SignUp(Frame):
         
         def register_error(self,errorFormat="Unknow error, Please Contact Moderater"):
             print("[SignUp Validator Reject]")
+            messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
             for var in self.regisVarLst:
                 var.set("")
                 print("Varget =",var.get())
-            messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
+            #self.regisSubmitDict.fromkeys(self.regisSubmitDict, "")    reset Submitdict values to = ""
             self.controller.switch_frame(SignUp)
-            #self.regisSubmitDict.fromkeys(self.regisSubmitDict, "")    #reset Submitdict values to = ""
                     
         def signup_submitreq(self):
                 print("check regis var")
@@ -382,13 +382,10 @@ class SignUp(Frame):
                                 self.register_error("Sign Up Form Information do not Blank or Space")
                                 break
                         if "@bumail.net" not in self.regisVarLst[0].get():
-                            print("@bumail not in mail")
                             self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
-                        if self.regisVarLst[1].get() != self.regisVarLst[2].get():
-                            print("password didnt match")
+                        elif self.regisVarLst[1].get() != self.regisVarLst[2].get():
                             self.register_error("Sign Up Password do not Matching")
-                        if not len(self.regisVarLst[1].get()) > 7 and (self.regisVarLst[1].get()).isalnum():
-                            print("password weak")
+                        elif not len(self.regisVarLst[1].get()) > 7 and (self.regisVarLst[1].get()).isalnum():
                             self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
                         else:
                             print("go addict")
@@ -400,9 +397,9 @@ class SignUp(Frame):
                                 if self.controller.conn is None:
                                     print("DB Can't Create Connection in db validator.")
                                 else:
+                                    print("query bumail..")   
                                     sqlquery = """SELECT * FROM Users WHERE Email=?;"""
                                     bumail = self.regisSubmitDict['bumail'] 
-                                    print("query bumail..")   
                                     cur = self.controller.execute_sql(sqlquery, [bumail])
                                     rowbumail = cur.fetchall()
                                     print("rowbumail = ",rowbumail)
