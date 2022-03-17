@@ -508,26 +508,27 @@ class Mbti(Frame):
             self.answVar = [StringVar() for i in range(len(self.quizLst))]
             self.answSubmitLst = []
             self.randLst = random.sample(range(len(self.quizLst)), len(self.quizLst))
-            def call_quiz(_i, _data):
+            def call_quiz(_i):
+                r = self.randLst[_i]
                 bg = "#d0eeff"
                 bgbtn = "#2E3033"
                 btnfg = "#486edf"
                 self.mainFrame = Frame(self.mbtiFrame,bg="pink")
                 self.mainFrame.pack(expand=1,fill=BOTH)
-                Label(self.mainFrame ,text="[{}] {}".format(i+1, _data[1]),font=fontQuiz,bg=bg,fg="#000000")\
+                Label(self.mainFrame ,text="[{}] {}".format(i+1, self.quizLst[r][1]),font=fontQuiz,bg=bg,fg="#000000")\
                     .pack(expand=1,fill=X,ipady=200)
                 self.subFrame = Frame(self.mainFrame,height=155)
                 self.subFrame.propagate(0)
                 self.subFrame.pack(expand=1,fill=X)
-                self.a1 = Radiobutton(self.subFrame ,variable=self.answVar[i],value=self.answLst[i][0],text="{} {}".format("A :", self.answLst[i][2])\
+                self.a1 = Radiobutton(self.subFrame ,variable=self.answVar[r],value=self.answLst[r][0],text="{} {}".format("A :", self.answLst[r][2])\
                     ,bg=bgbtn,fg=btnfg,font=font,indicatoron=0,activebackground=btnfg,width=40)
                 self.a1.pack(side=LEFT,expand=1,fill=Y,ipady=60)
-                self.a2 = Radiobutton(self.subFrame ,variable=self.answVar[i],value=self.answLst[i][1],text="{} {}".format("B :", self.answLst[i][3])\
+                self.a2 = Radiobutton(self.subFrame ,variable=self.answVar[r],value=self.answLst[r][1],text="{} {}".format("B :", self.answLst[r][3])\
                     ,bg=bgbtn,fg=btnfg,font=font,indicatoron=0,activebackground=btnfg,width=40)
                 self.a2.pack(side=LEFT,expand=1,fill=Y,ipady=60)
-            
-            for i,data in enumerate(self.quizLst):
-                call_quiz(i,data)
+            print("RandomSample =",self.randLst)
+            for i in range(len(self.quizLst)):
+                call_quiz(i)
             self.btnImg = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
             self.mbtiBtn = Button(self.mbtiFrame, text="Submit!", command=self.mbti_calculator, image=self.btnImg, compound="center",
                                   bd=0,activebackground=bg,bg=bg,fg=bg)
