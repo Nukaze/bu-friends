@@ -590,8 +590,8 @@ class Mbti(Frame):
             except: print("mbti calculator catch!!!")   
         
         def mbti_commit(self):
-            self.controller.uid = 16
-            sqlMbti = """UPDATE UsersTag SET Mbti = ? WHERE Uid = ? ;"""
+            print("checkuid b4 mbti commited",self.controller.uid)
+            sqlMbti = """UPDATE UsersTag SET UserType = ? WHERE Uid = ? ;"""
             conn = DBController.create_connection()
             if conn is None:
                 print("DB Cannot Connect!")
