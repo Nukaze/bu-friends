@@ -19,13 +19,21 @@ class DBController() :
             print(e)
         return conn
 
-    def execute_sql(conn, sql):
-        try:
-            c = conn.cursor()
-            c.execute(sql)
-            conn.commit()
-        except Error as e:
-            print(e)
+    def execute_sql(conn, sql, values=None):
+        print("sql values = ",values)
+        if values is None:
+            try:
+                c = conn.cursor()
+                c.execute(sql)
+                conn.commit()
+            except Error as e:
+                print(e)
+        else:
+            try:
+                c = conn.cursor()
+                c.execute(sql, values)
+            except Error as e:
+                print(e)
         return c
             
 class BUFriends(Tk):
