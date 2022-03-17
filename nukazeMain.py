@@ -23,11 +23,10 @@ def BUFriends_Time():
 
 
 class DBController() :
-    def __init__(self, masterFrame):
-        self.controller = masterFrame
-        self.controller.conn
-        print("dbcontroller self.controller.conn = ",self.controller.conn)
-    def create_connection():
+    def __init__(self):
+        self.conn = self.create_connection()
+        
+    def create_connection(self):
         conn = None
         try:
             conn = sqlite3.connect(r"./database/BUFriends.db")
@@ -36,19 +35,19 @@ class DBController() :
         except Error as e:
             print(e)
         return conn
-
+    
     def execute_sql(self, sql, values=None):
         print("sql values = ",values)
         if values is None:
             try:
-                c = self.controller.conn.cursor()
+                c = self.conn.cursor()
                 c.execute(sql)
-                conn.commit()
+                self.conn.commit()
             except Error as e:
                 print(e)
         else:
             try:
-                c = self.controller.conn.cursor()
+                c = self.conn.cursor()
                 c.execute(sql, values)
             except Error as e:
                 print(e)
@@ -61,7 +60,7 @@ class BUFriends(Tk):
         self.frame = None
         self.uid = 0
         self.mbtiCode = ""
-        self.conn = DBController.create_connection()
+        #self.conn = DBController.create_connection()
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -84,33 +83,7 @@ class BUFriends(Tk):
         self.frame = new_frame
         self.config(bg=self.frame.bgColor)
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
-        
-    def create_connection(self):
-        conn = None
-        try:
-            conn = sqlite3.connect(r"./database/BUFriends.db")
-            conn.execute("PRAGMA foreign_keys = 1")                 # Allow Foreign Key
-            print(sqlite3.version)
-        except Error as e:
-            print(e)
-        return conn
     
-    def execute_sql(self, sql, values=None):
-        print("sql values = ",values)
-        if values is None:
-            try:
-                c = self.conn.cursor()
-                c.execute(sql)
-                conn.commit()
-            except Error as e:
-                print(e)
-        else:
-            try:
-                c = self.conn.cursor()
-                c.execute(sql, values)
-            except Error as e:
-                print(e)
-        return c
     
     def get_image(self, _path):
         img = PhotoImage(file = _path)
@@ -289,11 +262,12 @@ class SignIn(Frame):
             self.loginDict['usermail'] = (self.userName.get())
             #conn = DBController.create_connection()
             #if conn is None:
-            if self.controller.conn is None:
+            print(DBController())
+            if DBController() is None:
                 print("DB Can't Connect!")
             else:
                 #q = conn.cursor().execute(sqlQuery, [self.userName.get()])
-                q = DBController(self.controller).execute_sql(sqlQuery, [self.userName.get()])
+                q = DBController().execute_sql(sqlQuery, [self.userName.get()])
                 rowExist = q.fetchall()
                 print("checkfetch = ",len(rowExist))
                 if rowExist == []:
@@ -701,12 +675,7 @@ if __name__ == '__main__':
     sqldel = """DELETE FROM Users"""#.format() 
     
     sqldrop = """ DROP TABLE tableName;"""
-    
-    conn = DBController.create_connection()
-    if conn is None:
-        print("init DB Connection incomplete!")
-    else:
-        print("init DB connection completely!")
+
         
     #BUFriends_Time()
     BUFriends().mainloop()
