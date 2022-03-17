@@ -7,25 +7,25 @@ import hashlib
 import os
 
 # connecting to database
-class DBController() :
-    def create_connection():
-        conn = None
-        try:
-            conn = sqlite3.connect(r"./database/BUFriends.db")
-            conn.execute("PRAGMA foreign_keys = 1")
-            print(sqlite3.version)
-        except Error as e:
-            print(e)
-        return conn
+# class DBController() :
+#     def create_connection():
+#         conn = None
+#         try:
+#             conn = sqlite3.connect(r"./database/BUFriends.db")
+#             conn.execute("PRAGMA foreign_keys = 1")
+#             print(sqlite3.version)
+#         except Error as e:
+#             print(e)
+#         return conn
 
-    def execute_sql(conn, sql):
-        try:
-            c = conn.cursor()
-            c.execute(sql)
-            conn.commit()
-        except Error as e:
-            print(e)
-        return c
+#     def execute_sql(conn, sql):
+#         try:
+#             c = conn.cursor()
+#             c.execute(sql)
+#             conn.commit()
+#         except Error as e:
+#             print(e)
+#         return c
 
 class BUFriends(Tk):
     def __init__(self):
@@ -42,8 +42,25 @@ class BUFriends(Tk):
         self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.uid = 2
-        self.switch_frame(EditPage)
+        self.uid = 3
+        self.create_connection()
+        self.switch_frame(ProfilePage)
+        
+    def create_connection(self):
+        try:
+            self.conn = sqlite3.connect(r"./database/BUFriends.db")
+            self.conn.execute("PRAGMA foreign_keys = 1")
+            print(sqlite3.version)
+        except Error as e:
+            print(e)
+    def execute_sql(self,sql):
+        try:
+            c = self.conn.cursor()
+            c.execute(sql)
+            self.conn.commit()
+        except Error as e:
+            print(e)
+        return c
 # switch page event
     def switch_frame(self, frameClass):
         new_frame = frameClass(self)
@@ -135,10 +152,10 @@ class ProfilePage(Frame):
     def post_event(self):
         txt = self.post.get(1.0,END)
         if not txt.isspace() and len(txt) <=300 :
-            conn = DBController.create_connection()
+            # conn = DBController.create_connection()
             sql = """INSERT INTO Postings(Detail,Uid) VALUES ("{}",{})""".format(txt,self.controller.uid)
-            if conn is not None:
-                    c = DBController.execute_sql(conn, sql)
+            if self.controller.conn is not None:
+                    c = self.controller.execute_sql(sql)
                     self.controller.switch_frame(ProfilePage)
             else:
                 print("Error! cannot create the database connection.")
@@ -167,14 +184,15 @@ class EditPage(Frame):
         self.change_password()
     def change_password(self) :
         print("Start")
-        conn = DBController.create_connection()
+        conn = self.controller.create_connection()
         sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid={}""".format(self.controller.uid)
         if conn is not None:
-                c = DBController.execute_sql(conn, sql)
-                data = c.fetchall()
-                passHash = data[0][0]
-                passSalt = data[0][1]
-        passkey = self.controller.password_encryptioncheck("oldPassHash",passSalt)
+                c = self.controller.execute_sql(conn, sql)
+                data = c.fetchone()
+                passHash = data[0]
+                passSalt = data[1]
+        conn.close()
+        passkey = self.controller.password_encryptioncheck("unxoza2003",passSalt)
         if passkey == passHash :
             print("same password")
             # newSalt = os.urandom(32)
@@ -215,23 +233,24 @@ class InfoOnProfile() :
         self.controller=controller
         self.optionFrame = None
         self.parent = parent
-        conn = DBController.create_connection()
+        # conn = DBController.create_connection()
         sql = """SELECT DisplayName,Bio FROM Users WHERE Uid={}""".format(self.controller.uid)
-        sql2 = """SELECT Mbti,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid={}""".format(self.controller.uid)
-        if conn is not None:
-                c = DBController.execute_sql(conn, sql)
-                c2 = DBController.execute_sql(conn, sql2)
-                tagData = c2.fetchall()[0]
-                self.tagList = []
-                self.tagList.append(tagData[0])
-                for i in range(1,len(tagData)):
-                    if tagData[i] is not None :
-                        sql3 = """SELECT TagName FROM Tags WHERE Tid={}""".format(tagData[i])
-                        c3 = DBController.execute_sql(conn, sql3)
-                        self.tagList.append(c3.fetchall()[0][0])
-                userData = c.fetchall()[0]
-                self.name = userData[0]
-                self.bio = userData[1]
+        sql2 = """SELECT UserType,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid={}""".format(self.controller.uid)
+        if self.controller.conn is not None:
+            c = self.controller.execute_sql(sql)
+            c2 = self.controller.execute_sql(sql2)
+            tagData = c2.fetchone()
+            print(tagData)
+            self.tagList = []
+            self.tagList.append(tagData[0])
+            for i in range(1,len(tagData)):
+                if tagData[i] is not None :
+                    sql3 = """SELECT TagName FROM Tags WHERE Tid={}""".format(tagData[i])
+                    c3 = self.controller.execute_sql(sql3)
+                    self.tagList.append(c3.fetchone()[0])
+            userData = c.fetchone()
+            self.name = userData[0]
+            self.bio = userData[1]
         else:
             print("Error! cannot create the database connection.")
         self.profile_frame()
@@ -333,14 +352,14 @@ class PostOnProfile() :
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=1)
         fontTag = Font(family='leelawadee',size=13)
         self.frame.option_add('*font',fontTag)
-        conn = DBController.create_connection()
+        # conn = DBController.create_connection()
         sql = """SELECT Detail FROM Postings WHERE Uid={}""".format(self.controller.uid)
         sql2 = """SELECT DisplayName FROM Users WHERE Uid={}""".format(self.controller.uid)
-        if conn is not None:
-                c = DBController.execute_sql(conn, sql)
-                c2 = DBController.execute_sql(conn, sql2)
+        if self.controller.conn is not None:
+                c = self.controller.execute_sql(sql)
+                c2 = self.controller.execute_sql(sql2)
                 userData = c.fetchall()
-                self.name = c2.fetchall()[0][0]
+                self.name = c2.fetchone()[0]
                 for i,data in enumerate(userData) :
                     self.postList.append(data[0])        
         else:
