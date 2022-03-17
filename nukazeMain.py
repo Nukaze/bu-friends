@@ -23,6 +23,10 @@ def BUFriends_Time():
 
 
 class DBController() :
+    def __init__(self, masterFrame):
+        self.controller = masterFrame
+        self.controller.conn
+        print("dbcontroller self.controller.conn = ",self.controller.conn)
     def create_connection():
         conn = None
         try:
@@ -33,13 +37,21 @@ class DBController() :
             print(e)
         return conn
 
-    def execute_sql(conn, sql):
-        try:
-            c = conn.cursor()
-            c.execute(sql)
-            conn.commit()
-        except Error as e:
-            print(e)
+    def execute_sql(self, sql, values=None):
+        print("sql values = ",values)
+        if values is None:
+            try:
+                c = self.controller.conn.cursor()
+                c.execute(sql)
+                conn.commit()
+            except Error as e:
+                print(e)
+        else:
+            try:
+                c = self.controller.conn.cursor()
+                c.execute(sql, values)
+            except Error as e:
+                print(e)
         return c
 
 
@@ -49,6 +61,7 @@ class BUFriends(Tk):
         self.frame = None
         self.uid = 0
         self.mbtiCode = ""
+        self.conn = DBController.create_connection()
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -60,8 +73,8 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        #self.switch_frame(SignIn)
-        self.switch_frame(Mbti)
+        self.switch_frame(SignIn)
+        #self.switch_frame(Mbti)
 
     def switch_frame(self, frame_class):
         print("switching to {}".format(frame_class))
@@ -72,6 +85,33 @@ class BUFriends(Tk):
         self.config(bg=self.frame.bgColor)
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
         
+    def create_connection(self):
+        conn = None
+        try:
+            conn = sqlite3.connect(r"./database/BUFriends.db")
+            conn.execute("PRAGMA foreign_keys = 1")                 # Allow Foreign Key
+            print(sqlite3.version)
+        except Error as e:
+            print(e)
+        return conn
+    
+    def execute_sql(self, sql, values=None):
+        print("sql values = ",values)
+        if values is None:
+            try:
+                c = self.conn.cursor()
+                c.execute(sql)
+                conn.commit()
+            except Error as e:
+                print(e)
+        else:
+            try:
+                c = self.conn.cursor()
+                c.execute(sql, values)
+            except Error as e:
+                print(e)
+        return c
+    
     def get_image(self, _path):
         img = PhotoImage(file = _path)
         return img
@@ -247,11 +287,13 @@ class SignIn(Frame):
         def login_query(self):
             sqlQuery = """SELECT Uid, PassHash, PassSalt, DisplayName FROM Users WHERE Email = ?;"""
             self.loginDict['usermail'] = (self.userName.get())
-            conn = DBController.create_connection()
-            if conn is None:
+            #conn = DBController.create_connection()
+            #if conn is None:
+            if self.controller.conn is None:
                 print("DB Can't Connect!")
             else:
-                q = conn.cursor().execute(sqlQuery, [self.userName.get()])
+                #q = conn.cursor().execute(sqlQuery, [self.userName.get()])
+                q = DBController(self.controller).execute_sql(sqlQuery, [self.userName.get()])
                 rowExist = q.fetchall()
                 print("checkfetch = ",len(rowExist))
                 if rowExist == []:
@@ -352,9 +394,6 @@ class SignUp(Frame):
         def register_error(self,errorFormat="Unknow error, Please Contact Moderater"):
             print("[SignUp Validator Reject]")
             messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
-            for var in self.regisVarLst:
-                var.set("")
-                print("Varget =",var.get())
             #self.regisSubmitDict.fromkeys(self.regisSubmitDict, "")    reset Submitdict values to = ""
             self.controller.switch_frame(SignUp)
                     
@@ -363,7 +402,9 @@ class SignUp(Frame):
                 print(self.regisSubmitDict)
                 def signup_validator(self):
                     try:
+                        print("signup validator")
                         for i,data in enumerate(self.regisVarLst):
+                            print(data.get())
                             if data.get() == "" or data.get().isspace() or " " in self.regisVarLst[0].get():
                                 self.register_error("Sign Up Form Information do not Blank or Space")
                                 break
@@ -374,25 +415,32 @@ class SignUp(Frame):
                         if not len(self.regisVarLst[1].get()) > 7 and (self.regisVarLst[1].get()).isalnum():
                             self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
                         else:
+                            print("go addict")
                             self.regisSubmitDict['bumail']=self.regisVarLst[0].get()
                             self.regisSubmitDict['displayname']=self.regisVarLst[3].get()
-                            self.regisSubmitDict['bio']= " "
+                            self.regisSubmitDict['bio']= ""
+                            print(self.regisSubmitDict)
                             def database_validator(self):
-                                conn = DBController.create_connection()
-                                if conn is None:
+                                #conn = DBController.create_connection()
+                                #if conn is None:
+                                if self.controller.conn is None:
                                     print("DB Can't Create Connection in db validator.")
                                 else:
-                                    sqlquery = """SELECT * FROM Users WHERE Email="{}";""".format(self.regisSubmitDict['bumail'])
-                                    cur = DBController.execute_sql(conn, sqlquery)
+                                    sqlquery = """SELECT * FROM Users WHERE Email=?;"""
+                                    bumail = self.regisSubmitDict['bumail'] 
+                                    print("query bumail..")
+                                    #cur = DBController.execute_sql(conn, sqlquery, [bumail])    
+                                    cur = self.controller.execute_sql(conn, sqlquery, [bumail])    
                                     rowbumail = cur.fetchall()
-                                    print(rowbumail)
+                                    print("rowbumail = ",rowbumail)
                                     if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
                                     else: self.password_encryption()
-                                    database_validator(self)
+                            database_validator(self)
                     except:print("catch!!!")
                 signup_validator(self)
         
         def password_encryption(self):
+            print("password enc")
             stdhash = 'sha256'
             stdencode = 'utf-8'
             salt = os.urandom(32)
@@ -406,20 +454,22 @@ class SignUp(Frame):
             self.signup_commit()
                    
         def signup_commit(self):
+            print("signup commit")
             sqlRegis = """INSERT INTO Users(Email, PassHash, PassSalt, DisplayName, Bio)  
-                                VALUES(?, ?, ?, ?, ?);"""
+                                VALUES(?, ?, ?, ?, NULL);"""
             userinfoValues = (self.regisSubmitDict['bumail'],
                             self.regisSubmitDict['passhash'],
                             self.regisSubmitDict['salt'],
                             self.regisSubmitDict['displayname'],
-                            self.regisSubmitDict['bio'])
+                            )
             sqlGetuid = """SELECT Uid FROM Users WHERE Email = "{}";""".format(self.regisSubmitDict['bumail'])
                       
-            sqlAddUserTag = """INSERT INTO UsersTag(Mbti) VALUES("xxxx");"""
+            sqlAddUserTag = """INSERT INTO UsersTag VALUES(NULL,NULL,NULL,NULL,NULL,NULL);"""    
 
             conn = DBController.create_connection()
             print(type(self.regisSubmitDict['passhash']))
             print(type(self.regisSubmitDict['salt']))
+            
             if conn is None:
                 print("DB can't connect in signup commit.")
                 messagebox.showerror("Database Problem","Can't SignUp ")
@@ -490,7 +540,7 @@ class Mbti(Frame):
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
-            self.back = Button(self.mbtiFrame,command=lambda:self.backto_frame(), image=self.backImg, relief="flat")
+            self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(SignIn), image=self.backImg, relief="flat")
             """if from regis page:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
             else:
