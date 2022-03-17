@@ -60,8 +60,8 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(SignIn)
-        #self.switch_frame(Mbti)
+        #self.switch_frame(SignIn)
+        self.switch_frame(Mbti)
 
     def switch_frame(self, frame_class):
         print("switching to {}".format(frame_class))
@@ -507,7 +507,7 @@ class Mbti(Frame):
                 self.mainFrame = Frame(self.mbtiFrame,bg="pink")
                 self.mainFrame.pack(expand=1,fill=BOTH)
                 Label(self.mainFrame ,text="[{}] {}".format(i+1, _data[1]),font=fontQuiz,bg=bg,fg="#000000")\
-                    .pack(expand=1,fill=X,ipady=150)
+                    .pack(expand=1,fill=X,ipady=200)
                 self.subFrame = Frame(self.mainFrame,height=155)
                 self.subFrame.propagate(0)
                 self.subFrame.pack(expand=1,fill=X)
@@ -585,8 +585,25 @@ class Mbti(Frame):
                     self.energyLst.clear()
                     self.natureLst.clear()
                     self.tacticLst.clear()
-                    self.controller.switch_frame(MbtiSuccess)
+                    self.mbti_commit()
+                    
             except: print("mbti calculator catch!!!")   
+        
+        def mbti_commit(self):
+            self.controller.uid = 16
+            sqlMbti = """UPDATE UsersTag SET Mbti = ? WHERE Uid = ? ;"""
+            conn = DBController.create_connection()
+            if conn is None:
+                print("DB Cannot Connect!")
+            else:
+                try:
+                    conn.cursor().execute(sqlMbti, (self.controller.mbtiCode, self.controller.uid))
+                    conn.commit()
+                    conn.close()
+                    print("mbti commited !")
+                except Error as e:
+                    print(e)
+            self.controller.switch_frame(MbtiSuccess)
     
 class MbtiSuccess(Frame):
     def __init__(self, controllerFrame):
