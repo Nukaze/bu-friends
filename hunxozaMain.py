@@ -199,17 +199,17 @@ class EditPage(Frame):
 class MyAccountPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
-        self.bgColor = 'lightpink'
+        self.bgColor = 'white'
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
         self.root = scroll.interior
-        self.widget(self.root)
-
-    def widget(self,root) :
-        Label(root, text="My Account", font=self.controller.fontHeaing).pack(side="top", pady=5)
-        Button(root, text="Go back"
-        ,command=lambda: self.controller.switch_frame(ProfilePage)).pack() 
+        imgPathList = {
+            'back':'./assets/icons/goback.png',
+            'lock':'./assets/icons/lockBlack.png',
+            'heart':'./assets/icons/BrokenHeart.png',
+            'background':'./assets/images/myaccount.png',
+        }
 
 class InfoOnProfile() :
     def __init__(self, root, bgcolor,controller,parent):
@@ -246,14 +246,17 @@ class InfoOnProfile() :
         bgColor = '#686DE0'
         if self.parent == 2 :
             optionList = ["Edit","My account","Log out"]
-            imgOptionList = ['./assets/icons/edit.png','./assets/icons/user.png','./assets/icons/signOut.png']
+            imgOptionList = [
+                ('./assets/icons/edit.png',20,20),
+                ('./assets/icons/userWhite.png',25,25),
+                ('./assets/icons/signOut.png',25,25)]
         else :
             optionList = ["Report"]
             imgOptionList = [None]
         self.imgOption = []
         for i in range(len(optionList)) :
             if imgOptionList[i] is not None :
-                self.imgOption.append(self.controller.get_imagerz(imgOptionList[i],20,20))
+                self.imgOption.append(self.controller.get_imagerz(imgOptionList[i][0],imgOptionList[i][1],imgOptionList[i][2]))
             else :
                 self.imgOption.append(None)
         pageList = [EditPage,MyAccountPage]
@@ -302,10 +305,10 @@ class InfoOnProfile() :
         outerFrame.pack(fill=X)
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         outerFrame.option_add('*font',fontTag)
-        imgPathList = ( ('./assets/buttons/mbtiPurple.png',120,40),
-                        ('./assets/buttons/mbtiGreen.png',120,40),
-                        ('./assets/buttons/mbtiCyan.png',120,40),
-                        ('./assets/buttons/mbtiYellow.png',120,40))   
+        imgPathList = ( ('./assets/buttons/mbtiPurple.png',130,45),
+                        ('./assets/buttons/mbtiGreen.png',130,45),
+                        ('./assets/buttons/mbtiCyan.png',130,45),
+                        ('./assets/buttons/mbtiYellow.png',130,45))   
         if self.tagList[0] is not None :
             if self.tagList[0][1] == "N" :
                 if self.tagList[0][2] == "T" :
@@ -318,7 +321,7 @@ class InfoOnProfile() :
                 else :
                     self.img = self.controller.get_imagerz(imgPathList[3][0],imgPathList[3][1],imgPathList[3][2])     
 
-        self.img2 = self.controller.get_imagerz('./assets/buttons/tagButton.png',120,40)  
+        self.img2 = self.controller.get_imagerz('./assets/buttons/tagButton.png',130,45)
         frame = Frame(outerFrame,bg=self.bgColor)
         frame.pack(pady=30)            
         for i,data in enumerate(self.tagList) :
