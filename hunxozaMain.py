@@ -6,27 +6,6 @@ from PIL import Image, ImageTk
 import hashlib
 import os
 
-# connecting to database
-# class DBController() :
-#     def create_connection():
-#         conn = None
-#         try:
-#             conn = sqlite3.connect(r"./database/BUFriends.db")
-#             conn.execute("PRAGMA foreign_keys = 1")
-#             print(sqlite3.version)
-#         except Error as e:
-#             print(e)
-#         return conn
-
-#     def execute_sql(conn, sql):
-#         try:
-#             c = conn.cursor()
-#             c.execute(sql)
-#             conn.commit()
-#         except Error as e:
-#             print(e)
-#         return c
-
 class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -43,8 +22,7 @@ class BUFriends(Tk):
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
         self.uid = 3
-        self.create_connection()
-        self.switch_frame(EditPage)
+        self.switch_frame(ProfilePage)
 
     def create_connection(self):
         try:
@@ -53,6 +31,7 @@ class BUFriends(Tk):
             print(sqlite3.version)
         except Error as e:
             print(e)
+        return self.conn
 
     def execute_sql(self, sql, values=None):
         if values is None:
@@ -161,13 +140,14 @@ class ProfilePage(Frame):
     def post_event(self):
         txt = self.post.get(1.0,END)
         if not txt.isspace() and len(txt) <=300 :
-            # conn = DBController.create_connection()
+            conn = self.controller.create_connection()
             sql = """INSERT INTO Postings(Detail,Uid) VALUES (?,?)""".format(txt,self.controller.uid)
-            if self.controller.conn is not None:
+            if conn is not None:
                     c = self.controller.execute_sql(sql,[txt,self.controller.uid])
                     self.controller.switch_frame(ProfilePage)
             else:
                 print("Error! cannot create the database connection.")
+            conn.close()
     def create_post_frame(self) :
         self.img3 = self.controller.get_imagerz('./assets/buttons/buttonPurplerz.png',200,65)
         frame = Frame(self.root,bg=self.bgColor)
@@ -188,33 +168,33 @@ class EditPage(Frame):
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
-        master = scroll.interior
-        # self.widget(master)
-        self.change_password()
-    def change_password(self) :
-        print("Start")
-        sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid={}""".format(self.controller.uid)
-        if self.controller.conn is not None:
-                c = self.controller.execute_sql(sql)
-                data = c.fetchone()
-                passHash = data[0]
-                passSalt = data[1]
-        passkey = self.controller.password_encryptioncheck("test1234",passSalt)
-        if passkey == passHash :
-            print("same password")
-        #     newSalt = os.urandom(32)
-        #     newpass = self.controller.password_encryptioncheck("test1234",newSalt)
-        #     sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
-        #     try:
-        #         c = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
-        #     except Error as e:
-        #         print(e)
-        # else :
-        #     print("do not same password")
-        #     print("password can not change.")
+        self.root = scroll.interior
+        self.widget(self.root)
+        # self.change_password()
+    # def change_password(self) :
+    #     print("Start")
+    #     sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid={}""".format(self.controller.uid)
+    #     if self.controller.conn is not None:
+    #             c = self.controller.execute_sql(sql)
+    #             data = c.fetchone()
+    #             passHash = data[0]
+    #             passSalt = data[1]
+    #     passkey = self.controller.password_encryptioncheck("test1234",passSalt)
+    #     if passkey == passHash :
+    #         print("same password")
+    #     #     newSalt = os.urandom(32)
+    #     #     newpass = self.controller.password_encryptioncheck("test1234",newSalt)
+    #     #     sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
+    #     #     try:
+    #     #         c = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
+    #     #     except Error as e:
+    #     #         print(e)
+    #     # else :
+    #     #     print("do not same password")
+    #     #     print("password can not change.")
     def widget(self,root) :
         Label(root, text="Edit", font=self.controller.fontHeaing).pack(side="top", pady=5)
-        Button(root, text="Processing",command=self.change_password).pack() 
+        Button(root, text="Processing").pack() 
 
 class MyAccountPage(Frame):
     def __init__(self,controller):
@@ -223,8 +203,8 @@ class MyAccountPage(Frame):
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
-        master = scroll.interior
-        self.widget(master)
+        self.root = scroll.interior
+        self.widget(self.root)
 
     def widget(self,root) :
         Label(root, text="My Account", font=self.controller.fontHeaing).pack(side="top", pady=5)
@@ -238,10 +218,10 @@ class InfoOnProfile() :
         self.controller=controller
         self.optionFrame = None
         self.parent = parent
-        # conn = DBController.create_connection()
+        conn = self.controller.create_connection()
         sql = """SELECT DisplayName,Bio FROM Users WHERE Uid=?"""
         sql2 = """SELECT UserType,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid=?"""
-        if self.controller.conn is not None:
+        if conn is not None:
             c = self.controller.execute_sql(sql,[self.controller.uid])
             c2 = self.controller.execute_sql(sql2,[self.controller.uid])
             tagData = c2.fetchone()
@@ -258,6 +238,7 @@ class InfoOnProfile() :
             self.bio = userData[1]
         else:
             print("Error! cannot create the database connection.")
+        conn.close()
         self.profile_frame()
         self.tag_frame()    
 
@@ -357,10 +338,10 @@ class PostOnProfile() :
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=1)
         fontTag = Font(family='leelawadee',size=13)
         self.frame.option_add('*font',fontTag)
-        # conn = DBController.create_connection()
+        conn = self.controller.create_connection()
         sql = """SELECT Detail FROM Postings WHERE Uid=?"""
         sql2 = """SELECT DisplayName FROM Users WHERE Uid=?"""
-        if self.controller.conn is not None:
+        if conn is not None:
                 c = self.controller.execute_sql(sql,[self.controller.uid])
                 c2 = self.controller.execute_sql(sql2,[self.controller.uid])
                 userData = c.fetchall()
@@ -369,6 +350,7 @@ class PostOnProfile() :
                     self.postList.append(data[0])        
         else:
             print("Error! cannot create the database connection.")
+        conn.close()
         Label(self.frame,text="Post",font="leelawadee 20 bold",bg='#E6EEFD').pack(anchor=W,padx=20,pady=5)
         print(len(self.postList))
         self.post()
