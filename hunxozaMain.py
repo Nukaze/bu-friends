@@ -188,33 +188,33 @@ class EditPage(Frame):
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
-        master = scroll.interior
-        # self.widget(master)
-        self.change_password()
-    def change_password(self) :
-        print("Start")
-        sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid={}""".format(self.controller.uid)
-        if self.controller.conn is not None:
-                c = self.controller.execute_sql(sql)
-                data = c.fetchone()
-                passHash = data[0]
-                passSalt = data[1]
-        passkey = self.controller.password_encryptioncheck("test1234",passSalt)
-        if passkey == passHash :
-            print("same password")
-        #     newSalt = os.urandom(32)
-        #     newpass = self.controller.password_encryptioncheck("test1234",newSalt)
-        #     sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
-        #     try:
-        #         c = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
-        #     except Error as e:
-        #         print(e)
-        # else :
-        #     print("do not same password")
-        #     print("password can not change.")
+        self.root = scroll.interior
+        self.widget(self.root)
+        # self.change_password()
+    # def change_password(self) :
+    #     print("Start")
+    #     sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid={}""".format(self.controller.uid)
+    #     if self.controller.conn is not None:
+    #             c = self.controller.execute_sql(sql)
+    #             data = c.fetchone()
+    #             passHash = data[0]
+    #             passSalt = data[1]
+    #     passkey = self.controller.password_encryptioncheck("test1234",passSalt)
+    #     if passkey == passHash :
+    #         print("same password")
+    #     #     newSalt = os.urandom(32)
+    #     #     newpass = self.controller.password_encryptioncheck("test1234",newSalt)
+    #     #     sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
+    #     #     try:
+    #     #         c = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
+    #     #     except Error as e:
+    #     #         print(e)
+    #     # else :
+    #     #     print("do not same password")
+    #     #     print("password can not change.")
     def widget(self,root) :
         Label(root, text="Edit", font=self.controller.fontHeaing).pack(side="top", pady=5)
-        Button(root, text="Processing",command=self.change_password).pack() 
+        Button(root, text="Processing").pack() 
 
 class MyAccountPage(Frame):
     def __init__(self,controller):
@@ -223,8 +223,8 @@ class MyAccountPage(Frame):
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
-        master = scroll.interior
-        self.widget(master)
+        self.root = scroll.interior
+        self.widget(self.root)
 
     def widget(self,root) :
         Label(root, text="My Account", font=self.controller.fontHeaing).pack(side="top", pady=5)
