@@ -29,7 +29,6 @@ class BUFriends(Tk):
         self.frame = None
         self.uid = 0
         self.mbtiCode = ""
-        self.create_connection()
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -60,10 +59,9 @@ class BUFriends(Tk):
             print(sqlite3.version)
         except Error as e:
             print(e)
-        #return self.conn
+        return self.conn
     
     def execute_sql(self, sql, values=None):
-        print("sql values = ",values)
         if values is None:
             try:
                 c = self.conn.cursor()
