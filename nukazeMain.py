@@ -375,7 +375,7 @@ class SignUp(Frame):
                 print("check regis var")
                 print(self.regisSubmitDict)
                 def signup_validator(self):
-                    try:
+                    
                         for i,data in enumerate(self.regisVarLst):
                             print(data.get())
                             if data.get() == "" or data.get().isspace() or " " in self.regisVarLst[0].get():
@@ -397,16 +397,17 @@ class SignUp(Frame):
                                 if self.controller.conn is None:
                                     print("DB Can't Create Connection in db validator.")
                                 else:
-                                    print("query bumail..")   
-                                    sqlquery = """SELECT * FROM Users WHERE Email=?;"""
-                                    bumail = self.regisSubmitDict['bumail'] 
-                                    cur = self.controller.execute_sql(sqlquery, [bumail])
-                                    rowbumail = cur.fetchall()
-                                    print("rowbumail = ",rowbumail)
-                                    if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
-                                    else: self.password_encryption()
+                                    try:
+                                        print("query bumail..")   
+                                        sqlquery = """SELECT * FROM Users WHERE Email=?;"""
+                                        bumail = self.regisSubmitDict['bumail'] 
+                                        cur = self.controller.execute_sql(sqlquery, [bumail])
+                                        rowbumail = cur.fetchall()
+                                        print("rowbumail = ",rowbumail)
+                                        if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
+                                        else: self.password_encryption()
+                                    except sqlite3.Error as e :print("catch!!! {}".format(e))
                             database_validator(self)
-                    except:print("catch!!!")
                 signup_validator(self)
         
         def password_encryption(self):
@@ -444,17 +445,19 @@ class SignUp(Frame):
                 print("DB can't connect in signup commit.")
                 messagebox.showerror("Database Problem","Can't SignUp ")
             else:
-                self.controller.execute_sql(sqlRegis, userinfoValues)
-                self.controller.execute_sql(sqlAddUserTag)
-                cur = self.controller.execute_sql(sqlGetuid, [sqlMail])
-                getUid = (cur.fetchall())[0]
-                print(getUid)
-                self.controller.uid = getUid[0]
-                print("user id = [ {} ]".format(self.controller.uid))
-                messagebox.showinfo('Sign Up Successfully'
-                                    ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitDict['displayname']))
-                self.signup_complete()
-   
+                try:
+                    self.controller.execute_sql(sqlRegis, userinfoValues)
+                    self.controller.execute_sql(sqlAddUserTag)
+                    cur = self.controller.execute_sql(sqlGetuid, [sqlMail])
+                    getUid = (cur.fetchall())[0]
+                    print(getUid)
+                    self.controller.uid = getUid[0]
+                    print("user id = [ {} ]".format(self.controller.uid))
+                    messagebox.showinfo('Sign Up Successfully'
+                                        ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitDict['displayname']))
+                    self.signup_complete()
+                except Error as e :print("catch!!! {}".format(e))
+
         def signup_complete(self):
             print(self.controller.uid)
             self.controller.title("BU Friends  |  Sign-Up Complete!")
