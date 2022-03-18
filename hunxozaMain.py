@@ -206,11 +206,8 @@ class MyAccountPage(Frame):
         self.root = scroll.interior
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
-            {'name':'lock','path':'./assets/icons/lockBlack.png','x':25,'y':25},
-            {'name':'heart','path':'./assets/icons/BrokenHeart.png','x':30,'y':30},
-            {'name':'next','path':'./assets/icons/next.png','x':30,'y':30},
-            {'name':'background','path':'./assets/images/myaccount.png','x':100,'y':100},
-            {'name':'rectangle','path':'./assets/buttons/blueLongButton.png','x':660,'y':55}]
+            {'name':'pwd','path':'./assets/buttons/my_account.png','x':660,'y':55},
+            {'name':'delete','path':'./assets/buttons/deactivate.png','x':660,'y':55}]
         
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
@@ -226,13 +223,10 @@ class MyAccountPage(Frame):
         Label(self.root,text="My Account",font='leelawadee 20 bold',
         bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
 
-        lb = Label(self.root,image=self.imgList['rectangle'],bd=0,bg=self.bgColor)
-        lb.pack(pady=5)
-        lb.propagate(0)
-        Label(lb,image=self.imgList['lock'],bg='#D0EEFF').pack(expand=1,anchor=W,side=LEFT,padx=25)
-        Label(lb,image=self.imgList['next'],bg='#D0EEFF').pack(expand=1,anchor=E,padx=25)
-        lb.bind('<Button-1>',lambda Event: self.controller.switch_frame(ProfilePage))
-        Button(self.root,image=self.imgList['rectangle'],bd=0
+        Button(self.root,text="Change Password",image=self.imgList['pwd'],bd=0
+        ,bg=self.bgColor,activebackground=self.bgColor,
+        command=lambda:self.controller.switch_frame(ProfilePage)).pack(pady=5)
+        Button(self.root,text="Deactivate Account",image=self.imgList['delete'],bd=0
         ,bg=self.bgColor,activebackground=self.bgColor,
         command=lambda:self.controller.switch_frame(ProfilePage)).pack(pady=5)
         
