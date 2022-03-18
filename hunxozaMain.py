@@ -143,8 +143,8 @@ class ProfilePage(Frame):
             conn = self.controller.create_connection()
             sql = """INSERT INTO Postings(Detail,Uid) VALUES (?,?)""".format(txt,self.controller.uid)
             if conn is not None:
-                    c = self.controller.execute_sql(sql,[txt,self.controller.uid])
-                    self.controller.switch_frame(ProfilePage)
+                c = self.controller.execute_sql(sql,[txt,self.controller.uid])
+                self.controller.switch_frame(ProfilePage)
             else:
                 print("Error! cannot create the database connection.")
             conn.close()
@@ -199,17 +199,43 @@ class EditPage(Frame):
 class MyAccountPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
-        self.bgColor = 'lightpink'
+        self.bgColor = 'white'
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
         self.root = scroll.interior
-        self.widget(self.root)
+        imgPathList = [
+            {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
+            {'name':'lock','path':'./assets/icons/lockBlack.png','x':25,'y':25},
+            {'name':'heart','path':'./assets/icons/BrokenHeart.png','x':30,'y':30},
+            {'name':'next','path':'./assets/icons/next.png','x':30,'y':30},
+            {'name':'background','path':'./assets/images/myaccount.png','x':100,'y':100},
+            {'name':'rectangle','path':'./assets/buttons/blueLongButton.png','x':660,'y':55}]
+        
+        fontTag = Font(family='leelawadee',size=13,weight='bold')
+        self.option_add('*font',fontTag)
+        self.imgList = {}
+        for i,data in enumerate(imgPathList) :
+            img = self.controller.get_imagerz(data['path'],data['x'],data['y'])
+            self.imgList[data['name']] = img
 
-    def widget(self,root) :
-        Label(root, text="My Account", font=self.controller.fontHeaing).pack(side="top", pady=5)
-        Button(root, text="Go back"
-        ,command=lambda: self.controller.switch_frame(ProfilePage)).pack() 
+        Button(self.root,image=self.imgList['back'],bd=0
+        ,bg=self.bgColor,activebackground=self.bgColor,
+        command=lambda:self.controller.switch_frame(ProfilePage)).pack(anchor=NW)
+
+        Label(self.root,text="My Account",font='leelawadee 20 bold',
+        bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
+
+        lb = Label(self.root,image=self.imgList['rectangle'],bd=0,bg=self.bgColor)
+        lb.pack(pady=5)
+        lb.propagate(0)
+        Label(lb,image=self.imgList['lock'],bg='#D0EEFF').pack(expand=1,anchor=W,side=LEFT,padx=25)
+        Label(lb,image=self.imgList['next'],bg='#D0EEFF').pack(expand=1,anchor=E,padx=25)
+        lb.bind('<Button-1>',lambda Event: self.controller.switch_frame(ProfilePage))
+        Button(self.root,image=self.imgList['rectangle'],bd=0
+        ,bg=self.bgColor,activebackground=self.bgColor,
+        command=lambda:self.controller.switch_frame(ProfilePage)).pack(pady=5)
+        
 
 class InfoOnProfile() :
     def __init__(self, root, bgcolor,controller,parent):
@@ -246,14 +272,17 @@ class InfoOnProfile() :
         bgColor = '#686DE0'
         if self.parent == 2 :
             optionList = ["Edit","My account","Log out"]
-            imgOptionList = ['./assets/icons/edit.png','./assets/icons/user.png','./assets/icons/signOut.png']
+            imgOptionList = [
+                ('./assets/icons/edit.png',20,20),
+                ('./assets/icons/userWhite.png',25,25),
+                ('./assets/icons/signOut.png',25,25)]
         else :
             optionList = ["Report"]
             imgOptionList = [None]
         self.imgOption = []
         for i in range(len(optionList)) :
             if imgOptionList[i] is not None :
-                self.imgOption.append(self.controller.get_imagerz(imgOptionList[i],20,20))
+                self.imgOption.append(self.controller.get_imagerz(imgOptionList[i][0],imgOptionList[i][1],imgOptionList[i][2]))
             else :
                 self.imgOption.append(None)
         pageList = [EditPage,MyAccountPage]
@@ -282,9 +311,8 @@ class InfoOnProfile() :
             img = self.controller.get_imagerz(data[0],data[1],data[2])
             self.imgList.append(img)
         Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=LEFT)
-        btn = Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,activebackground=self.bgColor)
-        btn.pack(side=RIGHT,padx=20)
-        btn.config(command=lambda:self.option_click())
+        Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
+        activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
         Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
         bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
@@ -302,10 +330,10 @@ class InfoOnProfile() :
         outerFrame.pack(fill=X)
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         outerFrame.option_add('*font',fontTag)
-        imgPathList = ( ('./assets/buttons/mbtiPurple.png',120,40),
-                        ('./assets/buttons/mbtiGreen.png',120,40),
-                        ('./assets/buttons/mbtiCyan.png',120,40),
-                        ('./assets/buttons/mbtiYellow.png',120,40))   
+        imgPathList = ( ('./assets/buttons/mbtiPurple.png',130,45),
+                        ('./assets/buttons/mbtiGreen.png',130,45),
+                        ('./assets/buttons/mbtiCyan.png',130,45),
+                        ('./assets/buttons/mbtiYellow.png',130,45))   
         if self.tagList[0] is not None :
             if self.tagList[0][1] == "N" :
                 if self.tagList[0][2] == "T" :
@@ -318,7 +346,7 @@ class InfoOnProfile() :
                 else :
                     self.img = self.controller.get_imagerz(imgPathList[3][0],imgPathList[3][1],imgPathList[3][2])     
 
-        self.img2 = self.controller.get_imagerz('./assets/buttons/tagButton.png',120,40)  
+        self.img2 = self.controller.get_imagerz('./assets/buttons/tagButton.png',130,45)
         frame = Frame(outerFrame,bg=self.bgColor)
         frame.pack(pady=30)            
         for i,data in enumerate(self.tagList) :
