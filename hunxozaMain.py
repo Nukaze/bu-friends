@@ -213,7 +213,7 @@ class MyAccountPage(Frame):
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
             {'name':'pwd','path':'./assets/buttons/my_account.png','x':660,'y':55},
             {'name':'delete','path':'./assets/buttons/deactivate.png','x':660,'y':55},
-            {'name':'background','path':'./assets/images/myaccount.png','x':650,'y':338}]
+            {'name':'background','path':'./assets/images/myaccount.png','x':800,'y':338}]
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_imagerz(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
@@ -227,16 +227,88 @@ class MyAccountPage(Frame):
 
         Button(self.root,text="Change Password",image=self.imgList['pwd'],bd=0
         ,bg=self.bgColor,activebackground=self.bgColor,compound=CENTER,
-        command=lambda:self.controller.switch_frame(ProfilePage)).pack(pady=5)
+        command=lambda:self.controller.switch_frame(ChangePasswordPage)).pack(pady=5)
+
         Button(self.root,text="Deactivate Account",image=self.imgList['delete'],bd=0
         ,bg=self.bgColor,activebackground=self.bgColor,compound=CENTER,
-        command=lambda:self.controller.switch_frame(ProfilePage)).pack(pady=5)
-        Label(self.root,image=self.imgList['background'],bg=self.bgColor).pack(pady=20)
-    def change_password() :
-        pass
-    def deactivate() :
-        pass
+        command=lambda:self.controller.switch_frame(DeactivatePage)).pack(pady=5)
 
+        Label(self.root,image=self.imgList['background'],bg=self.bgColor).pack(pady=20)
+class ChangePasswordPage(Frame):
+    def __init__(self,controller):
+        Frame.__init__(self,controller)
+        self.bgColor = 'white'
+        self.controller = controller
+        Frame.configure(self,bg=self.bgColor)
+        scroll = ScrollFrame(self,FALSE)
+        self.root = scroll.interior
+        fontHead = Font(family='leelawadee',size=13,weight='bold')
+        self.fontBody = Font(family='leelawadee',size=13)
+        self.option_add('*font',fontHead)
+        self.page_geometry()
+    def page_geometry(self) :
+        self.imgList = {}
+        imgPathList = [
+            {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
+            {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65}]
+        textList = ("Current Password","New Password","Confirm Password")
+        for i,data in enumerate(imgPathList) :
+            img = self.controller.get_imagerz(data['path'],data['x'],data['y'])
+            self.imgList[data['name']] = img
+        canvas = Canvas(self.root,highlightthickness=0,bg=self.bgColor)
+        canvas.pack(fill=BOTH, expand=1)
+        # canvas.create_line(15, 25, 200, 25)
+        Button(canvas,image=self.imgList['back'],bd=0,
+        bg=self.bgColor,activebackground=self.bgColor,
+        command=lambda:self.controller.switch_frame(MyAccountPage)).pack(anchor=NW)
+
+        Label(canvas,text="Change Password",font='leelawadee 20 bold',
+        bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
+        y = 186
+        for i,data in enumerate(textList) :
+            Label(canvas,text=data,bg=self.bgColor,fg='#868383',
+            anchor=N).pack(padx=140,anchor=NW,ipady=3)
+            entry = Entry(canvas,font=self.fontBody,bd=0,fg='#868383')
+            entry.pack(padx=140,pady=20,anchor=W,fill=X)
+            canvas.create_line(140, y, 760, y,fill='#868383')
+            y+=96
+        Button(canvas,text="Update Password",image=self.imgList['button'],bd=0,bg=self.bgColor,
+        activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
+        command=lambda:self.controller.switch_frame(ChangePasswordPage)).pack(pady=30)
+class DeactivatePage(Frame):
+    def __init__(self,controller):
+        Frame.__init__(self,controller)
+        self.bgColor = 'white'
+        self.controller = controller
+        Frame.configure(self,bg=self.bgColor)
+        scroll = ScrollFrame(self,FALSE)
+        self.root = scroll.interior
+        fontHead = Font(family='leelawadee',size=13,weight='bold')
+        self.fontBody = Font(family='leelawadee',size=13)
+        self.option_add('*font',fontHead)
+        self.page_geometry()
+    def page_geometry(self) :
+        self.imgList = {}
+        imgPathList = [
+            {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
+            {'name':'profile','path':'./assets/icons/profileSm.png','x':100,'y':100},
+            {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65}]
+        textList = ("Current Password","New Password","Confirm Password")
+        for i,data in enumerate(imgPathList) :
+            img = self.controller.get_imagerz(data['path'],data['x'],data['y'])
+            self.imgList[data['name']] = img
+        canvas = Canvas(self.root,highlightthickness=0,bg=self.bgColor)
+        canvas.pack(fill=BOTH, expand=1)
+
+        Button(canvas,image=self.imgList['back'],bd=0,
+        bg=self.bgColor,activebackground=self.bgColor,
+        command=lambda:self.controller.switch_frame(MyAccountPage)).pack(anchor=NW)
+        Label(canvas,text="Deactivate Account",font='leelawadee 20 bold',
+        bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
+        
+        Button(canvas,text="Deactivate",image=self.imgList['button'],bd=0,bg=self.bgColor,
+        activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
+        command=lambda:self.controller.switch_frame(DeactivatePage)).pack(pady=30)
 class InfoOnProfile() :
     def __init__(self, root, bgcolor,controller,parent):
         self.root = root
