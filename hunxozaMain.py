@@ -204,14 +204,16 @@ class MyAccountPage(Frame):
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
         self.root = scroll.interior
+        fontTag = Font(family='leelawadee',size=13,weight='bold')
+        self.option_add('*font',fontTag)
+        self.my_account()
+    def my_account(self) :
+        self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
             {'name':'pwd','path':'./assets/buttons/my_account.png','x':660,'y':55},
-            {'name':'delete','path':'./assets/buttons/deactivate.png','x':660,'y':55}]
-        
-        fontTag = Font(family='leelawadee',size=13,weight='bold')
-        self.option_add('*font',fontTag)
-        self.imgList = {}
+            {'name':'delete','path':'./assets/buttons/deactivate.png','x':660,'y':55},
+            {'name':'background','path':'./assets/images/myaccount.png','x':650,'y':338}]
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_imagerz(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
@@ -224,12 +226,16 @@ class MyAccountPage(Frame):
         bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
 
         Button(self.root,text="Change Password",image=self.imgList['pwd'],bd=0
-        ,bg=self.bgColor,activebackground=self.bgColor,
+        ,bg=self.bgColor,activebackground=self.bgColor,compound=CENTER,
         command=lambda:self.controller.switch_frame(ProfilePage)).pack(pady=5)
         Button(self.root,text="Deactivate Account",image=self.imgList['delete'],bd=0
-        ,bg=self.bgColor,activebackground=self.bgColor,
+        ,bg=self.bgColor,activebackground=self.bgColor,compound=CENTER,
         command=lambda:self.controller.switch_frame(ProfilePage)).pack(pady=5)
-        
+        Label(self.root,image=self.imgList['background'],bg=self.bgColor).pack(pady=20)
+    def change_password() :
+        pass
+    def deactivate() :
+        pass
 
 class InfoOnProfile() :
     def __init__(self, root, bgcolor,controller,parent):
