@@ -304,8 +304,10 @@ class SignUp(Frame):
             self.root = root
             self.controller.title("BU Friends  |  Sign-Up")
             self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
+            
             self.canvasFrame = Canvas(self.root,width=900,height=600,bd=0,bg="#ffffff",highlightthickness=0)
             self.canvasFrame.pack(expand=1,fill=BOTH)
+            
             self.bgCanvaImg = self.controller.get_image(r"./assets/images/regisbg.png")
             self.canvasFrame.create_image(0,0,image=self.bgCanvaImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
@@ -324,6 +326,7 @@ class SignUp(Frame):
                     self.entryLst.append(self.signup_form(self.canvasFrame, i, self.regisVarLst[i]))
                     x,y = 260,70*(i+2)
                     self.canvasFrame.create_image(x,y,image=self.entryimg,anchor="nw")
+                    #self.canvasFrame.create_line(x+10,y+40,650,y+40,fill="blue",smooth=True)
                     self.entryLst[i].place(x=x+20, y=y+10)
                 def events():
                     def clear_event(index):
@@ -354,7 +357,7 @@ class SignUp(Frame):
             zone_buttons() 
         # class method
         def signup_form(self,_root, _index, _entVar):
-            entry = Entry(_root, textvariable=_entVar, justify="left",relief="flat",fg=self.fgHolder,width=30)
+            entry = Entry(_root, textvariable=_entVar, justify="left",relief="flat",fg=self.fgHolder,width=32)
             entry.insert(0,self.regisInfoLst[_index])
             return entry
         
@@ -481,10 +484,6 @@ class SignUp(Frame):
             x,y1,y2 = 440, 335,435
             self.canvasFrame.create_window(x,y1,anchor="nw",window=get_widget(0,redirectLst[0]))
             self.canvasFrame.create_window(x,y2,anchor="nw",window=get_widget(1,redirectLst[1]))
-            self.arrowImg = self.controller.get_image(r'./assets/icons/arrow.png')
-            #Label(self.canvasFrame,image=self.arrowImg,bd=0,bg="#CCEABA").place(x=x+340,y=y1+30,anchor="nw")
-            #Label(self.canvasFrame,image=self.arrowImg,bd=0,bg="#FFFFFF").place(x=x+340,y=y2+30,anchor="nw")
-            
 
 class Mbti(Frame):
     def __init__(self, controllerFrame):
