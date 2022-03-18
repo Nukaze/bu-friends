@@ -6,27 +6,6 @@ from PIL import Image, ImageTk
 import hashlib
 import os
 
-# connecting to database
-# class DBController() :
-#     def create_connection():
-#         conn = None
-#         try:
-#             conn = sqlite3.connect(r"./database/BUFriends.db")
-#             conn.execute("PRAGMA foreign_keys = 1")
-#             print(sqlite3.version)
-#         except Error as e:
-#             print(e)
-#         return conn
-
-#     def execute_sql(conn, sql):
-#         try:
-#             c = conn.cursor()
-#             c.execute(sql)
-#             conn.commit()
-#         except Error as e:
-#             print(e)
-#         return c
-
 class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -44,7 +23,7 @@ class BUFriends(Tk):
         self.option_add('*font',self.fontBody)
         self.uid = 3
         self.create_connection()
-        self.switch_frame(EditPage)
+        self.switch_frame(ProfilePage)
 
     def create_connection(self):
         try:
