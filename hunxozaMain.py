@@ -143,8 +143,8 @@ class ProfilePage(Frame):
             conn = self.controller.create_connection()
             sql = """INSERT INTO Postings(Detail,Uid) VALUES (?,?)""".format(txt,self.controller.uid)
             if conn is not None:
-                    c = self.controller.execute_sql(sql,[txt,self.controller.uid])
-                    self.controller.switch_frame(ProfilePage)
+                c = self.controller.execute_sql(sql,[txt,self.controller.uid])
+                self.controller.switch_frame(ProfilePage)
             else:
                 print("Error! cannot create the database connection.")
             conn.close()
