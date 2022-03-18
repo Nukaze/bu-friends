@@ -29,7 +29,6 @@ class BUFriends(Tk):
         self.frame = None
         self.uid = 0
         self.mbtiCode = ""
-        self.create_connection()
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -60,10 +59,9 @@ class BUFriends(Tk):
             print(sqlite3.version)
         except Error as e:
             print(e)
-        #return self.conn
+        return self.conn
     
     def execute_sql(self, sql, values=None):
-        print("sql values = ",values)
         if values is None:
             try:
                 c = self.conn.cursor()
@@ -257,10 +255,8 @@ class SignIn(Frame):
         def login_query(self):
             sqlQuery = """SELECT Uid, PassHash, PassSalt, DisplayName FROM Users WHERE Email = ?;"""
             self.loginDict['usermail'] = (self.userName.get())
-            #conn = DBController.create_connection()
-            #if conn is None:
-            print(self.controller.conn)
-            if self.controller.conn is None:
+            conn = self.controller.create_connection()
+            if conn is None:
                 print("DB Can't Connect!")
             else:
                 #q = conn.cursor().execute(sqlQuery, [self.userName.get()])
@@ -372,31 +368,33 @@ class SignUp(Frame):
             self.controller.switch_frame(SignUp)
                     
         def signup_submitreq(self):
-                print("check regis var")
-                print(self.regisSubmitDict)
-                def signup_validator(self):
-                    try:
-                        for i,data in enumerate(self.regisVarLst):
-                            print(data.get())
-                            if data.get() == "" or data.get().isspace() or " " in self.regisVarLst[0].get():
-                                self.register_error("Sign Up Form Information do not Blank or Space")
-                                break
-                        if "@bumail.net" not in self.regisVarLst[0].get():
-                            self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
-                        elif self.regisVarLst[1].get() != self.regisVarLst[2].get():
-                            self.register_error("Sign Up Password do not Matching")
-                        elif not len(self.regisVarLst[1].get()) > 7 and (self.regisVarLst[1].get()).isalnum():
-                            self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
-                        else:
-                            print("go addict")
-                            self.regisSubmitDict['bumail']=self.regisVarLst[0].get()
-                            self.regisSubmitDict['displayname']=self.regisVarLst[3].get()
-                            self.regisSubmitDict['bio']= ""
-                            print(self.regisSubmitDict)
-                            def database_validator(self):
-                                if self.controller.conn is None:
-                                    print("DB Can't Create Connection in db validator.")
-                                else:
+            print("check regis var")
+            print(self.regisSubmitDict)
+            def signup_validator(self):
+                try:
+                    for i,data in enumerate(self.regisVarLst):
+                        print(data.get())
+                        if data.get() == "" or data.get().isspace() or " " in self.regisVarLst[0].get():
+                            self.register_error("Sign Up Form Information do not Blank or Space")
+                            break
+                    if "@bumail.net" not in self.regisVarLst[0].get():
+                        self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
+                    elif self.regisVarLst[1].get() != self.regisVarLst[2].get():
+                        self.register_error("Sign Up Password do not Matching")
+                    elif not len(self.regisVarLst[1].get()) > 7 and (self.regisVarLst[1].get()).isalnum():
+                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
+                    else:
+                        print("go addict")
+                        self.regisSubmitDict['bumail']=self.regisVarLst[0].get()
+                        self.regisSubmitDict['displayname']=self.regisVarLst[3].get()
+                        self.regisSubmitDict['bio']= ""
+                        print(self.regisSubmitDict)
+                        def database_validator(self):
+                            conn = self.controller.create_connection()
+                            if conn is None:
+                                print("DB Can't Create Connection in db validator.")
+                            else:
+                                try:
                                     print("query bumail..")   
                                     sqlquery = """SELECT * FROM Users WHERE Email=?;"""
                                     bumail = self.regisSubmitDict['bumail'] 
@@ -405,9 +403,11 @@ class SignUp(Frame):
                                     print("rowbumail = ",rowbumail)
                                     if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
                                     else: self.password_encryption()
-                            database_validator(self)
-                    except:print("catch!!!")
-                signup_validator(self)
+                                except sqlite3.Error as e :print("catch!!! {}".format(e))
+                        database_validator(self)
+                except ValueError as ve:
+                    print(ve)
+            signup_validator(self)
         
         def password_encryption(self):
             print("password enc")
@@ -444,17 +444,19 @@ class SignUp(Frame):
                 print("DB can't connect in signup commit.")
                 messagebox.showerror("Database Problem","Can't SignUp ")
             else:
-                self.controller.execute_sql(sqlRegis, userinfoValues)
-                self.controller.execute_sql(sqlAddUserTag)
-                cur = self.controller.execute_sql(sqlGetuid, [sqlMail])
-                getUid = (cur.fetchall())[0]
-                print(getUid)
-                self.controller.uid = getUid[0]
-                print("user id = [ {} ]".format(self.controller.uid))
-                messagebox.showinfo('Sign Up Successfully'
-                                    ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitDict['displayname']))
-                self.signup_complete()
-   
+                try:
+                    self.controller.execute_sql(sqlRegis, userinfoValues)
+                    self.controller.execute_sql(sqlAddUserTag)
+                    cur = self.controller.execute_sql(sqlGetuid, [sqlMail])
+                    getUid = (cur.fetchall())[0]
+                    print(getUid)
+                    self.controller.uid = getUid[0]
+                    print("user id = [ {} ]".format(self.controller.uid))
+                    messagebox.showinfo('Sign Up Successfully'
+                                        ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitDict['displayname']))
+                    self.signup_complete()
+                except Error as e :print("catch!!! {}".format(e))
+
         def signup_complete(self):
             print(self.controller.uid)
             self.controller.title("BU Friends  |  Sign-Up Complete!")

@@ -7,34 +7,6 @@ from tkinter import *
 from tkinter import ttk,messagebox
 from tkinter.font import Font
 from PIL import Image, ImageTk
-# connecting to database
-class DBController() :
-    def create_connection():
-        conn = None
-        try:
-            conn = sqlite3.connect(r"./database/BUFriends.db")
-            conn.execute("PRAGMA foreign_keys = 1")
-            print(sqlite3.version)
-        except Error as e:
-            print(e)
-        return conn
-
-    def execute_sql(conn, sql, values=None):
-        print("sql values = ",values)
-        if values is None:
-            try:
-                c = conn.cursor()
-                c.execute(sql)
-                conn.commit()
-            except Error as e:
-                print(e)
-        else:
-            try:
-                c = conn.cursor()
-                c.execute(sql, values)
-            except Error as e:
-                print(e)
-        return c
             
 class BUFriends(Tk):
     def __init__(self):
@@ -60,6 +32,33 @@ class BUFriends(Tk):
         self.frame = new_frame
         self.configure(bg = self.frame.bgColor)
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
+# Database Connection
+    def create_connection(self):
+        try:
+            self.conn = sqlite3.connect(r"./database/BUFriends.db")
+            self.conn.execute("PRAGMA foreign_keys = 1")                 # Allow Foreign Key
+            print(sqlite3.version)
+        except Error as e:
+            print(e)
+        return self.conn
+    
+    def execute_sql(self, sql, values=None):
+        if values is None:
+            try:
+                c = self.conn.cursor()
+                c.execute(sql)
+                self.conn.commit()
+            except Error as e:
+                print(e)
+        else:
+            try:
+                c = self.conn.cursor()
+                c.execute(sql, values)
+                self.conn.commit()
+            except Error as e:
+                print(e)
+        return c
+    
 # get image raw and resize from path
     def get_image(self, _path):
         img = PhotoImage(file = _path)
