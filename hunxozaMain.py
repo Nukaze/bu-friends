@@ -22,7 +22,6 @@ class BUFriends(Tk):
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
         self.uid = 3
-        self.create_connection()
         self.switch_frame(ProfilePage)
 
     def create_connection(self):
@@ -32,6 +31,7 @@ class BUFriends(Tk):
             print(sqlite3.version)
         except Error as e:
             print(e)
+        return self.conn
 
     def execute_sql(self, sql, values=None):
         if values is None:
@@ -140,13 +140,14 @@ class ProfilePage(Frame):
     def post_event(self):
         txt = self.post.get(1.0,END)
         if not txt.isspace() and len(txt) <=300 :
-            # conn = DBController.create_connection()
+            conn = self.controller.create_connection()
             sql = """INSERT INTO Postings(Detail,Uid) VALUES (?,?)""".format(txt,self.controller.uid)
-            if self.controller.conn is not None:
+            if conn is not None:
                     c = self.controller.execute_sql(sql,[txt,self.controller.uid])
                     self.controller.switch_frame(ProfilePage)
             else:
                 print("Error! cannot create the database connection.")
+            conn.close()
     def create_post_frame(self) :
         self.img3 = self.controller.get_imagerz('./assets/buttons/buttonPurplerz.png',200,65)
         frame = Frame(self.root,bg=self.bgColor)
@@ -217,10 +218,10 @@ class InfoOnProfile() :
         self.controller=controller
         self.optionFrame = None
         self.parent = parent
-        # conn = DBController.create_connection()
+        conn = self.controller.create_connection()
         sql = """SELECT DisplayName,Bio FROM Users WHERE Uid=?"""
         sql2 = """SELECT UserType,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid=?"""
-        if self.controller.conn is not None:
+        if conn is not None:
             c = self.controller.execute_sql(sql,[self.controller.uid])
             c2 = self.controller.execute_sql(sql2,[self.controller.uid])
             tagData = c2.fetchone()
@@ -237,6 +238,7 @@ class InfoOnProfile() :
             self.bio = userData[1]
         else:
             print("Error! cannot create the database connection.")
+        conn.close()
         self.profile_frame()
         self.tag_frame()    
 
@@ -336,10 +338,10 @@ class PostOnProfile() :
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=1)
         fontTag = Font(family='leelawadee',size=13)
         self.frame.option_add('*font',fontTag)
-        # conn = DBController.create_connection()
+        conn = self.controller.create_connection()
         sql = """SELECT Detail FROM Postings WHERE Uid=?"""
         sql2 = """SELECT DisplayName FROM Users WHERE Uid=?"""
-        if self.controller.conn is not None:
+        if conn is not None:
                 c = self.controller.execute_sql(sql,[self.controller.uid])
                 c2 = self.controller.execute_sql(sql2,[self.controller.uid])
                 userData = c.fetchall()
@@ -348,6 +350,7 @@ class PostOnProfile() :
                     self.postList.append(data[0])        
         else:
             print("Error! cannot create the database connection.")
+        conn.close()
         Label(self.frame,text="Post",font="leelawadee 20 bold",bg='#E6EEFD').pack(anchor=W,padx=20,pady=5)
         print(len(self.postList))
         self.post()
