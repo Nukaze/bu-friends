@@ -291,9 +291,8 @@ class DeactivatePage(Frame):
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
-            {'name':'profile','path':'./assets/icons/profileSm.png','x':100,'y':100},
+            {'name':'profile','path':'./assets/icons/profileSm.png','x':80,'y':80},
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65}]
-        textList = ("Current Password","New Password","Confirm Password")
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_imagerz(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
@@ -305,7 +304,8 @@ class DeactivatePage(Frame):
         command=lambda:self.controller.switch_frame(MyAccountPage)).pack(anchor=NW)
         Label(canvas,text="Deactivate Account",font='leelawadee 20 bold',
         bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
-        
+        Label(canvas,image=self.imgList['profile'],
+        bg=self.bgColor).pack(anchor=W,padx=115,pady=5,side=LEFT)
         Button(canvas,text="Deactivate",image=self.imgList['button'],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
         command=lambda:self.controller.switch_frame(DeactivatePage)).pack(pady=30)
