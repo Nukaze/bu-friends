@@ -101,4 +101,6 @@ def get_MbtiAnsTH():
             ["P","J","เป็นไปตามธรรมชาติ ตามสัญชาตญาณ","เป็นระบบระเบียบ ตามแนวปฏิบัติ"]    
 ]
 
+#quiz = get_MbtiQuizTH()
 #randLst = random.sample(range(len(quiz)),len(quiz))
+#print(randLst)
