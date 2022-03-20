@@ -173,52 +173,103 @@ class EditPage(Frame):
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
-        self.page_geometry()
-    def page_geometry(self) :
-        headList = ("Username","Bio","MBTI","Interest")
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
-            {'name':'entry','path':'./assets/entrys/entry2rz.png','x':400,'y':50}]
-            
+            {'name':'entry','path':'./assets/entrys/entry2rz.png','x':400,'y':50},
+            {'name':'tag','path':'./assets/buttons/tagEdit.png','x':130,'y':45},
+            {'name':'add','path':'./assets/buttons/addTag.png','x':130,'y':45},
+            {'name':'longtag','path':'./assets/buttons/tagEditLong.png','x':180,'y':45},
+            {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65},
+            {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40}]
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_imagerz(data['path'],data['x'],data['y'])
-            self.imgList[data['name']] = img
+            self.imgList[data['name']] = img        
+        self.page_geometry()
+        self.tag_geometry()
+        self.end_geometry()
+    def page_geometry(self) :
+        headList = ("Username","Bio","MBTI","Interest")
         Button(self.root,image=self.imgList['back'],bd=0
         ,bg=self.bgColor,activebackground=self.bgColor,
         command=lambda:self.controller.switch_frame(ProfilePage)).pack(anchor=NW)
         Label(self.root,text="Edit Profit",font='leelawadee 20 bold',
         bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
-        mainFrame = Frame(self.root,bg=self.bgColor)
-        mainFrame.pack(anchor=W,padx=115)
+        self.mainFrame = Frame(self.root,bg=self.bgColor)
+        self.mainFrame.pack(anchor=W,padx=115)
         for i,data in enumerate(headList) :
-            Label(mainFrame,text=data,fg='#868383'
+            Label(self.mainFrame,text=data,fg='#868383'
             ,bg=self.bgColor).grid(row=i,column=0,pady=25,sticky=W)
-        entryBox = Label(mainFrame,image=self.imgList['entry'],bg=self.bgColor)
+        entryBox = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
         entryBox.grid(row=0,column=1,sticky=N,pady=10,padx=115)
         entryBox.propagate(0)
         entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0)
         entry.pack(expand=1)
-
-        entryBox2 = Label(mainFrame,image=self.imgList['entry'],bg=self.bgColor)
+    
+        entryBox2 = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
         entryBox2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
         entryBox2.propagate(0)
         entry2 = Entry(entryBox2,font='leelawadee 15',width=35,bd=0)
         entry2.pack(expand=1)
-
+    def tag_geometry(self) :
         if self.tagData.tagList[0] is not None :
-            Label(mainFrame,text=self.tagData.tagList[0],image=self.tagData.img,bg=self.bgColor,
+            Label(self.mainFrame,text=self.tagData.tagList[0],image=self.tagData.img,bg=self.bgColor,
             compound=CENTER,fg='white').grid(row=2,column=1,sticky=W,padx=115)            
-            Button(mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            Button(self.mainFrame,text="Redo the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4').grid(row=2,column=1)
         else :
-            Button(mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            Button(self.mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4').grid(row=2,column=1,sticky=W,padx=115)
-        for i,data in enumerate(self.tagData.tagList) :
-            if data is not None and i > 0 :
-                print(data)
-            else:
-                print("No data")
+        # tagFrame = Frame(self.mainFrame,bg=self.bgColor)
+        # tagFrame.grid(row=3,column=1,sticky=W,padx=115)
+        # row = 0
+        # column = 0
+        row = 3
+        top = Frame(self.mainFrame,bg=self.bgColor)
+        top.grid(row=row,column=1,sticky=W,padx=115)
+        frame = top
+        self.tagData.tagList.pop(4)
+        for i in range(len(self.tagData.tagList)+1) :
+            if i > 0 and i < len(self.tagData.tagList):
+                if len(self.tagData.tagList[i]) <= 9 :
+                    tag = Label(frame,image=self.imgList['tag'],bg=self.bgColor)
+                    # tag.grid(row=row,column=column,sticky=W)
+                    tag.pack(anchor=W)
+                    tag.propagate(0)
+                    lb = Label(tag,text=self.tagData.tagList[i],fg='white',bg='#88A3F3',width=8)
+                    lb.pack(expand=1,anchor=W,padx=10)
+                else:
+                    tag = Label(frame,image=self.imgList['longtag'],bg=self.bgColor)
+                    # tag.grid(row=row,column=column,sticky=W)
+                    tag.pack(anchor=W)
+                    tag.propagate(0)
+                    lb = Label(tag,text=self.tagData.tagList[i],fg='white',bg='#88A3F3',width=12)
+                    lb.pack(expand=1,anchor=W,padx=12)
+                # column+= 1
+                if i%2 == 0 :
+                    row+=1
+                    newframe = Frame(self.mainFrame,bg=self.bgColor)
+                    newframe.grid(row=row,column=1,sticky=W,padx=115)
+                    frame = newframe
+                    # column=0
+                else :
+                    tag.pack(side=LEFT)
+            elif i > 0 and i >= len(self.tagData.tagList):
+                if len(self.tagData.tagList) <= 4 :
+                    # Button(frame,image=self.imgList['add'],bg=self.bgColor,
+                    # bd=0,activebackground=self.bgColor).pack(anchor=W)
+                    Label(frame,image=self.imgList['add'],bg=self.bgColor).pack(anchor=W)
+    def end_geometry(self) :
+            frame = Frame(self.root,bg=self.bgColor)
+            frame.pack(pady=25)
+            Button(frame,image=self.imgList['button'],text="Save Change",bd=0,
+            bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
+            activeforeground='white').pack(side=LEFT,padx=20)
+
+            Button(frame,image=self.imgList['cancel'],text="Cancel",bd=0,
+            bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
+            activeforeground='white').pack(side=LEFT)
+                
         #         if i == 0 :
         #             Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor,fg='white').pack(side=LEFT)
         #         else :
