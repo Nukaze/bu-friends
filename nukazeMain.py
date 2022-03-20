@@ -691,8 +691,10 @@ class Matching(Frame):
             self.usersFrame.pack(side=BOTTOM,expand=1)
             for i in range(384):
                 Label(self.usersFrame, text=i,bg="pink").pack(expand=1,fill=X)
-            self.userDisplayLst = []
+            self.userinfoLst = []
+            self.cntLoop = 0
             self.random_user()
+            print("\nRe-Loop (Found ADMIN) Count =",self.cntLoop)
         
         
         def random_user(self):
@@ -701,31 +703,28 @@ class Matching(Frame):
             if conn is None:
                 print("DB connot connect")            
             else:
+                self.userinfoLst.clear()
                 sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
                 cur = self.controller.execute_sql(sqlLastUid)
-                userCount = (cur.fetchone())['Uid']
-                print(userCount)
+                userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
+                randLst = []
                 randLst = random.sample(range(userCount),12)
                 print(randLst)
-                values = (randLst)
-
                 sqlRand = """SELECT * FROM UsersTag WHERE Uid IN ({},{},{},{},
                                                                   {},{},{},{},
                                                                   {},{},{},{});""".format(*randLst)
                 cur = self.controller.execute_sql(sqlRand)
                 rows = cur.fetchall()
-                print(rows)
-                for row in rows:
-                    self.userDisplayLst.append(row)
-                index = 1
-                print(*self.userDisplayLst[index])
-                # print(self.userDisplayLst[index]['UserType'])
-                # print(self.userDisplayLst[index]['Tid1'])
-                # print(self.userDisplayLst[index]['Tid2'])
-                # print(self.userDisplayLst[index]['Tid3'])
-                # print(self.userDisplayLst[index]['Tid4'])
-                
-            pass
+                conn.close()
+                for i,row in enumerate(rows):
+                    print(row['UserType'],end=", ")
+                    if row['UserType'] is None:
+                        pass
+                    elif "ADMIN" in row['UserType']:
+                        self.cntLoop +=1
+                        self.random_user()
+                        break
+                    self.userinfoLst.append(row)
             
             
                 
