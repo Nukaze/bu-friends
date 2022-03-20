@@ -674,9 +674,9 @@ class Matching(Frame):
             print("reqwidth =",self.root.winfo_reqwidth())
             print("reqheight",self.root.winfo_reqheight())
             # widgetzone 
-            self.headBgImg = self.controller.get_image(r'./assets/darktheme/searchbg.png')
-            self.headingBg = Label(self.canvasMain, image=self.headBgImg,bg=self.bgCanva, compound=CENTER,width=900,height=55)
-            self.headingBg.pack(side=TOP,expand=1,ipady=10)
+            self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
+            self.headingBg = Label(self.canvasMain,image=self.headBgImg,compound=CENTER, bg=self.bgCanva,width=900,height=20)
+            self.headingBg.pack(side=TOP,pady=30)
             self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
             self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", image=self.searchBarImg,bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
             self.searchBar.image = self.searchBarImg
@@ -686,7 +686,6 @@ class Matching(Frame):
             self.profile.image = self.profileImg
             self.profile.place(x=815,y=11,anchor=NW)
             # Display user filter result
-            #self.widgetFrame = Frame(self.canvasMain,width=900,height=6000,bg="#e0e0e0")
             self.usersFrame = Frame(self.canvasMain,width=900,bg=self.bgCanva)
             self.usersFrame.pack(side=BOTTOM,expand=1)
             self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
@@ -755,11 +754,12 @@ class Matching(Frame):
                 ir = idxrandLst[_i]
                 self.tabFrame = Frame(self.canvasMain,bg=self.bgCanva)
                 self.tabFrame.pack(pady=10)
+                self.tabFrame.option_add("*font","leelawadee 20 bold")
                 self.userTab = Button(self.tabFrame,command=lambda:print(self.uuidLst[ir]) ,
-                                      text=self.udnameLst[ir], image=self.userTabImg, bg=self.bgCanva,
+                                      text=self.udnameLst[ir], image=self.userTabImg, justify=LEFT,bg=self.bgCanva,
                                       bd=0,compound=CENTER,activebackground=self.bgCanva,
                                       relief=FLAT)
-                self.userTab.pack(pady=10)
+                self.userTab.pack(pady=10,anchor=W)
                 self.img = self.controller.get_imagerz(r'./assets/images/avt{}.png'.format(_i%6),138,144)
                 self.profileImg = Label(self.tabFrame, image=self.img,bg=bgRectangle,bd=0)
                 self.profileImg.image = self.img
