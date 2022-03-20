@@ -514,12 +514,12 @@ class Mbti(Frame):
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
             self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(SignIn), image=self.backImg, relief="flat",bd=0)
+            self.back.place(x=20,y=10 ,anchor="nw")
             """if from regis page:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
             else:
                 self.back.config(commnad=lambda:self.controller.switch_frame(EditProfile))
             """
-            self.back.place(x=20,y=10 ,anchor="nw")
             self.mbtiProgress = {'ie':[],
                                  'ns':[],
                                  'ft':[],
@@ -669,22 +669,28 @@ class Matching(Frame):
             self.controller.title("BU Friends  |  Matching")
             print("checkuid =",self.controller.uid)
             self.bgCanva = "#FFFFFF"
-            self.canvasMain = Canvas(self.root, width=900, bg=self.bgCanva,bd=0, highlightthickness=0)
+            self.canvasMain = Canvas(self.root, width=900, height=6000 ,bg=self.bgCanva,bd=0, highlightthickness=0)
             self.canvasMain.pack(expand=1,fill=BOTH)
             print("reqwidth =",self.root.winfo_reqwidth())
             print("reqheight",self.root.winfo_reqheight())
-            self.widgetFrame = Frame(self.root)
-            self.widgetFrame.pack(side=TOP)
+            # widgetzone 
+            self.headBgImg = self.controller.get_image(r'./assets/darktheme/searchbg.png')
+            self.headingBg = Label(self.canvasMain, image=self.headBgImg,bg=self.bgCanva, compound=CENTER,width=900,height=55)
+            self.headingBg.pack(side=TOP,expand=1,ipady=10)
             self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
-            self.searchBar = Button(self.widgetFrame, text="#Hashtags Filter", image=self.searchBarImg,bg=self.bgCanva, width=810,bd=0,activebackground=self.bgCanva, compound=CENTER)
+            self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", image=self.searchBarImg,bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
             self.searchBar.image = self.searchBarImg
-            self.searchBar.pack(side=LEFT,expand=1)
+            self.searchBar.place(x=35,y=10,anchor=NW)
             self.profileImg = self.controller.get_image(r'./assets/icons/profileXs.png')
-            self.profile = Button(self.widgetFrame, image=self.profileImg, bg=self.bgCanva, bd=0, activebackground=self.bgCanva,compound=CENTER)
+            self.profile = Button(self.canvasMain, image=self.profileImg,bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
             self.profile.image = self.profileImg
-            self.profile.pack(side=LEFT,expand=1)
-
-            #self.searchTab = 
+            self.profile.place(x=815,y=11,anchor=NW)
+            # Display user filter result
+            #self.widgetFrame = Frame(self.canvasMain,width=900,height=6000,bg="#e0e0e0")
+            self.usersFrame = Frame(self.canvasMain,width=900,bg=self.bgCanva)
+            self.usersFrame.pack(side=BOTTOM,expand=1)
+            for i in range(1000):
+                Label(self.usersFrame, text=i,bg="pink").pack(expand=1,fill=X)
             
             
                 
