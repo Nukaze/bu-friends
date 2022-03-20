@@ -693,12 +693,11 @@ class Matching(Frame):
             self.cntLoop = 0
             self.random_user()
             print("\nRe-Loop count (Found ADMIN) =",self.cntLoop)
-            
             print("\nuuidLst =",self.uuidLst)
             print("dname cnt=",len(self.udnameLst))
             print("dnamelst =",self.udnameLst)
             for i,info in enumerate(self.uinfoLst):
-                print(*info,end="|-> ")
+                print(*info,end=">==> ")
             print()
             self.display_user()
             
@@ -750,22 +749,25 @@ class Matching(Frame):
                     
                     
         def display_user(self):
-            self.userTabImg = self.controller.get_imagerz(r'./assets/images/reactangle.png',800,180)
+            self.userTabImg = self.controller.get_imagerz(r'./assets/images/rectangle.png',800,180)
+            bgRectangle = "#e6eefd"
             def get_usertab(_i):
                 ir = idxrandLst[_i]
-                self.userTab = Button(self.canvasMain,command=lambda:print(self.uuidLst[ir]) ,
+                self.tabFrame = Frame(self.canvasMain,bg=self.bgCanva)
+                self.tabFrame.pack(pady=10)
+                self.userTab = Button(self.tabFrame,command=lambda:print(self.uuidLst[ir]) ,
                                       text=self.udnameLst[ir], image=self.userTabImg, bg=self.bgCanva,
                                       bd=0,compound=CENTER,activebackground=self.bgCanva,
                                       relief=FLAT)
-                #self.userTab.image = self.userTabImg
                 self.userTab.pack(pady=10)
+                self.img = self.controller.get_imagerz(r'./assets/images/avt{}.png'.format(_i%6),138,144)
+                self.profileImg = Label(self.tabFrame, image=self.img,bg=bgRectangle,bd=0)
+                self.profileImg.image = self.img
+                self.profileImg.place(x=50,y=20,anchor=NW)
             idxrandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
             print("Display random",idxrandLst)
-
             for i in range(len(self.uuidLst)):
                 get_usertab(i)
-
-
             pass
             
                 
