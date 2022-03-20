@@ -691,64 +691,80 @@ class Matching(Frame):
             self.usersFrame.pack(side=BOTTOM,expand=1)
             for i in range(384):
                 Label(self.usersFrame, text=i,bg="pink").pack(expand=1,fill=X)
-            self.userinfoLst = []
+            self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
             self.cntLoop = 0
             self.random_user()
-            print("\nRe-Loop (Found ADMIN) Count =",self.cntLoop)
-        
+            print("\nRe-Loop count (Found ADMIN) =",self.cntLoop)
+            
+            print("\nuuidLst =",self.uuidLst)
+            print("dname cnt=",len(self.udnameLst))
+            print("dnamelst =",self.udnameLst)
+            for i,info in enumerate(self.uinfoLst):
+                print(*info,end="|-> ")
+            
         
         def random_user(self):
+            def reset_var():
+                self.uuidLst.clear()
+                self.uinfoLst.clear()
+                self.udnameLst.clear()
+            reset_var()
             conn = self.controller.create_connection()
             conn.row_factory = sqlite3.Row
             if conn is None:
                 print("DB connot connect")            
             else:
-                self.userinfoLst.clear()
                 sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
                 cur = self.controller.execute_sql(sqlLastUid)
                 userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
                 randLst = []
-                randLst = random.sample(range(userCount),12)
+                randLst = random.sample(range(1,userCount),12)
                 print(randLst)
-                sqlRand = """SELECT * FROM UsersTag WHERE Uid IN ({},{},{},{},
-                                                                  {},{},{},{},
-                                                                  {},{},{},{});""".format(*randLst)
-                cur = self.controller.execute_sql(sqlRand)
-                rows = cur.fetchall()
-                conn.close()
-                for i,row in enumerate(rows):
+                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN ({},{},{},{},
+                                                                     {},{},{},{},
+                                                                     {},{},{},{});""".format(*randLst)
+                cur = self.controller.execute_sql(sqlRandTag)
+                infoRows = cur.fetchall()
+                print("lenInforows = ",len(infoRows))
+                for row in infoRows:
                     print(row['UserType'],end=", ")
+                    print(row['Uid'],end=", ")
                     if row['UserType'] is None:
                         pass
                     elif "ADMIN" in row['UserType']:
                         self.cntLoop +=1
+                        reset_var()
                         self.random_user()
                         break
-                    self.userinfoLst.append(row)
-            
+                    self.uinfoLst.append(row)
+                    self.uuidLst.append(row['Uid'])
+                    
+                sqlDisplayName = """SELECT DisplayName FROM Users WHERE Uid IN ({},{},{},{},
+                                                                                {},{},{},{},
+                                                                                {},{},{},{});""".format(*self.uuidLst)
+                curr = self.controller.execute_sql(sqlDisplayName)
+                dnameRows = curr.fetchall()
+                self.udnameLst.clear()
+                for i,row in enumerate(dnameRows):
+                    self.udnameLst.append(row['DisplayName'])
+                conn.close()
+            pass
+                    
+                    
+        def display_user(self):
+            self.userTabImg = self.controller.get_image(r'./assets/images/reactangle.png')
+            def get_usertab(_i):
+                self.userTab = Label(self.canvasMain, text=self.uinfoLst[_i]['DisplayName'])
+                
+                
+
+                
+            pass
             
                 
 
 
 if __name__ == '__main__':
-    sqlnewtable = """ CREATE TABLE IF NOT EXISTS tableName(
-                                    id integer(20) PRIMARY KEY,
-                                    bumail text(50) NOT NULL,
-                                    passwordx password NOT NULL,
-                                    displayname varchar(50) NOT NULL
-                                    );"""
-    
-    sqlselect = """ SELECT * FROM Users WHERE Uid = {}""".format(1)
-                # (next step) # rows = 
-                                        
-    sqlinto = """INSERT INTO tableName (email, passhash, passsalt, displayname)
-                                    VALUES("{}","{}","{}","{}");""".format("hehe%@bumail","12345","12345","Woohoo~")
-   
-    sqldel = """DELETE FROM Users"""#.format() 
-    
-    sqldrop = """ DROP TABLE tableName;"""
-
-        
     #BUFriends_Time()
     BUFriends().mainloop()
     
