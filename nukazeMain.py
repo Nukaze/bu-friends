@@ -40,8 +40,9 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(SignIn)
+        #self.switch_frame(SignIn)
         #self.switch_frame(Mbti)
+        self.switch_frame(Matching)
 
     def switch_frame(self, frame_class):
         print("switching to {}".format(frame_class))
@@ -485,6 +486,7 @@ class SignUp(Frame):
             self.canvasFrame.create_window(x,y1,anchor="nw",window=get_widget(0,redirectLst[0]))
             self.canvasFrame.create_window(x,y2,anchor="nw",window=get_widget(1,redirectLst[1]))
 
+
 class Mbti(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
@@ -512,12 +514,12 @@ class Mbti(Frame):
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
             self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(SignIn), image=self.backImg, relief="flat",bd=0)
+            self.back.place(x=20,y=10 ,anchor="nw")
             """if from regis page:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
             else:
                 self.back.config(commnad=lambda:self.controller.switch_frame(EditProfile))
             """
-            self.back.place(x=20,y=10 ,anchor="nw")
             self.mbtiProgress = {'ie':[],
                                  'ns':[],
                                  'ft':[],
@@ -529,7 +531,7 @@ class Mbti(Frame):
             self.answVar = [StringVar() for i in range(len(self.quizLst))]
             self.answSubmitLst = []
             self.randLst = random.sample(range(len(self.quizLst)), len(self.quizLst))
-            def call_quiz(_i):
+            def request_quiz(_i):
                 r = self.randLst[_i]
                 bg = "#d0eeff"
                 bgbtn = "#2E3033"
@@ -549,12 +551,11 @@ class Mbti(Frame):
                 self.a2.pack(side=LEFT,expand=1,fill=Y,ipady=60)
             print("RandomSample =",self.randLst)
             for i in range(len(self.quizLst)):
-                call_quiz(i)
+                request_quiz(i)
+                pass
             self.btnImg = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
             self.mbtiBtn = Button(self.mbtiFrame, text="Submit!", command=self.mbti_calculator, image=self.btnImg, compound="center",
                                   bd=0,activebackground=bg,bg=bg,fg=bg)
-            # self.mbtiBtn = Button(self.mbtiFrame, text="Submit!", command=lambda:self.controller.switch_frame(MbtiSuccess), image=self.btnImg, compound="center",
-            #                       bd=0,activebackground=bg,bg=bg,fg=bg)
             self.mbtiBtn.image = self.btnImg
             self.mbtiBtn.pack(expand=1,pady=30)
     
@@ -572,8 +573,6 @@ class Mbti(Frame):
                                  'pj':[]}
         
         def mbti_calculator(self):
-            print("reqwidth =",self.root.winfo_reqwidth())
-            print("reqheight",self.root.winfo_reqheight())
             print(len(self.answVar))
             for i,data in enumerate(self.answVar):
                 print(data.get(), end=", ")
@@ -640,17 +639,84 @@ class MbtiSuccess(Frame):
         self.pack(expand=1,fill=BOTH)
         self.root = ScrollFrame(self, False).interior
         self.controller = controllerFrame
-        self.controller.title("BUFriends  |  MBTi Test Successfully!")
-        #get mbti code 
-        #get mbti image
-        #update mbti tag
         bg = "#d0eeff"
         self.frame = Frame(self.root, width=900, height=600)
         self.frame.option_add('*font',self.controller.fontBody)
         self.frame.pack(expand=1,fill=BOTH)
         Label(self.frame, text=self.controller.mbtiCode, font=self.controller.fontHeading).pack(expand=1)
-        
+        self.controller.title("BUFriends  |  MBTi Test Successfully!")
+        #get mbti code 
+        #get mbti image
+        #update mbti tag
+        #wait designer Mbti Charecters
         pass
+
+
+class Matching(Frame):
+    def __init__(self, controllerFrame):
+        Frame.__init__(self, controllerFrame)
+        self.bgColor = "#FFFFFF"
+        Frame.config(self,bg=self.bgColor)
+        self.pack(expand=1,fill=BOTH)
+        self.controller = controllerFrame
+        self.root = ScrollFrame(self, True).interior
+        self.MatchingContent(self.root, self.controller)
+        
+    class MatchingContent:
+        def __init__(self, root, controllerFrame):
+            self.root = root
+            self.controller = controllerFrame
+            self.controller.title("BU Friends  |  Matching")
+            print("checkuid =",self.controller.uid)
+            self.bgCanva = "#FFFFFF"
+            self.canvasMain = Canvas(self.root, width=900, height=6000 ,bg=self.bgCanva,bd=0, highlightthickness=0)
+            self.canvasMain.pack(expand=1,fill=BOTH)
+            print("reqwidth =",self.root.winfo_reqwidth())
+            print("reqheight",self.root.winfo_reqheight())
+            # widgetzone 
+            self.headBgImg = self.controller.get_image(r'./assets/darktheme/searchbg.png')
+            self.headingBg = Label(self.canvasMain, image=self.headBgImg,bg=self.bgCanva, compound=CENTER,width=900,height=55)
+            self.headingBg.pack(side=TOP,expand=1,ipady=10)
+            self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
+            self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", image=self.searchBarImg,bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
+            self.searchBar.image = self.searchBarImg
+            self.searchBar.place(x=35,y=10,anchor=NW)
+            self.profileImg = self.controller.get_image(r'./assets/icons/profileXs.png')
+            self.profile = Button(self.canvasMain, image=self.profileImg,bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
+            self.profile.image = self.profileImg
+            self.profile.place(x=815,y=11,anchor=NW)
+            # Display user filter result
+            #self.widgetFrame = Frame(self.canvasMain,width=900,height=6000,bg="#e0e0e0")
+            self.usersFrame = Frame(self.canvasMain,width=900,bg=self.bgCanva)
+            self.usersFrame.pack(side=BOTTOM,expand=1)
+            for i in range(384):
+                Label(self.usersFrame, text=i,bg="pink").pack(expand=1,fill=X)
+            self.random_user()
+        
+        
+        def random_user(self):
+            conn = self.controller.create_connection()
+            conn.row_factory = sqlite3.Row
+            if conn is None:
+                print("DB connot connect")            
+            else:
+                sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1"""
+                cur = self.controller.execute_sql(sqlLastUid)
+                userCount = (cur.fetchone())['Uid']
+                print(userCount)
+                randlst = random.sample(range(userCount),12)
+                print(randlst)
+                values = randlst
+                sqlRand = """SELECT * FROM UsersTag 
+                                WHERE Uid = ? AND ? AND ? AND ? AND ? AND ? AND
+                                            ? AND ? AND ? AND ? AND ? AND ? AND"""
+                cur = self.controller.execute_sql(sqlRand, [randlst])
+                
+            pass
+            
+            
+                
+
 
 if __name__ == '__main__':
     sqlnewtable = """ CREATE TABLE IF NOT EXISTS tableName(
