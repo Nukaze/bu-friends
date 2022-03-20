@@ -689,8 +689,30 @@ class Matching(Frame):
             #self.widgetFrame = Frame(self.canvasMain,width=900,height=6000,bg="#e0e0e0")
             self.usersFrame = Frame(self.canvasMain,width=900,bg=self.bgCanva)
             self.usersFrame.pack(side=BOTTOM,expand=1)
-            for i in range(1000):
+            for i in range(384):
                 Label(self.usersFrame, text=i,bg="pink").pack(expand=1,fill=X)
+            self.random_user()
+        
+        
+        def random_user(self):
+            conn = self.controller.create_connection()
+            conn.row_factory = sqlite3.Row
+            if conn is None:
+                print("DB connot connect")            
+            else:
+                sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1"""
+                cur = self.controller.execute_sql(sqlLastUid)
+                userCount = (cur.fetchone())['Uid']
+                print(userCount)
+                randlst = random.sample(range(userCount),12)
+                print(randlst)
+                values = randlst
+                sqlRand = """SELECT * FROM UsersTag 
+                                WHERE Uid = ? AND ? AND ? AND ? AND ? AND ? AND
+                                            ? AND ? AND ? AND ? AND ? AND ? AND"""
+                cur = self.controller.execute_sql(sqlRand, [randlst])
+                
+            pass
             
             
                 
