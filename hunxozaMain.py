@@ -3,6 +3,7 @@ from sqlite3 import Error
 from tkinter import *
 from tkinter.font import Font
 from PIL import Image, ImageTk
+from tkinter import ttk,messagebox
 import hashlib
 import os
 
@@ -164,12 +165,76 @@ class ProfilePage(Frame):
 class EditPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
-        self.bgColor = 'lightpink'
+        self.bgColor = 'white'
         self.controller = controller
+        self.tagData = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
         self.root = scroll.interior
-        self.widget(self.root)
+        fontTag = Font(family='leelawadee',size=13,weight='bold')
+        self.option_add('*font',fontTag)
+        self.page_geometry()
+    def page_geometry(self) :
+        headList = ("Username","Bio","MBTI","Interest")
+        self.imgList = {}
+        imgPathList = [
+            {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
+            {'name':'entry','path':'./assets/entrys/entry2rz.png','x':400,'y':50}]
+            
+        for i,data in enumerate(imgPathList) :
+            img = self.controller.get_imagerz(data['path'],data['x'],data['y'])
+            self.imgList[data['name']] = img
+        Button(self.root,image=self.imgList['back'],bd=0
+        ,bg=self.bgColor,activebackground=self.bgColor,
+        command=lambda:self.controller.switch_frame(ProfilePage)).pack(anchor=NW)
+        Label(self.root,text="Edit Profit",font='leelawadee 20 bold',
+        bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
+        mainFrame = Frame(self.root,bg=self.bgColor)
+        mainFrame.pack(anchor=W,padx=115)
+        for i,data in enumerate(headList) :
+            Label(mainFrame,text=data,fg='#868383'
+            ,bg=self.bgColor).grid(row=i,column=0,pady=25,sticky=W)
+        entryBox = Label(mainFrame,image=self.imgList['entry'],bg=self.bgColor)
+        entryBox.grid(row=0,column=1,sticky=N,pady=10,padx=115)
+        entryBox.propagate(0)
+        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0)
+        entry.pack(expand=1)
+
+        entryBox2 = Label(mainFrame,image=self.imgList['entry'],bg=self.bgColor)
+        entryBox2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
+        entryBox2.propagate(0)
+        entry2 = Entry(entryBox2,font='leelawadee 15',width=35,bd=0)
+        entry2.pack(expand=1)
+
+        if self.tagData.tagList[0] is not None :
+            Label(mainFrame,text=self.tagData.tagList[0],image=self.tagData.img,bg=self.bgColor,
+            compound=CENTER,fg='white').grid(row=2,column=1,sticky=W,padx=115)            
+            Button(mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            activebackground=self.bgColor,activeforeground='#23B7F4').grid(row=2,column=1)
+        else :
+            Button(mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            activebackground=self.bgColor,activeforeground='#23B7F4').grid(row=2,column=1,sticky=W,padx=115)
+        for i,data in enumerate(self.tagData.tagList) :
+            if data is not None and i > 0 :
+                print(data)
+            else:
+                print("No data")
+        #         if i == 0 :
+        #             Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor,fg='white').pack(side=LEFT)
+        #         else :
+        #             Label(frame,text=data,image=self.img2,compound=CENTER,bg=self.bgColor,fg='white').pack(side=LEFT)
+        # Label(self.root,text="Username",fg='#868383'
+        # ,bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=25)
+        
+        
+        # Label(self.root,text="Bio",fg='#868383'
+        # ,bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=25)
+
+        # Label(self.root,text="MBTI",fg='#868383'
+        # ,bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=25)
+
+        # Label(self.root,text="Interest",fg='#868383'
+        # ,bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=25)
         # self.change_password()
     # def change_password(self) :
     #     print("Start")
@@ -192,9 +257,6 @@ class EditPage(Frame):
     #     # else :
     #     #     print("do not same password")
     #     #     print("password can not change.")
-    def widget(self,root) :
-        Label(root, text="Edit", font=self.controller.fontHeaing).pack(side="top", pady=5)
-        Button(root, text="Processing").pack() 
 
 class MyAccountPage(Frame):
     def __init__(self,controller):
@@ -243,7 +305,6 @@ class ChangePasswordPage(Frame):
         scroll = ScrollFrame(self,FALSE)
         self.root = scroll.interior
         fontHead = Font(family='leelawadee',size=13,weight='bold')
-        self.fontBody = Font(family='leelawadee',size=13)
         self.option_add('*font',fontHead)
         self.page_geometry()
     def page_geometry(self) :
@@ -268,7 +329,9 @@ class ChangePasswordPage(Frame):
         for i,data in enumerate(textList) :
             Label(canvas,text=data,bg=self.bgColor,fg='#868383',
             anchor=N).pack(padx=140,anchor=NW,ipady=3)
-            entry = Entry(canvas,font=self.fontBody,bd=0,fg='#868383')
+            entry = Entry(canvas,font="leelawadee 13",bd=0,fg='#868383')
+            if i == 0 :
+                entry.focus_force()
             entry.pack(padx=140,pady=20,anchor=W,fill=X)
             canvas.create_line(140, y, 760, y,fill='#868383')
             y+=96
@@ -283,8 +346,8 @@ class DeactivatePage(Frame):
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
         self.root = scroll.interior
-        fontHead = Font(family='leelawadee',size=13,weight='bold')
-        self.fontBody = Font(family='leelawadee',size=13)
+        fontHead = Font(family='leelawadee',size=20,weight='bold')
+        self.fontBody = Font(family='leelawadee',size=15,weight='bold')
         self.option_add('*font',fontHead)
         self.page_geometry()
     def page_geometry(self) :
@@ -292,6 +355,8 @@ class DeactivatePage(Frame):
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
             {'name':'profile','path':'./assets/icons/profileSm.png','x':80,'y':80},
+            {'name':'box','path':'./assets/images/box.png','x':620,'y':250},
+            {'name':'entry','path':'./assets/entrys/entry2rz.png','x':400,'y':50},
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65}]
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_imagerz(data['path'],data['x'],data['y'])
@@ -302,12 +367,30 @@ class DeactivatePage(Frame):
         Button(canvas,image=self.imgList['back'],bd=0,
         bg=self.bgColor,activebackground=self.bgColor,
         command=lambda:self.controller.switch_frame(MyAccountPage)).pack(anchor=NW)
-        Label(canvas,text="Deactivate Account",font='leelawadee 20 bold',
+        Label(canvas,text="Deactivate Account",
         bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
-        Label(canvas,image=self.imgList['profile'],
-        bg=self.bgColor).pack(anchor=W,padx=115,pady=5,side=LEFT)
-        Button(canvas,text="Deactivate",image=self.imgList['button'],bd=0,bg=self.bgColor,
-        activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
+        topFrame = Frame(canvas,bg=self.bgColor)
+        topFrame.pack(anchor=W,padx=115,pady=15)
+        Label(topFrame,image=self.imgList['profile'],
+        bg=self.bgColor).pack(side=LEFT)
+        Label(topFrame,text="Username",bg=self.bgColor).pack(pady=5,anchor=W,padx=20)
+        Label(topFrame,text="Username@bumail.net",font=self.fontBody,bg=self.bgColor,
+        fg='#868383').pack(anchor=W,padx=20)
+        canvas.create_line(140, 225, 760, 225,fill='#868383')
+        box = Label(canvas,image=self.imgList['box'],bg=self.bgColor)
+        box.pack(pady=60)
+        box.propagate(0)
+        Label(box,text="Please enter password to deactivate your account.",
+        font=self.fontBody,bg='#D0EEFF',fg='#4D3ED6').pack(pady=30)
+        entryBox = Label(box,image=self.imgList['entry'],bg='#D0EEFF')
+        entryBox.pack()
+        entryBox.propagate(0)
+        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0)
+        entry.pack(expand=1)
+        entry.focus_force()
+        Button(box,text="Deactivate",image=self.imgList['button'],bd=0,bg='#D0EEFF',
+        activebackground='#D0EEFF',compound=CENTER,fg='white',
+        activeforeground='white',font='leelawadee 13 bold',
         command=lambda:self.controller.switch_frame(DeactivatePage)).pack(pady=30)
 class InfoOnProfile() :
     def __init__(self, root, bgcolor,controller,parent):
@@ -341,6 +424,13 @@ class InfoOnProfile() :
         self.tag_frame()    
 
     def option_click(self) :
+        def next_page(index) :
+            if pageList[index] is not None :
+                self.controller.switch_frame(pageList[index])
+            elif self.parent == 2 and index == 2 :
+                ms = messagebox.askquestion("log out","Are you sure you want to log out?")
+                if ms == "yes" :
+                    self.controller.destroy()
         bgColor = '#686DE0'
         if self.parent == 2 :
             optionList = ["Edit","My account","Log out"]
@@ -348,23 +438,24 @@ class InfoOnProfile() :
                 ('./assets/icons/edit.png',20,20),
                 ('./assets/icons/userWhite.png',25,25),
                 ('./assets/icons/signOut.png',25,25)]
+            pageList = [EditPage,MyAccountPage,None]
         else :
             optionList = ["Report"]
             imgOptionList = [None]
+            
         self.imgOption = []
         for i in range(len(optionList)) :
             if imgOptionList[i] is not None :
                 self.imgOption.append(self.controller.get_imagerz(imgOptionList[i][0],imgOptionList[i][1],imgOptionList[i][2]))
             else :
                 self.imgOption.append(None)
-        pageList = [EditPage,MyAccountPage]
         if self.optionFrame is None :
             self.optionFrame = Frame(self.root)
             for i,data in enumerate(optionList) :
                 Button(self.optionFrame,text=data,bd=0,bg=bgColor,activebackground=bgColor,anchor=W
                 ,padx=10,fg='white',activeforeground='white',font='leelawadee 13 bold',width=175
                 ,image=self.imgOption[i],compound=LEFT
-                ,command=lambda c=i : self.controller.switch_frame(pageList[c])).pack(ipady=10)
+                ,command=lambda c=i : next_page(c)).pack(ipady=10)
             self.optionFrame.place(x=704,y=45)
         else :
             self.optionFrame.destroy()
@@ -424,9 +515,9 @@ class InfoOnProfile() :
         for i,data in enumerate(self.tagList) :
             if data is not None :
                 if i == 0 :
-                    Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
+                    Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor,fg='white').pack(side=LEFT)
                 else :
-                    Label(frame,text=data,image=self.img2,compound=CENTER,bg=self.bgColor).pack(side=LEFT)
+                    Label(frame,text=data,image=self.img2,compound=CENTER,bg=self.bgColor,fg='white').pack(side=LEFT)
 
 class PostOnProfile() :
     def __init__(self,root,bgColor,controller):
