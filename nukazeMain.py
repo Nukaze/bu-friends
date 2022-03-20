@@ -689,8 +689,6 @@ class Matching(Frame):
             #self.widgetFrame = Frame(self.canvasMain,width=900,height=6000,bg="#e0e0e0")
             self.usersFrame = Frame(self.canvasMain,width=900,bg=self.bgCanva)
             self.usersFrame.pack(side=BOTTOM,expand=1)
-            for i in range(384):
-                Label(self.usersFrame, text=i,bg="pink").pack(expand=1,fill=X)
             self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
             self.cntLoop = 0
             self.random_user()
@@ -701,6 +699,8 @@ class Matching(Frame):
             print("dnamelst =",self.udnameLst)
             for i,info in enumerate(self.uinfoLst):
                 print(*info,end="|-> ")
+            print()
+            self.display_user()
             
         
         def random_user(self):
@@ -725,19 +725,17 @@ class Matching(Frame):
                                                                      {},{},{},{});""".format(*randLst)
                 cur = self.controller.execute_sql(sqlRandTag)
                 infoRows = cur.fetchall()
-                print("lenInforows = ",len(infoRows))
-                for row in infoRows:
-                    print(row['UserType'],end=", ")
-                    print(row['Uid'],end=", ")
+                for i, row in enumerate(infoRows):
                     if row['UserType'] is None:
                         pass
                     elif "ADMIN" in row['UserType']:
                         self.cntLoop +=1
                         reset_var()
+                        randLst.clear()
                         self.random_user()
                         break
                     self.uinfoLst.append(row)
-                    self.uuidLst.append(row['Uid'])
+                    self.uuidLst.append(infoRows[i]['Uid'])
                     
                 sqlDisplayName = """SELECT DisplayName FROM Users WHERE Uid IN ({},{},{},{},
                                                                                 {},{},{},{},
@@ -747,18 +745,27 @@ class Matching(Frame):
                 self.udnameLst.clear()
                 for i,row in enumerate(dnameRows):
                     self.udnameLst.append(row['DisplayName'])
-                conn.close()
+                #conn.close()
             pass
                     
                     
         def display_user(self):
-            self.userTabImg = self.controller.get_image(r'./assets/images/reactangle.png')
+            self.userTabImg = self.controller.get_imagerz(r'./assets/images/reactangle.png',800,180)
             def get_usertab(_i):
-                self.userTab = Label(self.canvasMain, text=self.uinfoLst[_i]['DisplayName'])
-                
-                
+                ir = idxrandLst[_i]
+                self.userTab = Button(self.canvasMain,command=lambda:print(self.uuidLst[ir]) ,
+                                      text=self.udnameLst[ir], image=self.userTabImg, bg=self.bgCanva,
+                                      bd=0,compound=CENTER,activebackground=self.bgCanva,
+                                      relief=FLAT)
+                #self.userTab.image = self.userTabImg
+                self.userTab.pack(pady=10)
+            idxrandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
+            print("Display random",idxrandLst)
 
-                
+            for i in range(len(self.uuidLst)):
+                get_usertab(i)
+
+
             pass
             
                 
