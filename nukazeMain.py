@@ -40,8 +40,8 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        #self.switch_frame(SignIn)
-        self.switch_frame(Matching)
+        self.switch_frame(SignIn)
+        #self.switch_frame(Matching)
 
     def switch_frame(self, frame_class):
         print("switching to {}".format(frame_class))
@@ -365,8 +365,6 @@ class SignUp(Frame):
             messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
             for var in self.regisVarLst:
                 var.set("")
-                print("Varget =",var.get())
-            #self.regisSubmitDict.fromkeys(self.regisSubmitDict, "")    reset Submitdict values to = ""
             self.controller.switch_frame(SignUp)
                     
         def signup_submitreq(self):
@@ -383,8 +381,12 @@ class SignUp(Frame):
                         self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
                     elif self.regisVarLst[1].get() != self.regisVarLst[2].get():
                         self.register_error("Sign Up Password do not Matching")
-                    elif not len(self.regisVarLst[1].get()) > 7 and (self.regisVarLst[1].get()).isalnum():
-                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
+                    elif not len(self.regisVarLst[1].get()) > 7:
+                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric and No Space Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
+                    if not self.check_alnumpass(self.regisVarLst[1].get()):
+                        print("check alnum")
+                        print(self.check_alnumpass(self.regisVarLst[1].get()))
+                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric and No Space Password")
                     else:
                         print("go addict")
                         self.regisSubmitDict['bumail']=self.regisVarLst[0].get()
@@ -410,6 +412,9 @@ class SignUp(Frame):
                 except ValueError as ve:
                     print(ve)
             signup_validator(self)
+            
+        def check_alnumpass(self,_passinput):
+            return _passinput.isalnum() and not _passinput.isalpha() and not _passinput.isdigit()
         
         def password_encryption(self):
             print("password enc")
