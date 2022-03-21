@@ -180,9 +180,24 @@ class EditPage(Frame):
             {'name':'entry','path':'./assets/entrys/entry2rz.png','x':400,'y':50},
             {'name':'tag','path':'./assets/buttons/tagEdit.png','x':130,'y':45},
             {'name':'add','path':'./assets/buttons/addTag.png','x':130,'y':45},
+            {'name':'yellow','path':'./assets/buttons/mbtiYellowEdit.png','x':130,'y':45},
+            {'name':'blue','path':'./assets/buttons/mbtiBlueEdit.png','x':130,'y':45},
+            {'name':'green','path':'./assets/buttons/mbtiGreenEdit.png','x':130,'y':45},
+            {'name':'purple','path':'./assets/buttons/mbtiPurpleEdit.png','x':130,'y':45},
             {'name':'longtag','path':'./assets/buttons/tagEditLong.png','x':180,'y':45},
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65},
             {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40}]
+        if self.tagData.tagList[0] is not None :
+            if self.tagData.tagList[0][1] == "N" :
+                if self.tagData.tagList[0][2] == "T" :
+                    self.img = self.controller.get_image(imgPathList[4]['path'],imgPathList[4]['x'],imgPathList[4]['y'])
+                else :
+                    self.img = self.controller.get_image(imgPathList[5]['path'],imgPathList[5]['x'],imgPathList[5]['y'])
+            elif self.tagData.tagList[0][1] == "S" :
+                if self.tagData.tagList[0][3] == "J" :
+                    self.img = self.controller.get_image(imgPathList[6]['path'],imgPathList[6]['x'],imgPathList[6]['y'])
+                else :
+                    self.img = self.controller.get_image(imgPathList[7]['path'],imgPathList[7]['x'],imgPathList[7]['y'])
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img        
@@ -205,25 +220,43 @@ class EditPage(Frame):
         entryBox.grid(row=0,column=1,sticky=N,pady=10,padx=115)
         entryBox.propagate(0)
         entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0)
+        entry.insert(0,self.tagData.name)
         entry.pack(expand=1)
     
-        entryBox2 = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
+        entryBox2 = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor,height=75)
         entryBox2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
         entryBox2.propagate(0)
-        entry2 = Entry(entryBox2,font='leelawadee 15',width=35,bd=0)
+        # entry2 = Entry(entryBox2,font='leelawadee 15',width=35,bd=0)
+        # entry2.insert(0,self.tagData.bio)
+        # entry2.pack(expand=1)
+        entry2 = Text(entryBox2,font='leelawadee 15',bg=self.bgColor,width=35,height=3)
+        if self.tagData.bio is not None :
+            entry2.insert(END,self.tagData.bio)     
         entry2.pack(expand=1)
+
+        # entry2 = Text(font='leelawadee 15',width=35)
+        # entry2.insert(0,self.tagData.bio)
+        # entry2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
+        
     def tag_geometry(self) :
         self.addWidget = None
+        self.mbtiTag = None
+        self.bmtiBtn = None
         self.vars = [StringVar() for i in range(len(self.tagData.tagList))]
         self.tagWidgetList = []
         if self.tagData.tagList[0] is not None :
-            Label(self.mainFrame,text=self.tagData.tagList[0],image=self.tagData.img,bg=self.bgColor,
-            compound=CENTER,fg='white').grid(row=2,column=1,sticky=W,padx=115)            
-            Button(self.mainFrame,text="Redo the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
-            activebackground=self.bgColor,activeforeground='#23B7F4').grid(row=2,column=1)
+            self.mbtiTag = Label(self.mainFrame,text=self.tagData.tagList[0],image=self.img,bg=self.bgColor,
+            compound=CENTER,fg='white')
+            self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)            
+            self.bmtiBtn = Button(self.mainFrame,text="Redo the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            activebackground=self.bgColor,activeforeground='#23B7F4')
+            self.bmtiBtn.grid(row=2,column=1)
         else :
-            Button(self.mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
-            activebackground=self.bgColor,activeforeground='#23B7F4').grid(row=2,column=1,sticky=W,padx=115)
+            self.bmtiBtn = Button(self.mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            activebackground=self.bgColor,activeforeground='#23B7F4')
+            self.bmtiBtn.grid(row=2,column=1,sticky=W,padx=115)
+        if self.mbtiTag is not None :
+            self.mbtiTag.bind('<Button-1>',lambda e: self.delete_mbti(e))
         # tagFrame = Frame(self.mainFrame,bg=self.bgColor)
         # tagFrame.grid(row=3,column=1,sticky=W,padx=115)
         # row = 0
@@ -250,7 +283,7 @@ class EditPage(Frame):
                     tag.propagate(0)
                     lb = Label(tag,text=self.tagData.tagList[i],fg='white',bg='#88A3F3',width=12,textvariable=self.vars[i])
                     lb.pack(expand=1,anchor=W,padx=12)
-                tag.bind('<Button-1>',lambda e,c=i: self.click_event(e,c))
+                tag.bind('<Button-1>',lambda e,c=i: self.delete_tag(e,c))
                 self.tagWidgetList.append(tag)
                 # column+= 1
                 if i%2 == 0 :
@@ -267,24 +300,33 @@ class EditPage(Frame):
                     # bd=0,activebackground=self.bgColor).pack(anchor=W)
                     self.addWidget = Label(frame,image=self.imgList['add'],bg=self.bgColor)
                     self.addWidget.pack(anchor=W)
+                    self.addWidget.bind('<Button-1>',lambda e,c=i: self.add_tag(e))
     def end_geometry(self) :
             frame = Frame(self.root,bg=self.bgColor)
             frame.pack(pady=25)
-            Button(frame,image=self.imgList['button'],text="Save Change",bd=0,
-            bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
-            activeforeground='white').pack(side=LEFT,padx=20)
+            Button(frame,image=self.imgList['button'],text="Save Change",bd=0,compound=CENTER,
+            bg=self.bgColor,fg='white',activebackground=self.bgColor,activeforeground='white',
+            command=lambda : self.save_change()).pack(side=LEFT,padx=20)
 
             Button(frame,image=self.imgList['cancel'],text="Cancel",bd=0,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
             activeforeground='white').pack(side=LEFT)
-    def click_event(self,event,index) :
+    def delete_tag(self,event,index) :
         self.tagData.tagList.pop(index)
-        print(self.tagData.tagList)
         if self.addWidget is not None :
             self.addWidget.destroy()
         for i in range(len(self.tagWidgetList)) :
             self.tagWidgetList[i].destroy()
         self.tag_geometry()
+    def add_tag(self,event) :
+        print("add tag")
+    def delete_mbti(self,event) :
+        self.tagData.tagList[0] = None
+        self.bmtiBtn.destroy()
+        self.mbtiTag.destroy()
+        self.tag_geometry()
+    def save_change(self) :
+        print(self.tagData.tagList)
 class MyAccountPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -416,6 +458,7 @@ class DeactivatePage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
+        self.data = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
         self.root = scroll.interior
@@ -447,8 +490,8 @@ class DeactivatePage(Frame):
         topFrame.pack(anchor=W,padx=115,pady=15)
         Label(topFrame,image=self.imgList['profile'],
         bg=self.bgColor).pack(side=LEFT)
-        Label(topFrame,text="Username",bg=self.bgColor).pack(pady=5,anchor=W,padx=20)
-        Label(topFrame,text="Username@bumail.net",font=self.fontBody,bg=self.bgColor,
+        Label(topFrame,text=self.data.name,bg=self.bgColor).pack(pady=5,anchor=W,padx=20)
+        Label(topFrame,text=self.data.email,font=self.fontBody,bg=self.bgColor,
         fg='#868383').pack(anchor=W,padx=20)
         canvas.create_line(140, 225, 760, 225,fill='#868383')
         box = Label(canvas,image=self.imgList['box'],bg=self.bgColor)
@@ -514,7 +557,7 @@ class InfoOnProfile() :
         self.parent = parent
         self.uid = uid
         conn = self.controller.create_connection()
-        sql = """SELECT DisplayName,Bio FROM Users WHERE Uid=?"""
+        sql = """SELECT DisplayName,Bio,Email FROM Users WHERE Uid=?"""
         sql2 = """SELECT UserType,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid=?"""
         if conn is not None:
             c = self.controller.execute_sql(sql,[self.uid])
@@ -531,6 +574,7 @@ class InfoOnProfile() :
             userData = c.fetchone()
             self.name = userData[0]
             self.bio = userData[1]
+            self.email = userData[2]
         else:
             print("Error! cannot create the database connection.")
         conn.close()
@@ -592,13 +636,14 @@ class InfoOnProfile() :
         activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
         Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
-        bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
-        bioWidget.insert(END,self.bio)     
-        bioWidget.tag_configure("center",justify=CENTER)
-        bioWidget.tag_add("center",1.0,END)
-        line = float(bioWidget.index(END)) - 1
-        bioWidget.config(height=line,state=DISABLED)
-        bioWidget.pack()
+        if self.bio is not None :
+            bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
+            bioWidget.insert(END,self.bio)     
+            bioWidget.tag_configure("center",justify=CENTER)
+            bioWidget.tag_add("center",1.0,END)
+            line = float(bioWidget.index(END)) - 1
+            bioWidget.config(height=line,state=DISABLED)
+            bioWidget.pack()
         topFrame.pack(fill=X)
         bottomFrame.pack(fill=X,pady=20)
 
