@@ -394,34 +394,36 @@ class ChangePasswordPage(Frame):
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
         command=self.password_validation).pack(pady=30)
     def password_validation(self) :
-        pwds = []
+        self.pwds = []
         for i in range(len(self.pwdList)) :
-            pwds.append(self.pwdList[i].get())
-        if len(pwds[0]) > 0 and not " " in pwds[0]:
+            self.pwds.append(self.pwdList[i].get())
+        if len(self.pwds[0]) > 0 :
             print("have data")
-            if len(pwds[1]) > 7 and any(c.isdigit() == True for c in pwds[1]) and any(c.isalpha() == True for c in pwds[1]):
+            if len(self.pwds[1]) > 7 and any(c.isdigit() == True for c in self.pwds[1]) and any(c.isalpha() == True for c in self.pwds[1]):
                 print("allowed password")
-                if pwds[1] == pwds[2] :
+                if self.pwds[1] == self.pwds[2] :
                     print("match password")
                     self.change_password()
                 else :
                     messagebox.showerror("Change password","Password do not Matching")
             else :
-                messagebox.showerror("Change password","problem with new password")
+                messagebox.showerror("Change password","Invalid password!!!\n[ Required ] At Least 8 Characters \n[ Required ] A mixture of letters and numbers")
         else:
             messagebox.showerror("Change password","Please enter current password")
     def change_password(self) :
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
-        # sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
-        # if conn is not None:
-        #     c = self.controller.execute_sql(sql,[self.controller.uid])
-        #     data = c.fetchone()
-        #     passHash = data['passHash']
-        #     passSalt = data['passSalt']
-        #     passkey = self.controller.password_encryptioncheck(pwd,passSalt)
-        #     if passkey == passHash :
-        #         print("same password")
+        sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
+        sql2 = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql,[self.controller.uid])
+            data = c.fetchone()
+            passHash = data['passHash']
+            passSalt = data['passSalt']
+            passkey = self.controller.password_encryptioncheck(self.pwds[0],passSalt)
+            if passkey == passHash :
+                print("same password")
+                c = self.controller.execute_sql(sql2,[self.controller.uid])
         #         ms = messagebox.askquestion("Deactivate","Are you sure you want to deactivate account?")
         #         if ms == "yes" :
         #             for i,data in enumerate(sqlDelete):
@@ -437,9 +439,9 @@ class ChangePasswordPage(Frame):
         #     #     #     c = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
         #     #     # except Error as e:
         #     #     #     print(e)
-        #     else :
-        #         messagebox.showerror("Deactivate","Incorrect password!!!")
-        # conn.close()
+            else :
+                messagebox.showerror("Change password","Incorrect current password!!!")
+        conn.close()
 
 class DeactivatePage(Frame):
     def __init__(self,controller):
