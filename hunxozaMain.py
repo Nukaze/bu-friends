@@ -269,45 +269,7 @@ class EditPage(Frame):
             Button(frame,image=self.imgList['cancel'],text="Cancel",bd=0,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
             activeforeground='white').pack(side=LEFT)
-                
-        #         if i == 0 :
-        #             Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor,fg='white').pack(side=LEFT)
-        #         else :
-        #             Label(frame,text=data,image=self.img2,compound=CENTER,bg=self.bgColor,fg='white').pack(side=LEFT)
-        # Label(self.root,text="Username",fg='#868383'
-        # ,bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=25)
-        
-        
-        # Label(self.root,text="Bio",fg='#868383'
-        # ,bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=25)
 
-        # Label(self.root,text="MBTI",fg='#868383'
-        # ,bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=25)
-
-        # Label(self.root,text="Interest",fg='#868383'
-        # ,bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=25)
-        # self.change_password()
-    # def change_password(self) :
-    #     print("Start")
-    #     sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid={}""".format(self.controller.uid)
-    #     if self.controller.conn is not None:
-    #             c = self.controller.execute_sql(sql)
-    #             data = c.fetchone()
-    #             passHash = data[0]
-    #             passSalt = data[1]
-    #     passkey = self.controller.password_encryptioncheck("test1234",passSalt)
-    #     if passkey == passHash :
-    #         print("same password")
-    #     #     newSalt = os.urandom(32)
-    #     #     newpass = self.controller.password_encryptioncheck("test1234",newSalt)
-    #     #     sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
-    #     #     try:
-    #     #         c = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
-    #     #     except Error as e:
-    #     #         print(e)
-    #     # else :
-    #     #     print("do not same password")
-    #     #     print("password can not change.")
 
 class MyAccountPage(Frame):
     def __init__(self,controller):
@@ -414,7 +376,6 @@ class ChangePasswordPage(Frame):
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
         sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
-        sql2 = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
         if conn is not None:
             c = self.controller.execute_sql(sql,[self.controller.uid])
             data = c.fetchone()
@@ -423,22 +384,15 @@ class ChangePasswordPage(Frame):
             passkey = self.controller.password_encryptioncheck(self.pwds[0],passSalt)
             if passkey == passHash :
                 print("same password")
-                c = self.controller.execute_sql(sql2,[self.controller.uid])
-        #         ms = messagebox.askquestion("Deactivate","Are you sure you want to deactivate account?")
-        #         if ms == "yes" :
-        #             for i,data in enumerate(sqlDelete):
-        #                 c = self.controller.execute_sql(data,[self.controller.uid])
-        #             print("deactivate account")
-        #             self.controller.destroy()
-        #         else :
-        #             self.password.set('')
-        #     #     # newSalt = os.urandom(32)
-        #     #     # newpass = self.controller.password_encryptioncheck("test1234",newSalt)
-        #     #     # sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
-        #     #     # try:
-        #     #     #     c = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
-        #     #     # except Error as e:
-        #     #     #     print(e)
+                newSalt = os.urandom(32)
+                newpass = self.controller.password_encryptioncheck(self.pwds[1],newSalt)
+                sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
+                try:
+                    c2 = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
+                    messagebox.showinfo("Change password","Password has been successfully changed.")
+                    self.controller.switch_frame(MyAccountPage)
+                except Error as e:
+                    print(e)
             else :
                 messagebox.showerror("Change password","Incorrect current password!!!")
         conn.close()
