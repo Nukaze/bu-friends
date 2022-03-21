@@ -28,6 +28,7 @@ class BUFriends(Tk):
         Tk.__init__(self)
         self.frame = None
         self.uid = 0
+        self.uidselect = 0
         self.mbtiCode = ""
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
@@ -40,8 +41,8 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(SignIn)
-        #self.switch_frame(Matching)
+        #self.switch_frame(SignIn)
+        self.switch_frame(Matching)
 
     def switch_frame(self, frame_class):
         print("switching to {}".format(frame_class))
