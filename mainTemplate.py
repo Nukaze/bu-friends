@@ -45,28 +45,28 @@ class BUFriends(Tk):
     def execute_sql(self, sql, values=None):
         if values is None:
             try:
-                c = self.conn.cursor()
-                c.execute(sql)
+                self.c = self.conn.cursor()
+                self.c.execute(sql)
                 self.conn.commit()
             except Error as e:
                 print(e)
         else:
             try:
-                c = self.conn.cursor()
-                c.execute(sql, values)
+                self.c = self.conn.cursor()
+                self.c.execute(sql, values)
                 self.conn.commit()
             except Error as e:
                 print(e)
-        return c
+        return self.c
     
 # get image raw and resize from path
-    def get_image(self, _path):
-        img = PhotoImage(file = _path)
-        return img
-    def get_imagerz(self, _path, _width, _height):
-        origin = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
-        img = ImageTk.PhotoImage(origin)
-        return img
+    def get_image(self, _path, _width=None, _height=None):
+            if _width is not None and _height is not None:
+                ori = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
+                img = ImageTk.PhotoImage(ori)
+            else:
+                img = PhotoImage(file = _path)
+            return img
     
     def password_encryptioncheck(self, _password, _salt):
             stdhash = 'sha256'

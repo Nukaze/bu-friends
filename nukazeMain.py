@@ -65,27 +65,26 @@ class BUFriends(Tk):
     def execute_sql(self, sql, values=None):
         if values is None:
             try:
-                c = self.conn.cursor()
-                c.execute(sql)
+                self.c = self.conn.cursor()
+                self.c.execute(sql)
                 self.conn.commit()
             except Error as e:
                 print(e)
         else:
             try:
-                c = self.conn.cursor()
-                c.execute(sql, values)
+                self.c = self.conn.cursor()
+                self.c.execute(sql, values)
                 self.conn.commit()
             except Error as e:
                 print(e)
-        return c
+        return self.c
     
-    def get_image(self, _path):
-        img = PhotoImage(file = _path)
-        return img
-    
-    def get_imagerz(self, _path, _width, _height):
-        origin = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
-        img = ImageTk.PhotoImage(origin)
+    def get_image(self, _path, _width=None, _height=None):
+        if _width is not None and _height is not None:
+            ori = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
+            img = ImageTk.PhotoImage(ori)
+        else:
+            img = PhotoImage(file = _path)
         return img
     
     def password_encryptioncheck(self, _password, _salt):
@@ -707,9 +706,9 @@ class Matching(Frame):
                 self.uinfoLst.clear()
                 self.udnameLst.clear()
             reset_var()
-            conn = self.controller.create_connection()
-            conn.row_factory = sqlite3.Row
-            if conn is None:
+            self.conn = self.controller.create_connection()
+            self.conn.row_factory = sqlite3.Row
+            if self.conn is None:
                 print("DB connot connect")            
             else:
                 sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
@@ -717,7 +716,6 @@ class Matching(Frame):
                 userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
                 randLst = []
                 randLst = random.sample(range(1,userCount),12)
-                print(randLst)
                 sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN ({},{},{},{},
                                                                      {},{},{},{},
                                                                      {},{},{},{});""".format(*randLst)
@@ -730,6 +728,7 @@ class Matching(Frame):
                         self.cntLoop +=1
                         reset_var()
                         randLst.clear()
+                        self.conn.close()
                         self.random_user()
                         break
                     self.uinfoLst.append(row)
@@ -743,31 +742,92 @@ class Matching(Frame):
                 self.udnameLst.clear()
                 for i,row in enumerate(dnameRows):
                     self.udnameLst.append(row['DisplayName'])
-                #conn.close()
+                
             pass
                     
                     
         def display_user(self):
-            self.userTabImg = self.controller.get_imagerz(r'./assets/images/rectangle.png',800,180)
-            bgRectangle = "#e6eefd"
-            def get_usertab(_i):
-                ir = idxrandLst[_i]
-                self.tabFrame = Frame(self.canvasMain,bg=self.bgCanva)
-                self.tabFrame.pack(pady=10)
-                self.tabFrame.option_add("*font","leelawadee 20 bold")
-                self.userTab = Button(self.tabFrame,command=lambda:print(self.uuidLst[ir]) ,
-                                      text=self.udnameLst[ir], image=self.userTabImg, justify=LEFT,bg=self.bgCanva,
-                                      bd=0,compound=CENTER,activebackground=self.bgCanva,
-                                      relief=FLAT)
-                self.userTab.pack(pady=10,anchor=W)
-                self.img = self.controller.get_imagerz(r'./assets/images/avt{}.png'.format(_i%6),138,144)
-                self.profileImg = Label(self.tabFrame, image=self.img,bg=bgRectangle,bd=0)
-                self.profileImg.image = self.img
-                self.profileImg.place(x=50,y=20,anchor=NW)
-            idxrandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
-            print("Display random",idxrandLst)
+            self.conn.close()
+            self.userTabBtnImg = self.controller.get_image(r'./assets/images/rectangle.png',820,180)
+            self.idxrandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
+            print("Display random",self.idxrandLst)
+            self.get_tagname()
+            print(self.tagnameLst)
             for i in range(len(self.uuidLst)):
-                get_usertab(i)
+                self.get_usertab(i)
+                
+                
+        def get_usertab(self,_i):
+            bgRectangle = "#e6eefd"
+            ir = self.idxrandLst[_i]
+            self.tabFrame = Frame(self.canvasMain,bg=self.bgCanva)
+            self.tabFrame.pack(pady=10)
+            self.tabFrame.option_add("*font","leelawadee 15 bold")
+            self.tabFrame.option_add("*foreground","#ffffff")
+            self.userTabBtn = Button(self.tabFrame,command=lambda:print(self.uuidLst[ir]), 
+                                     image=self.userTabBtnImg, justify=LEFT,bg=self.bgCanva, 
+                                     bd=0,compound=CENTER,activebackground=self.bgCanva,
+                                    relief=FLAT)
+            self.userTabBtn.pack(pady=10,anchor=W)
+            self.userDisname = Label(self.tabFrame, text=self.udnameLst[ir],bg=bgRectangle, font="leelawadee 20 bold",fg="#000000")
+            self.userDisname.place(x=210,y=40)
+            self.img = self.controller.get_image(r'./assets/images/avt{}.png'.format(_i%6),138,144)
+            self.profileImg = Label(self.tabFrame, image=self.img,bg=bgRectangle,bd=0)
+            self.profileImg.image = self.img
+            self.profileImg.place(x=40,y=20,anchor=NW)
+            xplace = 200
+            for i, tag in enumerate((self.uinfoLst[ir])):
+                w,h = 140,45
+                self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png', w,h)
+                if i < 1: continue          # Skip Uid  info
+                if i == 1:                  # MBTi Check
+                    if tag is None: self.userTagImg = self.controller.get_image(r'./assets/buttons/buttonGrey.png', w, h)
+                    elif "N" in tag and "T" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple.png', w, h)
+                    elif "N" in tag and "F" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen.png', w, h)
+                    elif "S" in tag and "J" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan.png', w, h)
+                    elif "S" in tag and "P" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow.png', w, h)
+                if i > 4: break     # stop tag place
+                if tag is None:     # didnt show None Tag 
+                    if i == 1:      # except Mbti
+                        self.userTag = Label(self.tabFrame, text="{}".format(tag), image=self.userTagImg,
+                                            bg=bgRectangle, compound=CENTER)
+                        self.userTag.image = self.userTagImg
+                        self.userTag.place(x=xplace,y=110)
+                    else:pass
+                elif isinstance(tag, str):
+                    self.userTag = Label(self.tabFrame, text="{}".format(self.uinfoLst[ir][i]), image=self.userTagImg,
+                                        bg=bgRectangle, compound=CENTER)
+                    self.userTag.image = self.userTagImg
+                    self.userTag.place(x=xplace,y=110)
+                else:
+                    tagname = self.tagnameLst[(self.uinfoLst[ir][i])-1]
+                    self.userTag = Label(self.tabFrame, text="{}".format(tagname), image=self.userTagImg,
+                                        bg=bgRectangle, compound=CENTER)
+                    self.userTag.image = self.userTagImg
+                    self.userTag.place(x=xplace,y=110)
+                xplace += 150
+            nextIcon = self.controller.get_image(r'./assets/icons/next.png')
+            self.next = Label(self.tabFrame, image=nextIcon,bd=0,bg=bgRectangle)
+            self.next.image = nextIcon
+            self.next.place(x=720,y=45, anchor=NW)
+            pass
+            
+                
+        def get_tagname(self):
+            self.tagnameLst = []
+            sql = """SELECT TagName FROM Tags"""
+            self.conn = self.controller.create_connection()
+            self.conn.row_factory = sqlite3.Row
+            if self.conn is None:
+                print('self.conn is None!!')
+            else:
+                cur = self.controller.execute_sql(sql)
+                rows = cur.fetchall()
+                for i,row in enumerate(rows):
+                    self.tagnameLst.append(row['TagName'])
+                print("We have {} tag in Database.".format(len(self.tagnameLst)))
+                print(self.tagnameLst)
+                self.conn.close()
             pass
             
                 
