@@ -28,6 +28,7 @@ class BUFriends(Tk):
         Tk.__init__(self)
         self.frame = None
         self.uid = 0
+        self.uidselect = 0
         self.mbtiCode = ""
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
@@ -40,8 +41,8 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(SignIn)
-        #self.switch_frame(Matching)
+        #self.switch_frame(SignIn)
+        self.switch_frame(Matching)
 
     def switch_frame(self, frame_class):
         print("switching to {}".format(frame_class))
@@ -382,21 +383,19 @@ class SignUp(Frame):
                     elif self.regisVarLst[1].get() != self.regisVarLst[2].get():
                         self.register_error("Sign Up Password do not Matching")
                     elif not len(self.regisVarLst[1].get()) > 7:
-                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric and No Space Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
+                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
                     if not self.check_alnumpass(self.regisVarLst[1].get()):
                         print("check alnum")
                         print(self.check_alnumpass(self.regisVarLst[1].get()))
-                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric and No Space Password")
+                        self.register_error("Sign Up Password Again\n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters")
                     else:
-                        print("go addict")
                         self.regisSubmitDict['bumail']=self.regisVarLst[0].get()
                         self.regisSubmitDict['displayname']=self.regisVarLst[3].get()
                         self.regisSubmitDict['bio']= ""
                         print(self.regisSubmitDict)
                         def database_validator(self):
                             conn = self.controller.create_connection()
-                            if conn is None:
-                                print("DB Can't Create Connection in db validator.")
+                            if conn is None: print("DB Can't Create Connection in db validator.")
                             else:
                                 try:
                                     print("query bumail..")   
@@ -406,15 +405,14 @@ class SignUp(Frame):
                                     rowbumail = cur.fetchall()
                                     print("rowbumail = ",rowbumail)
                                     if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
-                                    else: self.password_encryption()
+                                    else: self.password_encryption();conn.close()
                                 except sqlite3.Error as e :print("catch!!! {}".format(e))
                         database_validator(self)
-                except ValueError as ve:
-                    print(ve)
+                except ValueError as ve: print(ve)
             signup_validator(self)
             
-        def check_alnumpass(self,_passinput):
-            return _passinput.isalnum() and not _passinput.isalpha() and not _passinput.isdigit()
+        def check_alnumpass(self,_pass):
+            return any(c.isdigit() == True for c in _pass) and any(c.isalpha() == True for c in _pass)
         
         def password_encryption(self):
             print("password enc")
@@ -435,10 +433,9 @@ class SignUp(Frame):
             sqlRegis = """INSERT INTO Users(Email, PassHash, PassSalt, DisplayName, Bio)  
                                 VALUES(?, ?, ?, ?, NULL);"""
             userinfoValues = (self.regisSubmitDict['bumail'],
-                            self.regisSubmitDict['passhash'],
-                            self.regisSubmitDict['salt'],
-                            self.regisSubmitDict['displayname']
-                            )
+                              self.regisSubmitDict['passhash'],
+                              self.regisSubmitDict['salt'],
+                              self.regisSubmitDict['displayname'])
             
             sqlGetuid = """SELECT Uid FROM Users WHERE Email = ?;"""
             sqlMail = (self.regisSubmitDict['bumail'])          
@@ -447,7 +444,8 @@ class SignUp(Frame):
 
             print(type(self.regisSubmitDict['passhash']))
             print(type(self.regisSubmitDict['salt']))
-            if self.controller.conn is None:
+            conn = self.controller.create_connection()
+            if conn is None:
                 print("DB can't connect in signup commit.")
                 messagebox.showerror("Database Problem","Can't SignUp ")
             else:
@@ -461,6 +459,7 @@ class SignUp(Frame):
                     print("user id = [ {} ]".format(self.controller.uid))
                     messagebox.showinfo('Sign Up Successfully'
                                         ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitDict['displayname']))
+                    conn.close()
                     self.signup_complete()
                 except Error as e :print("catch!!! {}".format(e))
 
