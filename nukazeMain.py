@@ -41,7 +41,6 @@ class BUFriends(Tk):
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
         #self.switch_frame(SignIn)
-        #self.switch_frame(Mbti)
         self.switch_frame(Matching)
 
     def switch_frame(self, frame_class):
@@ -810,6 +809,7 @@ class Matching(Frame):
             self.next = Label(self.tabFrame, image=nextIcon,bd=0,bg=bgRectangle)
             self.next.image = nextIcon
             self.next.place(x=720,y=45, anchor=NW)
+            self.next.bind('<Button-1>',)
             pass
             
                 
