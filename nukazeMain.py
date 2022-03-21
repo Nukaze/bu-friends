@@ -645,6 +645,8 @@ class MbtiSuccess(Frame):
         self.frame.pack(expand=1,fill=BOTH)
         Label(self.frame, text=self.controller.mbtiCode, font=self.controller.fontHeading).pack(expand=1)
         self.controller.title("BUFriends  |  MBTi Test Successfully!")
+        Button(self.frame,text="Go to Matching",command=lambda:self.controller.switch_frame(Matching)).pack(expand=1)
+        Button(self.frame,text="Go to Edit Profile",command=lambda:self.controller.switch_frame(EditPage)).pack(expand=1)
         #get mbti code 
         #get mbti image
         #update mbti tag
@@ -678,7 +680,7 @@ class Matching(Frame):
             self.headingBg = Label(self.canvasMain,image=self.headBgImg,compound=CENTER, bg=self.bgCanva,width=900,height=20)
             self.headingBg.pack(side=TOP,pady=30)
             self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
-            self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", image=self.searchBarImg,bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
+            self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", image=self.searchBarImg, font="leelawadee 18 bold",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
             self.searchBar.image = self.searchBarImg
             self.searchBar.place(x=35,y=10,anchor=NW)
             self.myImg = self.controller.get_image(r'./assets/icons/profileXs.png')
@@ -691,12 +693,12 @@ class Matching(Frame):
             self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
             self.cntLoop = 0
             self.random_user()
-            print("\nRe-Loop count (Found ADMIN) =",self.cntLoop)
+            print("\nRe-Loop count (Found ADMIN or Your-Self) =",self.cntLoop)
             print("\nuuidLst =",self.uuidLst)
             print("dname cnt=",len(self.udnameLst))
             print("dnamelst =",self.udnameLst)
             for i,info in enumerate(self.uinfoLst):
-                print(*info,end=">==> ")
+                print(*info,end=">=> ")
             print()
             self.display_user()
             
@@ -714,7 +716,6 @@ class Matching(Frame):
                 for i,row in enumerate(rows):
                     self.tagnameLst.append(row['TagName'])
                 print("We have {} tag in Database.".format(len(self.tagnameLst)))
-                print(self.tagnameLst)
                 self.conn.close()
             pass
         
@@ -734,16 +735,22 @@ class Matching(Frame):
                 userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
                 randLst = []
                 randLst = random.sample(range(1,userCount),12)
-                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN ({},{},{},{},
-                                                                     {},{},{},{},
-                                                                     {},{},{},{});""".format(*randLst)
-                cur = self.controller.execute_sql(sqlRandTag)
+                while self.controller.uid in randLst:
+                    reset_var()
+                    randLst = random.sample(range(1,userCount),12)
+                print(randLst)
+                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
+                                                                     ?,?,?,?,?,?);"""
+                cur = self.controller.execute_sql(sqlRandTag, randLst)
                 infoRows = cur.fetchall()
+                print(self.controller.uid)
+                print(type(self.controller.uid))
                 for i, row in enumerate(infoRows):
                     if row['UserType'] is None:
                         pass
                     elif "ADMIN" in row['UserType']:
                         self.cntLoop +=1
+                        print("check admin")
                         reset_var()
                         randLst.clear()
                         self.conn.close()
@@ -752,16 +759,14 @@ class Matching(Frame):
                     self.uinfoLst.append(row)
                     self.uuidLst.append(infoRows[i]['Uid'])
                     
-                sqlDisplayName = """SELECT DisplayName FROM Users WHERE Uid IN ({},{},{},{},
-                                                                                {},{},{},{},
-                                                                                {},{},{},{});""".format(*self.uuidLst)
-                curr = self.controller.execute_sql(sqlDisplayName)
+                sqlDisplayName = """SELECT DisplayName FROM Users WHERE Uid IN (?,?,?,?,?,?,
+                                                                                ?,?,?,?,?,?);"""
+                curr = self.controller.execute_sql(sqlDisplayName, self.uuidLst)
                 dnameRows = curr.fetchall()
                 self.udnameLst.clear()
                 for i,row in enumerate(dnameRows):
                     self.udnameLst.append(row['DisplayName'])
             pass
-                    
                     
         def display_user(self):
             self.conn.close()
@@ -772,7 +777,6 @@ class Matching(Frame):
             print(self.tagnameLst)
             for i in range(len(self.uuidLst)):
                 self.get_usertab(i)
-                
                 
         def get_usertab(self,_i):
             bgRectangle = "#e6eefd"
@@ -1216,6 +1220,7 @@ class DeactivatePage(Frame):
                     for i,data in enumerate(sqlDelete):
                         c = self.controller.execute_sql(data,[self.controller.uid])
                     print("deactivate account")
+                    messagebox.showerror("System","Deactivate account\n Have a nice time goodbye")
                     self.controller.destroy()
                 else :
                     self.password.set('')
@@ -1400,6 +1405,5 @@ class PostOnProfile() :
 
 
 if __name__ == '__main__':
-    #BUFriends_Time()
     BUFriends().mainloop()
     
