@@ -382,11 +382,11 @@ class SignUp(Frame):
                     elif self.regisVarLst[1].get() != self.regisVarLst[2].get():
                         self.register_error("Sign Up Password do not Matching")
                     elif not len(self.regisVarLst[1].get()) > 7:
-                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric and No Space Password\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
+                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
                     if not self.check_alnumpass(self.regisVarLst[1].get()):
                         print("check alnum")
                         print(self.check_alnumpass(self.regisVarLst[1].get()))
-                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphanumeric and No Space Password")
+                        self.register_error("Sign Up Password Again\n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters")
                     else:
                         print("go addict")
                         self.regisSubmitDict['bumail']=self.regisVarLst[0].get()
@@ -413,8 +413,8 @@ class SignUp(Frame):
                     print(ve)
             signup_validator(self)
             
-        def check_alnumpass(self,_passinput):
-            return _passinput.isalnum() and not _passinput.isalpha() and not _passinput.isdigit()
+        def check_alnumpass(self,_pass):
+            return any(c.isdigit() == True for c in _pass) and any(c.isalpha() == True for c in _pass)
         
         def password_encryption(self):
             print("password enc")
