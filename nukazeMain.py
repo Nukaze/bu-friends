@@ -752,7 +752,7 @@ class Matching(Frame):
             self.idxrandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
             print("Display random",self.idxrandLst)
             self.get_tagname()
-            
+            print(self.tagnameLst)
             for i in range(len(self.uuidLst)):
                 self.get_usertab(i)
                 
@@ -762,7 +762,7 @@ class Matching(Frame):
             ir = self.idxrandLst[_i]
             self.tabFrame = Frame(self.canvasMain,bg=self.bgCanva)
             self.tabFrame.pack(pady=10)
-            self.tabFrame.option_add("*font","leelawadee 20 bold")
+            self.tabFrame.option_add("*font","leelawadee 15 bold")
             self.tabFrame.option_add("*foreground","#ffffff")
             self.userTabBtn = Button(self.tabFrame,command=lambda:print(self.uuidLst[ir]), 
                                      image=self.userTabBtnImg, justify=LEFT,bg=self.bgCanva, 
@@ -770,52 +770,48 @@ class Matching(Frame):
                                     relief=FLAT)
             self.userTabBtn.pack(pady=10,anchor=W)
             self.userDisname = Label(self.tabFrame, text=self.udnameLst[ir],bg=bgRectangle, font="leelawadee 20 bold",fg="#000000")
-            self.userDisname.place(x=240,y=40)
+            self.userDisname.place(x=210,y=40)
             self.img = self.controller.get_image(r'./assets/images/avt{}.png'.format(_i%6),138,144)
             self.profileImg = Label(self.tabFrame, image=self.img,bg=bgRectangle,bd=0)
             self.profileImg.image = self.img
             self.profileImg.place(x=40,y=20,anchor=NW)
-            xplace = 220
+            xplace = 200
             for i, tag in enumerate((self.uinfoLst[ir])):
-                self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png', 126, 44)
-                if i < 1:
-                    continue
-                if i == 1:       #pass Uid and MBTi
-                    print(tag)
-                    if tag is None:
-                        self.userTagImg = self.controller.get_image(r'./assets/buttons/buttonGrey.png', 126, 44)
-                    elif "N" in tag and "T" in tag:
-                        self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple.png', 126, 44)
-                    elif "N" in tag and "F" in tag:
-                        self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen.png', 126, 44)
-                    elif "S" in tag and "J" in tag:
-                        self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan.png', 126, 44)
-                    elif "S" in tag and "P" in tag:
-                        self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow.png', 126, 44)
-                    else:
-                        self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png', 126, 44)
-                if i > 4:
-                    break
-                #print(tag ,end=" ")
-                self.userTag = Label(self.tabFrame, text="{}".format(self.uinfoLst[ir][i]), image=self.userTagImg,
-                                     bg=bgRectangle, compound=CENTER)
-                self.userTag.image = self.userTagImg
-                self.userTag.place(x=xplace,y=110)
+                w,h = 140,45
+                self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png', w,h)
+                if i < 1: continue          # Skip Uid  info
+                if i == 1:                  # MBTi Check
+                    if tag is None: self.userTagImg = self.controller.get_image(r'./assets/buttons/buttonGrey.png', w, h)
+                    elif "N" in tag and "T" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple.png', w, h)
+                    elif "N" in tag and "F" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen.png', w, h)
+                    elif "S" in tag and "J" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan.png', w, h)
+                    elif "S" in tag and "P" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow.png', w, h)
+                if i > 4: break     # stop tag place
+                if tag is None:     # didnt show None Tag 
+                    if i == 1:      # except Mbti
+                        self.userTag = Label(self.tabFrame, text="{}".format(tag), image=self.userTagImg,
+                                            bg=bgRectangle, compound=CENTER)
+                        self.userTag.image = self.userTagImg
+                        self.userTag.place(x=xplace,y=110)
+                    else:pass
+                elif isinstance(tag, str):
+                    self.userTag = Label(self.tabFrame, text="{}".format(self.uinfoLst[ir][i]), image=self.userTagImg,
+                                        bg=bgRectangle, compound=CENTER)
+                    self.userTag.image = self.userTagImg
+                    self.userTag.place(x=xplace,y=110)
+                else:
+                    tagname = self.tagnameLst[(self.uinfoLst[ir][i])-1]
+                    self.userTag = Label(self.tabFrame, text="{}".format(tagname), image=self.userTagImg,
+                                        bg=bgRectangle, compound=CENTER)
+                    self.userTag.image = self.userTagImg
+                    self.userTag.place(x=xplace,y=110)
                 xplace += 150
-                # self.userTag = Label(self.tabFrame, text="{}".format(self.uinfoLst[ir][i]), image=self.userTagImg,
-                #                      bg=bgRectangle, compound=CENTER)
-                # self.userTag.image = self.userTagImg
-                # self.userTag.place(x=370,y=110)
-                # self.userTag = Label(self.tabFrame, text="{}".format(self.uinfoLst[ir][i]), image=self.userTagImg,
-                #                      bg=bgRectangle, compound=CENTER)
-                # self.userTag.image = self.userTagImg
-                # self.userTag.place(x=520,y=110)
-                # self.userTag = Label(self.tabFrame, text="{}".format(self.uinfoLst[ir][i]), image=self.userTagImg,
-                #                      bg=bgRectangle, compound=CENTER)
-                # self.userTag.image = self.userTagImg
-                # self.userTag.place(x=670,y=110)
-                # pass
-            print("End line\n")
+            nextIcon = self.controller.get_image(r'./assets/icons/next.png')
+            self.next = Label(self.tabFrame, image=nextIcon,bd=0,bg=bgRectangle)
+            self.next.image = nextIcon
+            self.next.place(x=720,y=45, anchor=NW)
+            pass
+            
                 
         def get_tagname(self):
             self.tagnameLst = []
@@ -832,8 +828,6 @@ class Matching(Frame):
                 print("We have {} tag in Database.".format(len(self.tagnameLst)))
                 print(self.tagnameLst)
                 self.conn.close()
-
-
             pass
             
                 
