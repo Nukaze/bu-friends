@@ -694,7 +694,7 @@ class Matching(Frame):
             self.cntLoop = 0
             self.random_user()
             print("\nRe-Loop count (Found ADMIN or Your-Self) =",self.cntLoop)
-            print("\nuuidLst =",self.uuidLst)
+            print("\nuuidLst user to show =",self.uuidLst)
             print("dname cnt=",len(self.udnameLst))
             print("dnamelst =",self.udnameLst)
             for i,info in enumerate(self.uinfoLst):
@@ -772,7 +772,7 @@ class Matching(Frame):
             self.conn.close()
             self.userTabBtnImg = self.controller.get_image(r'./assets/images/rectangle.png',820,180)
             self.idxrandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
-            print("Display random",self.idxrandLst)
+            print("Display random index of uuidlst",self.idxrandLst)
             self.get_tagname()
             print(self.tagnameLst)
             for i in range(len(self.uuidLst)):
