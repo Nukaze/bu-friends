@@ -1,38 +1,4 @@
 import random
-def get_MbtiQuizEN():
-    return [["IE","Expend energy, enjoy groups or b. conserve energy, enjoy one-on-one"],
-            ["IE","Are u out-going?"],
-            ["IE","Are u out-going?"],
-            ["IE","Are u out-going?"],
-            ["IE","Are u out-going?"],
-            ["IE","Are u out-going?"],
-            ["IE","Are u out-going?"],
-            
-            ["NS","Which one you trust Present or Future?"],
-            ["NS","Which one you trust Present or Future?"],
-            ["NS","Which one you trust Present or Future?"],
-            ["NS","Which one you trust Present or Future?"],
-            ["NS","Which one you trust Present or Future?"],
-            ["NS","Which one you trust Present or Future?"],
-            ["NS","Which one you trust Present or Future?"],
-            
-            ["FT","When someone make mistake what you do to help?"],
-            ["FT","When someone make mistake what you do to help?"],
-            ["FT","When someone make mistake what you do to help?"],
-            ["FT","When someone make mistake what you do to help?"],
-            ["FT","When someone make mistake what you do to help?"],
-            ["FT","When someone make mistake what you do to help?"],
-            ["FT","When someone make mistake what you do to help?"],
-            
-            ["PJ","WHEN YOU GO SOMEWHERE FOR THE DAY, WOULD YOU RATHER?"],
-            ["PJ","Have you wake-up instanly when alarm is clocking"],
-            ["PJ","Have you wake-up instanly when alarm is clocking"],
-            ["PJ","Have you wake-up instanly when alarm is clocking"],
-            ["PJ","Have you wake-up instanly when alarm is clocking"],
-            ["PJ","Have you wake-up instanly when alarm is clocking"],
-            ["PJ","Have you wake-up instanly when alarm is clocking"]    
-]
-
 def get_MbtiQuizTH():
      return [["IE","คุณมักพบกว่าเป็นเรื่องไม่ยากที่จะผ่อนคลาย\nเมื่อต้องพูดต่อหน้าคนจำนวนมาก"],
             ["IE","ในหมู่เพื่อนของคุณ คุณคือคนแบบไหน ?"],
@@ -42,7 +8,7 @@ def get_MbtiQuizTH():
             ["IE","รูปแบบของคุณเมื่ออยู่กับกลุ่มคนสนทนา เป็นแบบไหน ?"],
             ["IE","โดยปกติแล้วคุณมักจะ.."],
             #
-            ["NS","คุณคิดว่าความคิดเห็นของผู้อื่นนั้นควรได้รับความเคารพ\nไม่ว่าความคิดเห็นนั้นจะรองรับกับข้อเท็จจริงหรือไม่ก็ตาม ?"],
+            ["NS","คุณคิดว่าความคิดเห็นของผู้อื่นนั้นควรได้รับการพิจารณา\nหรือนำมาวิเคราะห์ไม่ว่าความคิดเห็นนั้น\nจะไม่มีข้อเท็จจริงมารองรับก็ตาม ?"],
             ["NS","เมื่อคุณพบเจอกับปัญหา \nที่อาจจะมีหลาย ๆ คนประสบคุณจะแก้ไขปัญหาแบบไหน ?"],
             ["NS","คุณคิดว่าคุณนั้นเป็นคนมีเป็นมีแนวคิดและวิธีการแบบไหน ?"],
             ["NS","คุณมักใช้เวลาศึกษาแนวความคิดที่ยังไม่เป็นจริง\nหรือยังไม่ดำเนินการได้แต่มีความน่าสนใจ "],
@@ -85,11 +51,11 @@ def get_MbtiAnsTH():
             ["S","N","ข้อเท็จจริง","หลักการ"],
             #
             ["F","T","คุณเป็นคนมีความจริงใจ ซื่อตรงและน่าคบหา","คุณเป็นคนที่มีเหตุผล และสม่ำเสมอ"],
-            ["T","F","ใช้ตรรกะเหตุผล\nมากกว่าความรู้สึกและความเห็นอกเห็นใจ","ใช้ความรู้สึกและความเห็นอกเห็นใจ\nมากกว่าเหตุผล"],
+            ["T","F","ใช้ตรรกะเหตุผล\nมากกว่าความรู้สึกและความเห็นอกเห็นใจ","ใช้ความรู้สึกและความเห็นอกเห็นใจ\nมากกว่าตรรกะเหตุผล"],
             ["F","T","เห็นด้วย","ไม่เห็นด้วย"],
             ["T","F","โต้แย้งให้ชนะ สำคัญมากกว่า","ใส่ใจความรู้สึกผู้อื่น สำคัญมากกว่า"],
             ["F","T","ไม่ มีอารมณ์เสียบ้างมาจากความอึดอัดใจ","ใช่ เพราะต้องดูที่เหตุผลของการกระทำนั้น ๆ"],
-            ["T","F","ก็ใช่ บางคนก็จะซับซ้อนกว่าที่คิด","ไม่นะ เพราะเราสามารถเอาใจเขามาใส่ใจเราได้"],
+            ["T","F","ใช่ บางคนก็จะซับซ้อนกว่าที่คิด","ไม่นะ เพราะเราสามารถเอาใจเขามาใส่ใจเราได้"],
             ["F","T","ปลอบประโลมเพื่อนที่ทุกใจ","เสนอทางออกในการแก้ปัญหา"],
             #
             ["J","P","งั้นเรามาวางแผนกันว่าจะทำอะไรบ้าง ไปวันไหน","ไปกันเลย ลุย!!"],
