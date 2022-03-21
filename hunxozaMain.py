@@ -392,8 +392,8 @@ class ChangePasswordPage(Frame):
             y+=96
         Button(canvas,text="Update Password",image=self.imgList['button'],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
-        command=self.change_password).pack(pady=30)
-    def change_password(self) :
+        command=self.password_validation).pack(pady=30)
+    def password_validation(self) :
         pwds = []
         for i in range(len(self.pwdList)) :
             pwds.append(self.pwdList[i].get())
@@ -401,8 +401,16 @@ class ChangePasswordPage(Frame):
             print("have data")
             if len(pwds[1]) > 7 and any(c.isdigit() == True for c in pwds[1]) and any(c.isalpha() == True for c in pwds[1]):
                 print("allowed password")
+                if pwds[1] == pwds[2] :
+                    print("match password")
+                    self.change_password()
+                else :
+                    messagebox.showerror("Change password","Password do not Matching")
+            else :
+                messagebox.showerror("Change password","problem with new password")
         else:
             messagebox.showerror("Change password","Please enter current password")
+    def change_password(self) :
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
         # sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
