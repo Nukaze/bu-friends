@@ -359,6 +359,11 @@ class ChangePasswordPage(Frame):
         self.option_add('*font',fontHead)
         self.page_geometry()
     def page_geometry(self) :
+        self.pwdList = [StringVar(),StringVar(),StringVar()]
+        # self.pwdList = {
+        #     'current':StringVar(),
+        #     'new':StringVar(),
+        #     'confirm':StringVar()}
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
@@ -369,7 +374,6 @@ class ChangePasswordPage(Frame):
             self.imgList[data['name']] = img
         canvas = Canvas(self.root,highlightthickness=0,bg=self.bgColor)
         canvas.pack(fill=BOTH, expand=1)
-        # canvas.create_line(15, 25, 200, 25)
         Button(canvas,image=self.imgList['back'],bd=0,
         bg=self.bgColor,activebackground=self.bgColor,
         command=lambda:self.controller.switch_frame(MyAccountPage)).pack(anchor=NW)
@@ -380,7 +384,7 @@ class ChangePasswordPage(Frame):
         for i,data in enumerate(textList) :
             Label(canvas,text=data,bg=self.bgColor,fg='#868383',
             anchor=N).pack(padx=140,anchor=NW,ipady=3)
-            entry = Entry(canvas,font="leelawadee 13",bd=0,fg='#868383')
+            entry = Entry(canvas,font="leelawadee 13",bd=0,fg='#868383',textvariable=self.pwdList[i])
             if i == 0 :
                 entry.focus_force()
             entry.pack(padx=140,pady=20,anchor=W,fill=X)
@@ -388,7 +392,47 @@ class ChangePasswordPage(Frame):
             y+=96
         Button(canvas,text="Update Password",image=self.imgList['button'],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
-        command=lambda:self.controller.switch_frame(ChangePasswordPage)).pack(pady=30)
+        command=self.change_password).pack(pady=30)
+    def change_password(self) :
+        pwds = []
+        for i in range(len(self.pwdList)) :
+            pwds.append(self.pwdList[i].get())
+        if len(pwds[0]) > 0 and not " " in pwds[0]:
+            print("have data")
+            if len(pwds[1]) > 7 and any(c.isdigit() == True for c in pwds[1]) and any(c.isalpha() == True for c in pwds[1]):
+                print("allowed password")
+        else:
+            messagebox.showerror("Change password","Please enter current password")
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        # sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
+        # if conn is not None:
+        #     c = self.controller.execute_sql(sql,[self.controller.uid])
+        #     data = c.fetchone()
+        #     passHash = data['passHash']
+        #     passSalt = data['passSalt']
+        #     passkey = self.controller.password_encryptioncheck(pwd,passSalt)
+        #     if passkey == passHash :
+        #         print("same password")
+        #         ms = messagebox.askquestion("Deactivate","Are you sure you want to deactivate account?")
+        #         if ms == "yes" :
+        #             for i,data in enumerate(sqlDelete):
+        #                 c = self.controller.execute_sql(data,[self.controller.uid])
+        #             print("deactivate account")
+        #             self.controller.destroy()
+        #         else :
+        #             self.password.set('')
+        #     #     # newSalt = os.urandom(32)
+        #     #     # newpass = self.controller.password_encryptioncheck("test1234",newSalt)
+        #     #     # sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
+        #     #     # try:
+        #     #     #     c = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
+        #     #     # except Error as e:
+        #     #     #     print(e)
+        #     else :
+        #         messagebox.showerror("Deactivate","Incorrect password!!!")
+        # conn.close()
+
 class DeactivatePage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
