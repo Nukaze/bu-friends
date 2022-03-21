@@ -70,10 +70,3 @@ def get_MbtiQuizTH():
 lst = [1,2,3,4,5,6]    
 quiz = get_MbtiQuizTH()
 randLst = random.sample(range(len(quiz)),len(quiz))
-print(randLst)
-#print(q)
-for q in quiz:
-    #qran = random.choice(quiz)
-    #print(qran)
-    #print("")
-    pass
