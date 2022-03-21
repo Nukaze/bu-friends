@@ -402,6 +402,7 @@ class DeactivatePage(Frame):
         self.option_add('*font',fontHead)
         self.page_geometry()
     def page_geometry(self) :
+        self.password = StringVar()
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
@@ -436,13 +437,52 @@ class DeactivatePage(Frame):
         entryBox = Label(box,image=self.imgList['entry'],bg='#D0EEFF')
         entryBox.pack()
         entryBox.propagate(0)
-        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0)
+        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0,
+        textvariable=self.password,show="*")
         entry.pack(expand=1)
         entry.focus_force()
         Button(box,text="Deactivate",image=self.imgList['button'],bd=0,bg='#D0EEFF',
         activebackground='#D0EEFF',compound=CENTER,fg='white',
         activeforeground='white',font='leelawadee 13 bold',
-        command=lambda:self.controller.switch_frame(DeactivatePage)).pack(pady=30)
+        command=self.deactivate).pack(pady=30)
+    def deactivate(self) :
+        pwd = self.password.get()
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
+        sqlDelete = []
+        sqlDelete.append("""DELETE FROM Blacklists WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Postings WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Reports WHERE ReporterUid=?""")
+        sqlDelete.append("""DELETE FROM Reports WHERE ReportedUid=?""")
+        sqlDelete.append("""DELETE FROM UsersTag WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Users WHERE Uid=?""")
+        if conn is not None:
+            c = self.controller.execute_sql(sql,[self.controller.uid])
+            data = c.fetchone()
+            passHash = data['passHash']
+            passSalt = data['passSalt']
+            passkey = self.controller.password_encryptioncheck(pwd,passSalt)
+            if passkey == passHash :
+                print("same password")
+                ms = messagebox.askquestion("Deactivate","Are you sure you want to deactivate account?")
+                if ms == "yes" :
+                    for i,data in enumerate(sqlDelete):
+                        c = self.controller.execute_sql(data,[self.controller.uid])
+                    print("deactivate account")
+                    self.controller.destroy()
+                else :
+                    self.password.set('')
+            #     # newSalt = os.urandom(32)
+            #     # newpass = self.controller.password_encryptioncheck("test1234",newSalt)
+            #     # sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
+            #     # try:
+            #     #     c = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
+            #     # except Error as e:
+            #     #     print(e)
+            else :
+                messagebox.showerror("Deactivate","Incorrect password!!!")
+        conn.close()
 class InfoOnProfile() :
     def __init__(self, root, bgcolor,controller,parent):
         self.root = root
