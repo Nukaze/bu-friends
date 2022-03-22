@@ -48,7 +48,8 @@ class BUFriends(Tk):
             self.switch_frame(SignIn)
         else:
             self.uid = self.ssid
-            self.switch_frame(Matching)
+            self.switch_frame(Mbti)
+            #self.switch_frame(Matching)
             messagebox.showinfo('BU Friends',"{}Welcome back !{}".format(" "*10," "*10))
 
     def switch_frame(self, frame_class):
