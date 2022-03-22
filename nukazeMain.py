@@ -289,7 +289,7 @@ class SignIn(Frame):
             else:
                 messagebox.showwarning('Sign-in Incomplete', "Sorry Your Password Did not Match \nPlease Check Your Password Carefully and Try Again.")
                 self.userPass.focus_force()
-                self.userPass.select_range(0, END)
+                self.userPass.select_range(0,END)
         
         def login_submit(self):
             self.controller.switch_frame(Matching)
