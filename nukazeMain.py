@@ -426,7 +426,7 @@ class SignUp(Frame):
             print("Displayname = ", self.regisSubmitDict.get('displayname'))
             print("Passhash = ", self.regisSubmitDict.get('passhash'))
             print("salt = ", self.regisSubmitDict.get('salt'))
-            #self.signup_commit()
+            self.signup_commit()
                    
         def signup_commit(self):
             print("signup commit")
