@@ -194,7 +194,8 @@ class EditPage(Frame):
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65},
             {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40},
             {'name':'entry2','path':'./assets/entrys/entry3.png','x':400,'y':80},
-            {'name':'box','path':'./assets/buttons/rectangleBlue.png','x':350,'y':60}]
+            {'name':'box','path':'./assets/buttons/rectangleBlue.png','x':200,'y':60},
+            {'name':'selectBox','path':'./assets/buttons/rectangleDarkBlue.png','x':200,'y':60}]
 
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
@@ -264,6 +265,8 @@ class EditPage(Frame):
         # entry2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
         
     def tag_geometry(self) :
+        # fontTag = Font(family='leelawadee',size=13,weight='bold')
+        # self.option_add('*font',fontTag)
         self.addWidget = None
         self.mbtiTag = None
         self.bmtiBtn = None
@@ -335,7 +338,7 @@ class EditPage(Frame):
 
             Button(self.endFrame,image=self.imgList['cancel'],text="Cancel",bd=0,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
-            activeforeground='white').pack(side=LEFT)
+            activeforeground='white',command=lambda:self.controller.switch_frame(ProfilePage)).pack(side=LEFT)
     def delete_tag(self,event,index) :
         self.tagData.tagList.pop(index)
         if self.addWidget is not None :
@@ -347,7 +350,7 @@ class EditPage(Frame):
             self.tagWidgetList[i].destroy()
         self.tag_geometry()
     def add_tag(self,event) :
-        self.bioStr = self.bioEntry.get(1.0,END)
+        self.bioStr = self.bioEntry.get(1.0,'end-1c')
         self.mainFrame.destroy()
         self.endFrame.destroy()
         self.backBtn.config(command=lambda:self.main_geometry())
@@ -378,22 +381,47 @@ class EditPage(Frame):
             data = c.fetchone()
             while data :
                 allTags.append({'tid':data['Tid'],'tagName':data['TagName']})
-                print(data['Tid'])
                 data = c.fetchone()
         conn.close()
         row = 0
         column = 0
+        def select_tag(name) :
+                for i,data in enumerate(tagWidgetList) :
+                    if data['name'] == name :
+                        if data['status'] == 0 :
+                            if len(self.tagData.tagList) < 5 :
+                                data['widget'].config(image=self.imgList['selectBox'],compound=CENTER)
+                                print(name)
+                                data['status'] = 1
+                                if data['name'] not in self.tagData.tagList :
+                                    self.tagData.tagList.append(data['name'])
+                            else :
+                                messagebox.showwarning("Add Interest","You can select 5 attentions.")
+                        else :
+                            data['widget'].config(image=self.imgList['box'],compound=CENTER)
+                            print(name)
+                            data['status'] = 0
+                            if data['name'] in self.tagData.tagList :
+                                self.tagData.tagList.remove(data['name'])
+                        break
+                print(self.tagData.tagList)
+        tagWidgetList = []
         for i,data in enumerate(allTags) :
-            lb = Label(self.mainFrame,image=self.imgList['box'],bg=self.bgColor)
+            lb = Button(self.mainFrame,image=self.imgList['box'],text=data['tagName'],bd=0,
+            compound=CENTER,font='leelawadee 15 bold',bg=self.bgColor,fg='white',
+            activeforeground='white',activebackground='white',command=lambda name=data['tagName']: select_tag(name))
             lb.propagate(0)
-            Label(lb,text=data['tagName'],font='leelawadee 15 bold',bg='#88A3F3',fg='white').pack(anchor=W,expand=1,padx=20,side=LEFT)
-            Checkbutton(lb,anchor=E,bg='#88A3F3').pack(expand=1,padx=20)
-            lb.grid(row=row,column=column,padx=30,pady=10)
+            tagWidgetList.append({'tid':data['tid'],'name':data['tagName'],'widget':lb,'status':0})
+            # Label(lb,text=data['tagName'],font='leelawadee 15 bold',bg='#88A3F3',fg='white').pack(anchor=W,expand=1,padx=20,side=LEFT)
+            # Checkbutton(lb,anchor=E,bg='#88A3F3').pack(expand=1,padx=20)
+            lb.grid(row=row,column=column,padx=20,pady=10)
             column+=1
-            if i%2 == 1 :
+            if i%3 == 2 :
                 column=0
                 row+=1 
-
+        for i,data in enumerate(self.tagData.tagList) :
+            print(data)
+            select_tag(data)
     def delete_mbti(self,event) :
         self.tagData.tagList[0] = None
         self.bmtiBtn.destroy()
@@ -401,7 +429,29 @@ class EditPage(Frame):
         self.tag_geometry()
     def save_change(self) :
         print(self.tagData.tagList)
-
+        self.bioStr = self.bioEntry.get(1.0,'end-1c')
+        if self.bioStr.isspace() :
+            self.bioStr = None
+        values = [None for i in range(5)]
+        # for i,data in enumerate(self.tagData.tagList ) :
+        #     values[i] = data
+        print(values)
+        tid = []
+        conn = self.controller.create_connection()
+        sql = """UPDATE Users SET DisplayName=?,Bio=? WHERE Uid=?"""
+        sql2 = """SELECT Tid FROM Tags WHERE TagName=?"""
+        sql3 = """UPDATE Userstag SET UserType=?,Tid1=?,Tid2=?,Tid3=?,Tid4=? WHERE Uid=?"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql,[self.nameStr.get(),self.bioStr,self.controller.uid])
+            for i,data in enumerate(self.tagData.tagList) :
+                c2 = self.controller.execute_sql(sql2,[data])
+                rowData = c2.fetchone()
+                if rowData:
+                    values[i] = rowData[0]
+            values[0] = self.tagData.tagList[0]
+            c3 = self.controller.execute_sql(sql3,[values[0],values[1],values[2],values[3],values[4],self.controller.uid])
+            messagebox.showinfo("Edit Profile","Profile has been successfully edited.")
+            self.controller.switch_frame(ProfilePage)
 class MyAccountPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
