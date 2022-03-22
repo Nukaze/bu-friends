@@ -41,11 +41,18 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(SignIn)
-        #self.switch_frame(Matching)
+        with open(r'./database/sessions.txt','r')as ss:
+            self.ssid = int(ss.read())
+            print(self.ssid)
+        if self.ssid == 0:
+            self.switch_frame(SignIn)
+        else:
+            self.uid = self.ssid
+            self.switch_frame(Matching)
+            messagebox.showinfo('BU Friends',"{}Welcome back !{}".format(" "*10," "*10))
 
     def switch_frame(self, frame_class):
-        print("switching to {}".format(frame_class))
+        print("switching to {} \n==|with uid = {}".format(frame_class, self.uid))
         new_frame = frame_class(self)
         if self.frame is not None:
             self.frame.destroy()
@@ -281,6 +288,8 @@ class SignIn(Frame):
                 self.login_submit()
             else:
                 messagebox.showwarning('Sign-in Incomplete', "Sorry Your Password Did not Match \nPlease Check Your Password Carefully and Try Again.")
+                self.userPass.focus_force()
+                self.userPass.select_range(0,END)
         
         def login_submit(self):
             self.controller.switch_frame(Matching)
@@ -311,18 +320,16 @@ class SignUp(Frame):
             self.canvasFrame.create_image(0,0,image=self.bgCanvaImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
             self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
-            self.regisVarLst = []
             self.regisSubmitDict  = {'bumail': "",
                                     'passhash':"",
                                     'salt':"",
                                     'displayname':"",
                                     'bio':""}
+            self.entryLst = []
             def zone_widgets():
-                self.entryLst = []
                 self.entryimg = self.controller.get_image(r'./assets/entrys/entry2rz.png')
                 for i in range(len(self.regisInfoLst)):
-                    self.regisVarLst.append(StringVar())
-                    self.entryLst.append(self.signup_form(self.canvasFrame, i, self.regisVarLst[i]))
+                    self.entryLst.append(self.signup_form(self.canvasFrame, i))
                     x,y = 260,70*(i+2)
                     self.canvasFrame.create_image(x,y,image=self.entryimg,anchor="nw")
                     self.entryLst[i].place(x=x+20, y=y+10)
@@ -345,7 +352,7 @@ class SignUp(Frame):
             def zone_buttons():
                 self.imgBtn = self.controller.get_image(r'./assets/buttons/signup_newrz.png')
                 self.imgBtn2 = self.controller.get_image(r'./assets/buttons/back_newrz.png')
-                self.signupBtn = Button(root, text="Sign Up", command=self.signup_submitreq, image=self.imgBtn,fg="#ffffff"
+                self.signupBtn = Button(root, text="Sign Up", command=self.signup_reqvalidation, image=self.imgBtn,fg="#ffffff"
                                    ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
                 self.backBtn = Button(root, text="Cancel", command=lambda:self.controller.switch_frame(SignIn), image=self.imgBtn2
                                     ,bg="#ffffff", foreground="white",bd=-10,compound="center",activebackground="#ffffff")
@@ -354,60 +361,64 @@ class SignUp(Frame):
             zone_widgets()
             zone_buttons() 
         # class method
-        def signup_form(self,_root, _index, _entVar):
-            entry = Entry(_root, textvariable=_entVar, justify="left",relief="flat",fg=self.fgHolder,width=32)
+        def signup_form(self,_root, _index):
+            entry = Entry(_root, justify="left",relief="flat",fg=self.fgHolder,width=32)
             entry.insert(0,self.regisInfoLst[_index])
             return entry
         
         def register_error(self,errorFormat="Unknow error, Please Contact Moderater"):
             print("[SignUp Validator Reject]")
             messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
-            for var in self.regisVarLst:
-                var.set("")
-            self.controller.switch_frame(SignUp)
+            # for var in self.entryLst:
+            #     print(var.get(),end=", ")
+            #self.controller.switch_frame(SignUp)
                     
-        def signup_submitreq(self):
-            print("check regis var")
-            print(self.regisSubmitDict)
-            def signup_validator(self):
-                try:
-                    for i,data in enumerate(self.regisVarLst):
-                        print(data.get())
-                        if data.get() == "" or data.get().isspace() or " " in self.regisVarLst[0].get():
-                            self.register_error("Sign Up Form Information do not Blank or Space")
-                            break
-                    if "@bumail.net" not in self.regisVarLst[0].get():
-                        self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
-                    elif self.regisVarLst[1].get() != self.regisVarLst[2].get():
-                        self.register_error("Sign Up Password do not Matching")
-                    elif not len(self.regisVarLst[1].get()) > 7:
-                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
-                    if not self.check_alnumpass(self.regisVarLst[1].get()):
-                        print("check alnum")
-                        print(self.check_alnumpass(self.regisVarLst[1].get()))
-                        self.register_error("Sign Up Password Again\n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters")
-                    else:
-                        self.regisSubmitDict['bumail']=self.regisVarLst[0].get()
-                        self.regisSubmitDict['displayname']=self.regisVarLst[3].get()
-                        self.regisSubmitDict['bio']= ""
-                        print(self.regisSubmitDict)
-                        def database_validator(self):
-                            conn = self.controller.create_connection()
-                            if conn is None: print("DB Can't Create Connection in db validator.")
-                            else:
-                                try:
-                                    print("query bumail..")   
-                                    sqlquery = """SELECT * FROM Users WHERE Email=?;"""
-                                    bumail = self.regisSubmitDict['bumail'] 
-                                    cur = self.controller.execute_sql(sqlquery, [bumail])
-                                    rowbumail = cur.fetchall()
-                                    print("rowbumail = ",rowbumail)
-                                    if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
-                                    else: self.password_encryption();conn.close()
-                                except sqlite3.Error as e :print("catch!!! {}".format(e))
-                        database_validator(self)
-                except ValueError as ve: print(ve)
-            signup_validator(self)
+        def signup_reqvalidation(self):
+            print("check entry var")
+            try:
+                for i,data in enumerate(self.entryLst):
+                    print(data.get())
+                    if data.get() == "" or data.get().isspace() or " " in self.entryLst[0].get():
+                        self.register_error("Sign Up Form Information do not Blank or Space")
+                        self.entryLst[i].focus_force()
+                        self.entryLst[i].select_range(0,END)
+                        break
+                if "@bumail.net" not in self.entryLst[0].get():
+                    self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
+                    self.entryLst[0].focus_force()
+                    self.entryLst[0].select_range(0,END)
+                elif self.entryLst[1].get() != self.entryLst[2].get():
+                    self.register_error("Sign Up Password do not Matching")
+                    self.entryLst[1].focus_force()
+                    self.entryLst[1].select_range(0,END)
+                    self.entryLst[2].delete(0,END)
+                elif not len(self.entryLst[1].get()) > 7:
+                    self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters\nYour Password Have {} Characters".format(len(self.entryLst[1].get())))
+                elif not self.check_alnumpass(self.entryLst[1].get()):
+                    print("check alnum")
+                    print(self.check_alnumpass(self.entryLst[1].get()))
+                    self.register_error("Sign Up Password Again\n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters")
+                else:
+                    self.regisSubmitDict['bumail']=self.entryLst[0].get()
+                    self.regisSubmitDict['displayname']=self.entryLst[3].get()
+                    self.regisSubmitDict['bio']= ""
+                    print(self.regisSubmitDict)
+                    def database_validator(self):
+                        conn = self.controller.create_connection()
+                        if conn is None: print("DB Can't Create Connection in db validator.")
+                        else:
+                            try:
+                                print("query bumail..")   
+                                sqlquery = """SELECT * FROM Users WHERE Email=?;"""
+                                bumail = self.regisSubmitDict['bumail'] 
+                                cur = self.controller.execute_sql(sqlquery, [bumail])
+                                rowbumail = cur.fetchall()
+                                print("rowbumail = ",rowbumail)
+                                if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
+                                else: self.password_encryption();conn.close()
+                            except sqlite3.Error as e :print("catch!!! {}".format(e))
+                    database_validator(self)
+            except ValueError as ve: print(ve)
             
         def check_alnumpass(self,_pass):
             return any(c.isdigit() == True for c in _pass) and any(c.isalpha() == True for c in _pass)
@@ -417,7 +428,7 @@ class SignUp(Frame):
             stdhash = 'sha256'
             stdencode = 'utf-8'
             salt = os.urandom(32)
-            password = self.regisVarLst[1].get()
+            password = self.entryLst[1].get()
             passkey = hashlib.pbkdf2_hmac(stdhash, password.encode(stdencode), salt, 161803)
             self.regisSubmitDict['passhash'], self.regisSubmitDict['salt'] = passkey, salt
             print("bumail = ", self.regisSubmitDict.get('bumail'))
@@ -661,6 +672,9 @@ class Matching(Frame):
         Frame.config(self,bg=self.bgColor)
         self.pack(expand=1,fill=BOTH)
         self.controller = controllerFrame
+        print("matching id = ",self.controller.uid)
+        with open(r'./database/sessions.txt','w')as ss:
+            ss.write("{}".format(self.controller.uid))
         self.root = ScrollFrame(self, True).interior
         self.MatchingContent(self.root, self.controller)
         
@@ -701,7 +715,6 @@ class Matching(Frame):
                 print(*info,end=">=> ")
             print()
             self.display_user()
-            
             
         def get_tagname(self):
             self.tagnameLst = []
@@ -792,7 +805,7 @@ class Matching(Frame):
             self.userTabBtn.pack(pady=10,anchor=W)
             self.userDisname = Label(self.tabFrame, text=self.udnameLst[ir],bg=bgRectangle, font="leelawadee 20 bold",fg="#000000")
             self.userDisname.place(x=210,y=40)
-            self.img = self.controller.get_image(r'./assets/images/avt{}.png'.format(_i%6),138,144)
+            self.img = self.controller.get_image(r'./assets/images/avt{}.png'.format(self.uuidLst[ir]%6),138,144)
             self.profileImg = Label(self.tabFrame, image=self.img ,bg=bgRectangle,bd=0)
             self.profileImg.image = self.img
             self.profileImg.place(x=40,y=20,anchor=NW)
@@ -910,9 +923,24 @@ class EditPage(Frame):
             {'name':'entry','path':'./assets/entrys/entry2rz.png','x':400,'y':50},
             {'name':'tag','path':'./assets/buttons/tagEdit.png','x':130,'y':45},
             {'name':'add','path':'./assets/buttons/addTag.png','x':130,'y':45},
+            {'name':'yellow','path':'./assets/buttons/mbtiYellowEdit.png','x':130,'y':45},
+            {'name':'blue','path':'./assets/buttons/mbtiBlueEdit.png','x':130,'y':45},
+            {'name':'green','path':'./assets/buttons/mbtiGreenEdit.png','x':130,'y':45},
+            {'name':'purple','path':'./assets/buttons/mbtiPurpleEdit.png','x':130,'y':45},
             {'name':'longtag','path':'./assets/buttons/tagEditLong.png','x':180,'y':45},
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65},
             {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40}]
+        if self.tagData.tagList[0] is not None :
+            if self.tagData.tagList[0][1] == "N" :
+                if self.tagData.tagList[0][2] == "T" :
+                    self.img = self.controller.get_image(imgPathList[4]['path'],imgPathList[4]['x'],imgPathList[4]['y'])
+                else :
+                    self.img = self.controller.get_image(imgPathList[5]['path'],imgPathList[5]['x'],imgPathList[5]['y'])
+            elif self.tagData.tagList[0][1] == "S" :
+                if self.tagData.tagList[0][3] == "J" :
+                    self.img = self.controller.get_image(imgPathList[6]['path'],imgPathList[6]['x'],imgPathList[6]['y'])
+                else :
+                    self.img = self.controller.get_image(imgPathList[7]['path'],imgPathList[7]['x'],imgPathList[7]['y'])
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img        
@@ -935,25 +963,43 @@ class EditPage(Frame):
         entryBox.grid(row=0,column=1,sticky=N,pady=10,padx=115)
         entryBox.propagate(0)
         entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0)
+        entry.insert(0,self.tagData.name)
         entry.pack(expand=1)
     
-        entryBox2 = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
+        entryBox2 = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor,height=75)
         entryBox2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
         entryBox2.propagate(0)
-        entry2 = Entry(entryBox2,font='leelawadee 15',width=35,bd=0)
+        # entry2 = Entry(entryBox2,font='leelawadee 15',width=35,bd=0)
+        # entry2.insert(0,self.tagData.bio)
+        # entry2.pack(expand=1)
+        entry2 = Text(entryBox2,font='leelawadee 15',bg=self.bgColor,width=35,height=3)
+        if self.tagData.bio is not None :
+            entry2.insert(END,self.tagData.bio)     
         entry2.pack(expand=1)
+
+        # entry2 = Text(font='leelawadee 15',width=35)
+        # entry2.insert(0,self.tagData.bio)
+        # entry2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
+        
     def tag_geometry(self) :
         self.addWidget = None
+        self.mbtiTag = None
+        self.bmtiBtn = None
         self.vars = [StringVar() for i in range(len(self.tagData.tagList))]
         self.tagWidgetList = []
         if self.tagData.tagList[0] is not None :
-            Label(self.mainFrame,text=self.tagData.tagList[0],image=self.tagData.img,bg=self.bgColor,
-            compound=CENTER,fg='white').grid(row=2,column=1,sticky=W,padx=115)            
-            Button(self.mainFrame,text="Redo the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
-            activebackground=self.bgColor,activeforeground='#23B7F4').grid(row=2,column=1)
+            self.mbtiTag = Label(self.mainFrame,text=self.tagData.tagList[0],image=self.img,bg=self.bgColor,
+            compound=CENTER,fg='white')
+            self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)            
+            self.bmtiBtn = Button(self.mainFrame,text="Redo the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            activebackground=self.bgColor,activeforeground='#23B7F4')
+            self.bmtiBtn.grid(row=2,column=1)
         else :
-            Button(self.mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
-            activebackground=self.bgColor,activeforeground='#23B7F4').grid(row=2,column=1,sticky=W,padx=115)
+            self.bmtiBtn = Button(self.mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            activebackground=self.bgColor,activeforeground='#23B7F4')
+            self.bmtiBtn.grid(row=2,column=1,sticky=W,padx=115)
+        if self.mbtiTag is not None :
+            self.mbtiTag.bind('<Button-1>',lambda e: self.delete_mbti(e))
         # tagFrame = Frame(self.mainFrame,bg=self.bgColor)
         # tagFrame.grid(row=3,column=1,sticky=W,padx=115)
         # row = 0
@@ -980,7 +1026,7 @@ class EditPage(Frame):
                     tag.propagate(0)
                     lb = Label(tag,text=self.tagData.tagList[i],fg='white',bg='#88A3F3',width=12,textvariable=self.vars[i])
                     lb.pack(expand=1,anchor=W,padx=12)
-                tag.bind('<Button-1>',lambda e,c=i: self.click_event(e,c))
+                tag.bind('<Button-1>',lambda e,c=i: self.delete_tag(e,c))
                 self.tagWidgetList.append(tag)
                 # column+= 1
                 if i%2 == 0 :
@@ -997,24 +1043,36 @@ class EditPage(Frame):
                     # bd=0,activebackground=self.bgColor).pack(anchor=W)
                     self.addWidget = Label(frame,image=self.imgList['add'],bg=self.bgColor)
                     self.addWidget.pack(anchor=W)
+                    self.addWidget.bind('<Button-1>',lambda e,c=i: self.add_tag(e))
     def end_geometry(self) :
             frame = Frame(self.root,bg=self.bgColor)
             frame.pack(pady=25)
-            Button(frame,image=self.imgList['button'],text="Save Change",bd=0,
-            bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
-            activeforeground='white').pack(side=LEFT,padx=20)
+            Button(frame,image=self.imgList['button'],text="Save Change",bd=0,compound=CENTER,
+            bg=self.bgColor,fg='white',activebackground=self.bgColor,activeforeground='white',
+            command=lambda : self.save_change()).pack(side=LEFT,padx=20)
 
             Button(frame,image=self.imgList['cancel'],text="Cancel",bd=0,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
             activeforeground='white').pack(side=LEFT)
-    def click_event(self,event,index) :
+    def delete_tag(self,event,index) :
         self.tagData.tagList.pop(index)
-        print(self.tagData.tagList)
         if self.addWidget is not None :
             self.addWidget.destroy()
+        if self.mbtiTag is not None :
+            self.mbtiTag.destroy()
+        self.bmtiBtn.destroy()
         for i in range(len(self.tagWidgetList)) :
             self.tagWidgetList[i].destroy()
         self.tag_geometry()
+    def add_tag(self,event) :
+        print("add tag")
+    def delete_mbti(self,event) :
+        self.tagData.tagList[0] = None
+        self.bmtiBtn.destroy()
+        self.mbtiTag.destroy()
+        self.tag_geometry()
+    def save_change(self) :
+        print(self.tagData.tagList)
 class MyAccountPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -1146,6 +1204,7 @@ class DeactivatePage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
+        self.data = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,FALSE)
         self.root = scroll.interior
@@ -1177,8 +1236,8 @@ class DeactivatePage(Frame):
         topFrame.pack(anchor=W,padx=115,pady=15)
         Label(topFrame,image=self.imgList['profile'],
         bg=self.bgColor).pack(side=LEFT)
-        Label(topFrame,text="Username",bg=self.bgColor).pack(pady=5,anchor=W,padx=20)
-        Label(topFrame,text="Username@bumail.net",font=self.fontBody,bg=self.bgColor,
+        Label(topFrame,text=self.data.name,bg=self.bgColor).pack(pady=5,anchor=W,padx=20)
+        Label(topFrame,text=self.data.email,font=self.fontBody,bg=self.bgColor,
         fg='#868383').pack(anchor=W,padx=20)
         canvas.create_line(140, 225, 760, 225,fill='#868383')
         box = Label(canvas,image=self.imgList['box'],bg=self.bgColor)
@@ -1244,7 +1303,7 @@ class InfoOnProfile() :
         self.parent = parent
         self.uid = uid
         conn = self.controller.create_connection()
-        sql = """SELECT DisplayName,Bio FROM Users WHERE Uid=?"""
+        sql = """SELECT DisplayName,Bio,Email FROM Users WHERE Uid=?"""
         sql2 = """SELECT UserType,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid=?"""
         if conn is not None:
             c = self.controller.execute_sql(sql,[self.uid])
@@ -1261,6 +1320,7 @@ class InfoOnProfile() :
             userData = c.fetchone()
             self.name = userData[0]
             self.bio = userData[1]
+            self.email = userData[2]
         else:
             print("Error! cannot create the database connection.")
         conn.close()
@@ -1274,7 +1334,10 @@ class InfoOnProfile() :
             elif self.parent == 2 and index == 2 :
                 ms = messagebox.askquestion("log out","Are you sure you want to log out?")
                 if ms == "yes" :
-                    self.controller.destroy()
+                    self.controller.uid = 0
+                    with open(r'./database/sessions.txt','w')as ss:
+                        ss.write("{}".format(0))
+                    self.controller.switch_frame(SignIn)
         bgColor = '#686DE0'
         if self.parent == 2 :
             optionList = ["Edit","My account","Log out"]
@@ -1311,24 +1374,35 @@ class InfoOnProfile() :
         imgPathList = ( ('./assets/icons/goback.png',50,50),
                         ('./assets/icons/hamberger.png',25,25),
                         ('./assets/icons/profile.png',180,180))
+        profilePathLst = [r'./assets/images/avt0.png', 
+                          r'./assets/images/avt1.png',
+                          r'./assets/images/avt2.png', 
+                          r'./assets/images/avt3.png',
+                          r'./assets/images/avt4.png', 
+                          r'./assets/images/avt5.png',]
         fontTag = Font(family='leelawadee',size=13)
         bottomFrame.option_add('*font',fontTag)
         self.imgList = []
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data[0],data[1],data[2])
             self.imgList.append(img)
+        self.profileImgLst = []
+        for i, path in enumerate(profilePathLst):
+            img = self.controller.get_image(path,180,180)
+            self.profileImgLst.append(img)
         Button(topFrame,image=self.imgList[0],command=lambda:self.controller.switch_frame(Matching),bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=LEFT)
         Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
-        Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
+        Label(bottomFrame,image=self.profileImgLst[self.uid%6],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
-        bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
-        bioWidget.insert(END,self.bio)     
-        bioWidget.tag_configure("center",justify=CENTER)
-        bioWidget.tag_add("center",1.0,END)
-        line = float(bioWidget.index(END)) - 1
-        bioWidget.config(height=line,state=DISABLED)
-        bioWidget.pack()
+        if self.bio is not None :
+            bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
+            bioWidget.insert(END,self.bio)     
+            bioWidget.tag_configure("center",justify=CENTER)
+            bioWidget.tag_add("center",1.0,END)
+            line = float(bioWidget.index(END)) - 1
+            bioWidget.config(height=line,state=DISABLED)
+            bioWidget.pack()
         topFrame.pack(fill=X)
         bottomFrame.pack(fill=X,pady=20)
 

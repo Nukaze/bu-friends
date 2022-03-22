@@ -13,24 +13,27 @@ class BUFriends(Tk):
         Tk.__init__(self)
         self.frame = None
         self.uid = 0
+        self.uidSelect = 0
         self.mbtiCode = ""
-        w,h = 900,600
-        x = (self.winfo_screenwidth()//2) - (w//2)
-        y = (self.winfo_screenheight()//2-50) - (h//2)
-        self.geometry("{}x{}+{}+{}".format(w, h, x, y))
-        self.iconbitmap("assets/icons/bufriends.ico")
+        self.width, self.height = 900, 600
+        self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
+        self.y = ((self.winfo_screenheight()//2-50) - (self.height // 2))
+        self.geometry("{}x{}+{}+{}".format(self.width, self.height, self.x, self.y))
         self.resizable(0,0)
-        self.fontHeaing = Font(family="leelawadee",size=36,weight="bold")
+        self.title("BU Friends  |")
+        self.iconbitmap(r'./assets/icons/bufriends.ico')
+        self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
         self.switch_frame(PageOne)
 # switch page event
     def switch_frame(self, frameClass):
+        print("switching to {} \n=|with uid = {}".format(frameClass, self.uid))
         new_frame = frameClass(self)
         if self.frame is not None:
             self.frame.destroy()
         self.frame = new_frame
-        self.configure(bg = self.frame.bgColor)
+        self.config(bg = self.frame.bgColor)
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
 # Database Connection
     def create_connection(self):
@@ -65,6 +68,7 @@ class BUFriends(Tk):
                 ori = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
                 img = ImageTk.PhotoImage(ori)
             else:
+                
                 img = PhotoImage(file = _path)
             return img
     
