@@ -41,8 +41,15 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(SignIn)
-        #self.switch_frame(Matching)
+        with open(r'./database/sessions.txt','r')as ss:
+            self.ssid = int(ss.read())
+            print(self.ssid)
+        if self.ssid == 0:
+            self.switch_frame(SignIn)
+        else:
+            self.uid = self.ssid
+            self.switch_frame(Matching)
+            messagebox.showinfo('BU Friends',"{}Welcome back !{}".format(" "*10," "*10))
 
     def switch_frame(self, frame_class):
         print("switching to {} \n==|with uid = {}".format(frame_class, self.uid))
@@ -281,6 +288,8 @@ class SignIn(Frame):
                 self.login_submit()
             else:
                 messagebox.showwarning('Sign-in Incomplete', "Sorry Your Password Did not Match \nPlease Check Your Password Carefully and Try Again.")
+                self.userPass.focus_force()
+                self.userPass.select_range(0, END)
         
         def login_submit(self):
             self.controller.switch_frame(Matching)
@@ -663,6 +672,9 @@ class Matching(Frame):
         Frame.config(self,bg=self.bgColor)
         self.pack(expand=1,fill=BOTH)
         self.controller = controllerFrame
+        print("matching id = ",self.controller.uid)
+        with open(r'./database/sessions.txt','w')as ss:
+            ss.write("{}".format(self.controller.uid))
         self.root = ScrollFrame(self, True).interior
         self.MatchingContent(self.root, self.controller)
         
@@ -1323,6 +1335,8 @@ class InfoOnProfile() :
                 ms = messagebox.askquestion("log out","Are you sure you want to log out?")
                 if ms == "yes" :
                     self.controller.uid = 0
+                    with open(r'./database/sessions.txt','w')as ss:
+                        ss.write("{}".format(0))
                     self.controller.switch_frame(SignIn)
         bgColor = '#686DE0'
         if self.parent == 2 :
