@@ -315,6 +315,9 @@ class EditPage(Frame):
         self.tagData.tagList.pop(index)
         if self.addWidget is not None :
             self.addWidget.destroy()
+        if self.mbtiTag is not None :
+            self.mbtiTag.destroy()
+        self.bmtiBtn.destroy()
         for i in range(len(self.tagWidgetList)) :
             self.tagWidgetList[i].destroy()
         self.tag_geometry()
