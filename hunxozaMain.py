@@ -168,9 +168,12 @@ class EditPage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
+        self.nameStr = None
+        self.bioStr = None
+        self.searchEntryBox = None
         self.tagData = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,FALSE)
+        scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
@@ -186,31 +189,48 @@ class EditPage(Frame):
             {'name':'purple','path':'./assets/buttons/mbtiPurpleEdit.png','x':130,'y':45},
             {'name':'longtag','path':'./assets/buttons/tagEditLong.png','x':180,'y':45},
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65},
-            {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40}]
+            {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40},
+            {'name':'entry2','path':'./assets/entrys/entry3.png','x':400,'y':80},
+            {'name':'box','path':'./assets/buttons/rectangleBlue.png','x':350,'y':45}]
+
+        for i,data in enumerate(imgPathList) :
+            img = self.controller.get_image(data['path'],data['x'],data['y'])
+            self.imgList[data['name']] = img 
         if self.tagData.tagList[0] is not None :
             if self.tagData.tagList[0][1] == "N" :
                 if self.tagData.tagList[0][2] == "T" :
-                    self.img = self.controller.get_image(imgPathList[4]['path'],imgPathList[4]['x'],imgPathList[4]['y'])
+                    self.img = self.imgList['purple']
                 else :
-                    self.img = self.controller.get_image(imgPathList[5]['path'],imgPathList[5]['x'],imgPathList[5]['y'])
+                    self.img = self.imgList['green']
             elif self.tagData.tagList[0][1] == "S" :
                 if self.tagData.tagList[0][3] == "J" :
-                    self.img = self.controller.get_image(imgPathList[6]['path'],imgPathList[6]['x'],imgPathList[6]['y'])
+                    self.img = self.imgList['blue']
                 else :
-                    self.img = self.controller.get_image(imgPathList[7]['path'],imgPathList[7]['x'],imgPathList[7]['y'])
-        for i,data in enumerate(imgPathList) :
-            img = self.controller.get_image(data['path'],data['x'],data['y'])
-            self.imgList[data['name']] = img        
-        self.page_geometry()
-        self.tag_geometry()
-        self.end_geometry()
-    def page_geometry(self) :
-        headList = ("Username","Bio","MBTI","Interest")
-        Button(self.root,image=self.imgList['back'],bd=0
+                    self.img = self.imgList['yellow']  
+        self.head_geometry()                 
+        self.main_geometry()
+    def head_geometry(self) :
+        self.backBtn = Button(self.root,image=self.imgList['back'],bd=0
         ,bg=self.bgColor,activebackground=self.bgColor,
-        command=lambda:self.controller.switch_frame(ProfilePage)).pack(anchor=NW)
-        Label(self.root,text="Edit Profit",font='leelawadee 20 bold',
-        bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
+        command=lambda:self.controller.switch_frame(ProfilePage))
+        self.backBtn.pack(anchor=NW)
+        self.headText = Label(self.root,text="Edit Profit",font='leelawadee 20 bold',
+        bg=self.bgColor,anchor=N)
+        self.headText.pack(anchor=NW,padx=115,ipady=10)
+    def main_geometry(self) :
+        if self.nameStr is None :
+            self.nameStr = StringVar()
+            self.nameStr.set(self.tagData.name) 
+        if self.bioStr is None :
+            if self.tagData.bio is not None :
+                self.bioStr = self.tagData.bio 
+            else :     
+                self.bioStr = "" 
+        if self.searchEntryBox is not None :
+            self.searchEntryBox.destroy()
+        self.backBtn.config(command=lambda:self.controller.switch_frame(ProfilePage))
+        self.headText.config(text="Edit Profit")
+        headList = ("Username","Bio","MBTI","Interest")
         self.mainFrame = Frame(self.root,bg=self.bgColor)
         self.mainFrame.pack(anchor=W,padx=115)
         for i,data in enumerate(headList) :
@@ -219,21 +239,21 @@ class EditPage(Frame):
         entryBox = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
         entryBox.grid(row=0,column=1,sticky=N,pady=10,padx=115)
         entryBox.propagate(0)
-        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0)
-        entry.insert(0,self.tagData.name)
+        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0,textvariable=self.nameStr)
         entry.pack(expand=1)
     
-        entryBox2 = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor,height=75)
+        entryBox2 = Label(self.mainFrame,image=self.imgList['entry2'],bg=self.bgColor)
         entryBox2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
         entryBox2.propagate(0)
         # entry2 = Entry(entryBox2,font='leelawadee 15',width=35,bd=0)
         # entry2.insert(0,self.tagData.bio)
         # entry2.pack(expand=1)
-        entry2 = Text(entryBox2,font='leelawadee 15',bg=self.bgColor,width=35,height=3)
-        if self.tagData.bio is not None :
-            entry2.insert(END,self.tagData.bio)     
-        entry2.pack(expand=1)
-
+        self.bioEntry = Text(entryBox2,font='leelawadee 15',bg=self.bgColor,width=35,height=3,bd=0)
+        # if self.tagData.bio is not None :
+        self.bioEntry.insert(END,self.bioStr)     
+        self.bioEntry.pack(expand=1)
+        self.tag_geometry()
+        self.end_geometry()
         # entry2 = Text(font='leelawadee 15',width=35)
         # entry2.insert(0,self.tagData.bio)
         # entry2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
@@ -302,13 +322,13 @@ class EditPage(Frame):
                     self.addWidget.pack(anchor=W)
                     self.addWidget.bind('<Button-1>',lambda e,c=i: self.add_tag(e))
     def end_geometry(self) :
-            frame = Frame(self.root,bg=self.bgColor)
-            frame.pack(pady=25)
-            Button(frame,image=self.imgList['button'],text="Save Change",bd=0,compound=CENTER,
+            self.endFrame = Frame(self.root,bg=self.bgColor)
+            self.endFrame.pack(pady=25)
+            Button(self.endFrame,image=self.imgList['button'],text="Save Change",bd=0,compound=CENTER,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,activeforeground='white',
             command=lambda : self.save_change()).pack(side=LEFT,padx=20)
 
-            Button(frame,image=self.imgList['cancel'],text="Cancel",bd=0,
+            Button(self.endFrame,image=self.imgList['cancel'],text="Cancel",bd=0,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
             activeforeground='white').pack(side=LEFT)
     def delete_tag(self,event,index) :
@@ -322,7 +342,46 @@ class EditPage(Frame):
             self.tagWidgetList[i].destroy()
         self.tag_geometry()
     def add_tag(self,event) :
-        print("add tag")
+        self.bioStr = self.bioEntry.get(1.0,END)
+        self.mainFrame.destroy()
+        self.endFrame.destroy()
+        self.backBtn.config(command=lambda:self.main_geometry())
+        self.headText.config(text="Add Interest")
+        # label ค้นหา tag
+        self.mainFrame = Frame(self.root,bg=self.bgColor)
+        self.mainFrame.pack()
+        # self.searchEntryBox = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
+        # self.searchEntryBox.grid(row=0,column=0,sticky=NW,pady=10,columnspan=2)
+        # self.searchEntryBox.propagate(0)
+        # entry = Entry(self.searchEntryBox,font='leelawadee 15',width=35,bd=0)
+        # entry.pack(expand=1)
+        # entry.focus_force()
+        self.all_tag()
+    def all_tag(self) :
+        allTags = []
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        sql = """SELECT Tid,TagName FROM Tags"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql)
+            data = c.fetchone()
+            while data :
+                allTags.append({'tid':data['Tid'],'tagName':data['TagName']})
+                print(data['Tid'])
+                data = c.fetchone()
+        conn.close()
+        row = 0
+        column = 0
+        for i,data in enumerate(allTags) :
+            lb = Label(self.mainFrame,image=self.imgList['box'],bg=self.bgColor)
+            lb.grid(row=row,column=column,padx=30)
+            lb.propagate(0)
+            # Checkbutton(self.mainFrame,text=data['tagName'],anchor=W).grid(row=row,column=column)
+            column+=1
+            if i%2 == 1 :
+                column=0
+                row+=1 
+
     def delete_mbti(self,event) :
         self.tagData.tagList[0] = None
         self.bmtiBtn.destroy()
@@ -330,6 +389,7 @@ class EditPage(Frame):
         self.tag_geometry()
     def save_change(self) :
         print(self.tagData.tagList)
+
 class MyAccountPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
