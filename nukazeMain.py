@@ -311,18 +311,16 @@ class SignUp(Frame):
             self.canvasFrame.create_image(0,0,image=self.bgCanvaImg,anchor="nw")
             self.canvasFrame.create_text(450,90,text="Registration",font="leelawadee 36 bold", fill=self.fgHead)
             self.regisInfoLst = ["Enter your BU-Mail", "Enter Your Password", "Confirm Your Password", "Enter your Display Name"]
-            self.regisVarLst = []
             self.regisSubmitDict  = {'bumail': "",
                                     'passhash':"",
                                     'salt':"",
                                     'displayname':"",
                                     'bio':""}
+            self.entryLst = []
             def zone_widgets():
-                self.entryLst = []
                 self.entryimg = self.controller.get_image(r'./assets/entrys/entry2rz.png')
                 for i in range(len(self.regisInfoLst)):
-                    self.regisVarLst.append(StringVar())
-                    self.entryLst.append(self.signup_form(self.canvasFrame, i, self.regisVarLst[i]))
+                    self.entryLst.append(self.signup_form(self.canvasFrame, i))
                     x,y = 260,70*(i+2)
                     self.canvasFrame.create_image(x,y,image=self.entryimg,anchor="nw")
                     self.entryLst[i].place(x=x+20, y=y+10)
@@ -345,7 +343,7 @@ class SignUp(Frame):
             def zone_buttons():
                 self.imgBtn = self.controller.get_image(r'./assets/buttons/signup_newrz.png')
                 self.imgBtn2 = self.controller.get_image(r'./assets/buttons/back_newrz.png')
-                self.signupBtn = Button(root, text="Sign Up", command=self.signup_submitreq, image=self.imgBtn,fg="#ffffff"
+                self.signupBtn = Button(root, text="Sign Up", command=self.signup_reqvalidation, image=self.imgBtn,fg="#ffffff"
                                    ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
                 self.backBtn = Button(root, text="Cancel", command=lambda:self.controller.switch_frame(SignIn), image=self.imgBtn2
                                     ,bg="#ffffff", foreground="white",bd=-10,compound="center",activebackground="#ffffff")
@@ -354,60 +352,64 @@ class SignUp(Frame):
             zone_widgets()
             zone_buttons() 
         # class method
-        def signup_form(self,_root, _index, _entVar):
-            entry = Entry(_root, textvariable=_entVar, justify="left",relief="flat",fg=self.fgHolder,width=32)
+        def signup_form(self,_root, _index):
+            entry = Entry(_root, justify="left",relief="flat",fg=self.fgHolder,width=32)
             entry.insert(0,self.regisInfoLst[_index])
             return entry
         
         def register_error(self,errorFormat="Unknow error, Please Contact Moderater"):
             print("[SignUp Validator Reject]")
             messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
-            for var in self.regisVarLst:
-                var.set("")
-            self.controller.switch_frame(SignUp)
+            # for var in self.entryLst:
+            #     print(var.get(),end=", ")
+            #self.controller.switch_frame(SignUp)
                     
-        def signup_submitreq(self):
-            print("check regis var")
-            print(self.regisSubmitDict)
-            def signup_validator(self):
-                try:
-                    for i,data in enumerate(self.regisVarLst):
-                        print(data.get())
-                        if data.get() == "" or data.get().isspace() or " " in self.regisVarLst[0].get():
-                            self.register_error("Sign Up Form Information do not Blank or Space")
-                            break
-                    if "@bumail.net" not in self.regisVarLst[0].get():
-                        self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
-                    elif self.regisVarLst[1].get() != self.regisVarLst[2].get():
-                        self.register_error("Sign Up Password do not Matching")
-                    elif not len(self.regisVarLst[1].get()) > 7:
-                        self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters\nYour Password Have {} Characters".format(len(self.regisVarLst[1].get())))
-                    if not self.check_alnumpass(self.regisVarLst[1].get()):
-                        print("check alnum")
-                        print(self.check_alnumpass(self.regisVarLst[1].get()))
-                        self.register_error("Sign Up Password Again\n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters")
-                    else:
-                        self.regisSubmitDict['bumail']=self.regisVarLst[0].get()
-                        self.regisSubmitDict['displayname']=self.regisVarLst[3].get()
-                        self.regisSubmitDict['bio']= ""
-                        print(self.regisSubmitDict)
-                        def database_validator(self):
-                            conn = self.controller.create_connection()
-                            if conn is None: print("DB Can't Create Connection in db validator.")
-                            else:
-                                try:
-                                    print("query bumail..")   
-                                    sqlquery = """SELECT * FROM Users WHERE Email=?;"""
-                                    bumail = self.regisSubmitDict['bumail'] 
-                                    cur = self.controller.execute_sql(sqlquery, [bumail])
-                                    rowbumail = cur.fetchall()
-                                    print("rowbumail = ",rowbumail)
-                                    if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
-                                    else: self.password_encryption();conn.close()
-                                except sqlite3.Error as e :print("catch!!! {}".format(e))
-                        database_validator(self)
-                except ValueError as ve: print(ve)
-            signup_validator(self)
+        def signup_reqvalidation(self):
+            print("check entry var")
+            try:
+                for i,data in enumerate(self.entryLst):
+                    print(data.get())
+                    if data.get() == "" or data.get().isspace() or " " in self.entryLst[0].get():
+                        self.register_error("Sign Up Form Information do not Blank or Space")
+                        self.entryLst[i].focus_force()
+                        self.entryLst[i].select_range(0,END)
+                        break
+                if "@bumail.net" not in self.entryLst[0].get():
+                    self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
+                    self.entryLst[0].focus_force()
+                    self.entryLst[0].select_range(0,END)
+                elif self.entryLst[1].get() != self.entryLst[2].get():
+                    self.register_error("Sign Up Password do not Matching")
+                    self.entryLst[1].focus_force()
+                    self.entryLst[1].select_range(0,END)
+                    self.entryLst[2].delete(0,END)
+                elif not len(self.entryLst[1].get()) > 7:
+                    self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters\nYour Password Have {} Characters".format(len(self.entryLst[1].get())))
+                elif not self.check_alnumpass(self.entryLst[1].get()):
+                    print("check alnum")
+                    print(self.check_alnumpass(self.entryLst[1].get()))
+                    self.register_error("Sign Up Password Again\n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters")
+                else:
+                    self.regisSubmitDict['bumail']=self.entryLst[0].get()
+                    self.regisSubmitDict['displayname']=self.entryLst[3].get()
+                    self.regisSubmitDict['bio']= ""
+                    print(self.regisSubmitDict)
+                    def database_validator(self):
+                        conn = self.controller.create_connection()
+                        if conn is None: print("DB Can't Create Connection in db validator.")
+                        else:
+                            try:
+                                print("query bumail..")   
+                                sqlquery = """SELECT * FROM Users WHERE Email=?;"""
+                                bumail = self.regisSubmitDict['bumail'] 
+                                cur = self.controller.execute_sql(sqlquery, [bumail])
+                                rowbumail = cur.fetchall()
+                                print("rowbumail = ",rowbumail)
+                                if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
+                                else: self.password_encryption();conn.close()
+                            except sqlite3.Error as e :print("catch!!! {}".format(e))
+                    database_validator(self)
+            except ValueError as ve: print(ve)
             
         def check_alnumpass(self,_pass):
             return any(c.isdigit() == True for c in _pass) and any(c.isalpha() == True for c in _pass)
@@ -417,14 +419,14 @@ class SignUp(Frame):
             stdhash = 'sha256'
             stdencode = 'utf-8'
             salt = os.urandom(32)
-            password = self.regisVarLst[1].get()
+            password = self.entryLst[1].get()
             passkey = hashlib.pbkdf2_hmac(stdhash, password.encode(stdencode), salt, 161803)
             self.regisSubmitDict['passhash'], self.regisSubmitDict['salt'] = passkey, salt
             print("bumail = ", self.regisSubmitDict.get('bumail'))
             print("Displayname = ", self.regisSubmitDict.get('displayname'))
             print("Passhash = ", self.regisSubmitDict.get('passhash'))
             print("salt = ", self.regisSubmitDict.get('salt'))
-            self.signup_commit()
+            #self.signup_commit()
                    
         def signup_commit(self):
             print("signup commit")
@@ -792,7 +794,7 @@ class Matching(Frame):
             self.userTabBtn.pack(pady=10,anchor=W)
             self.userDisname = Label(self.tabFrame, text=self.udnameLst[ir],bg=bgRectangle, font="leelawadee 20 bold",fg="#000000")
             self.userDisname.place(x=210,y=40)
-            self.img = self.controller.get_image(r'./assets/images/avt{}.png'.format(_i%6),138,144)
+            self.img = self.controller.get_image(r'./assets/images/avt{}.png'.format(ir%6),138,144)
             self.profileImg = Label(self.tabFrame, image=self.img ,bg=bgRectangle,bd=0)
             self.profileImg.image = self.img
             self.profileImg.place(x=40,y=20,anchor=NW)
@@ -1311,6 +1313,16 @@ class InfoOnProfile() :
         imgPathList = ( ('./assets/icons/goback.png',50,50),
                         ('./assets/icons/hamberger.png',25,25),
                         ('./assets/icons/profile.png',180,180))
+        profilePathLst = [r'./assets/images/avt0.png', 
+                          r'./assets/images/avt1.png',
+                          r'./assets/images/avt2.png', 
+                          r'./assets/images/avt3.png',
+                          r'./assets/images/avt4.png', 
+                          r'./assets/images/avt5.png',]
+        self.profileImgLst = []
+        for i, path in enumerate(profilePathLst):
+            img = self.controller.get_image(path,180,180)
+            self.profileImgLst.append(img)
         fontTag = Font(family='leelawadee',size=13)
         bottomFrame.option_add('*font',fontTag)
         self.imgList = []
@@ -1320,7 +1332,7 @@ class InfoOnProfile() :
         Button(topFrame,image=self.imgList[0],command=lambda:self.controller.switch_frame(Matching),bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=LEFT)
         Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
-        Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
+        Label(bottomFrame,image=self.profileImgLst[self.controller.uid%6],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
         bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
         bioWidget.insert(END,self.bio)     
