@@ -171,6 +171,7 @@ class EditPage(Frame):
         self.nameStr = None
         self.bioStr = None
         self.searchEntryBox = None
+        self.mainFrame = None
         self.tagData = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self,TRUE)
@@ -181,6 +182,8 @@ class EditPage(Frame):
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
             {'name':'entry','path':'./assets/entrys/entry2rz.png','x':400,'y':50},
+            {'name':'longentry','path':'./assets/darktheme/searchtabrz.png','x':760,'y':50},
+            {'name':'search','path':'./assets/darktheme/Search.png','x':35,'y':35},
             {'name':'tag','path':'./assets/buttons/tagEdit.png','x':130,'y':45},
             {'name':'add','path':'./assets/buttons/addTag.png','x':130,'y':45},
             {'name':'yellow','path':'./assets/buttons/mbtiYellowEdit.png','x':130,'y':45},
@@ -191,7 +194,7 @@ class EditPage(Frame):
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65},
             {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40},
             {'name':'entry2','path':'./assets/entrys/entry3.png','x':400,'y':80},
-            {'name':'box','path':'./assets/buttons/rectangleBlue.png','x':350,'y':45}]
+            {'name':'box','path':'./assets/buttons/rectangleBlue.png','x':350,'y':60}]
 
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
@@ -228,6 +231,8 @@ class EditPage(Frame):
                 self.bioStr = "" 
         if self.searchEntryBox is not None :
             self.searchEntryBox.destroy()
+        if self.mainFrame is not None :
+            self.mainFrame.destroy()
         self.backBtn.config(command=lambda:self.controller.switch_frame(ProfilePage))
         self.headText.config(text="Edit Profit")
         headList = ("Username","Bio","MBTI","Interest")
@@ -347,7 +352,13 @@ class EditPage(Frame):
         self.endFrame.destroy()
         self.backBtn.config(command=lambda:self.main_geometry())
         self.headText.config(text="Add Interest")
-        # label ค้นหา tag
+        self.searchEntryBox = Label(self.root,image=self.imgList['longentry'],bg=self.bgColor)
+        self.searchEntryBox.pack(pady=10)
+        self.searchEntryBox.propagate(0)
+        # Label(lb,image=self.imgList['search'],bg=self.bgColor).pack(anchor=W,expand=1,padx=10,side=LEFT)
+        Entry(self.searchEntryBox,bd=0,font='leelawadee 16',fg='#868383',width=62).pack(expand=1,anchor=W,padx=10,side=LEFT)
+        Button(self.searchEntryBox,image=self.imgList['search'],bg=self.bgColor,bd=0,
+        activebackground=self.bgColor).pack(anchor=E,expand=1,padx=10,side=LEFT)
         self.mainFrame = Frame(self.root,bg=self.bgColor)
         self.mainFrame.pack()
         # self.searchEntryBox = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
@@ -374,9 +385,10 @@ class EditPage(Frame):
         column = 0
         for i,data in enumerate(allTags) :
             lb = Label(self.mainFrame,image=self.imgList['box'],bg=self.bgColor)
-            lb.grid(row=row,column=column,padx=30)
             lb.propagate(0)
-            # Checkbutton(self.mainFrame,text=data['tagName'],anchor=W).grid(row=row,column=column)
+            Label(lb,text=data['tagName'],font='leelawadee 15 bold',bg='#88A3F3',fg='white').pack(anchor=W,expand=1,padx=20,side=LEFT)
+            Checkbutton(lb,anchor=E,bg='#88A3F3').pack(expand=1,padx=20)
+            lb.grid(row=row,column=column,padx=30,pady=10)
             column+=1
             if i%2 == 1 :
                 column=0
