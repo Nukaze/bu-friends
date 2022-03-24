@@ -245,7 +245,7 @@ class EditPage(Frame):
         entryBox = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
         entryBox.grid(row=0,column=1,sticky=N,pady=10,padx=115)
         entryBox.propagate(0)
-        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0,textvariable=self.nameStr)
+        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0,textvariable=self.nameStr,fg='#868383')
         entry.pack(expand=1)
     
         entryBox2 = Label(self.mainFrame,image=self.imgList['entry2'],bg=self.bgColor)
@@ -254,7 +254,8 @@ class EditPage(Frame):
         # entry2 = Entry(entryBox2,font='leelawadee 15',width=35,bd=0)
         # entry2.insert(0,self.tagData.bio)
         # entry2.pack(expand=1)
-        self.bioEntry = Text(entryBox2,font='leelawadee 15',bg=self.bgColor,width=35,height=3,bd=0)
+        self.bioEntry = Text(entryBox2,font='leelawadee 15',
+        bg=self.bgColor,width=35,height=3,bd=0,fg='#868383')
         # if self.tagData.bio is not None :
         self.bioEntry.insert(END,self.bioStr)     
         self.bioEntry.pack(expand=1)
@@ -349,7 +350,12 @@ class EditPage(Frame):
         for i in range(len(self.tagWidgetList)) :
             self.tagWidgetList[i].destroy()
         self.tag_geometry()
+    def searchTag(self,event) : 
+        if self.search.get() == "Search" : 
+            self.search.set("")
     def add_tag(self,event) :
+        self.search = StringVar()
+        self.search.set("Search")
         self.bioStr = self.bioEntry.get(1.0,'end-1c')
         self.mainFrame.destroy()
         self.endFrame.destroy()
@@ -359,9 +365,13 @@ class EditPage(Frame):
         self.searchEntryBox.pack(pady=10)
         self.searchEntryBox.propagate(0)
         # Label(lb,image=self.imgList['search'],bg=self.bgColor).pack(anchor=W,expand=1,padx=10,side=LEFT)
-        Entry(self.searchEntryBox,bd=0,font='leelawadee 16',fg='#868383',width=62).pack(expand=1,anchor=W,padx=10,side=LEFT)
+        searchEntry = Entry(self.searchEntryBox,bd=0,font='leelawadee 16',fg='#868383',width=62,textvariable=self.search)
+        searchEntry.pack(expand=1,anchor=W,padx=10,side=LEFT)
+        searchEntry.focus_force()
+        searchEntry.select_range(0,END)
+        searchEntry.bind('<Button-1>',lambda e :self.searchTag(e))
         Button(self.searchEntryBox,image=self.imgList['search'],bg=self.bgColor,bd=0,
-        activebackground=self.bgColor).pack(anchor=E,expand=1,padx=10,side=LEFT)
+        activebackground=self.bgColor,command=lambda : self.searchEvent()).pack(anchor=E,expand=1,padx=10,side=LEFT)
         self.mainFrame = Frame(self.root,bg=self.bgColor)
         self.mainFrame.pack()
         # self.searchEntryBox = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
@@ -371,8 +381,27 @@ class EditPage(Frame):
         # entry.pack(expand=1)
         # entry.focus_force()
         self.all_tag()
+    def searchEvent(self) :
+        searchList = []
+        self.mainFrame.destroy()
+        self.mainFrame = Frame(self.root,bg=self.bgColor)
+        self.mainFrame.pack()
+        # if self.search.get() == "" :
+        #     self.all_tag()
+        # else :
+        for i,data in enumerate(self.allTags) :
+        #     any(c.isdigit() == True for c in data['tagName']
+            # print(self.search.get())
+            # print(data['tagName'])
+            if self.search.get() in data['tagName']:
+                searchList.append({'tagName':data['tagName']})
+        print(searchList)
+        self.show_tags(searchList)
+        for i,data in enumerate(self.tagData.tagList) :
+            print(data)
+            self.select_tag(data)
     def all_tag(self) :
-        allTags = []
+        self.allTags = []
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
         sql = """SELECT Tid,TagName FROM Tags"""
@@ -380,38 +409,47 @@ class EditPage(Frame):
             c = self.controller.execute_sql(sql)
             data = c.fetchone()
             while data :
-                allTags.append({'tid':data['Tid'],'tagName':data['TagName']})
+                self.allTags.append({'tid':data['Tid'],'tagName':data['TagName']})
                 data = c.fetchone()
         conn.close()
+        self.show_tags(self.allTags)
+        for i,data in enumerate(self.tagData.tagList) :
+            print(data)
+            self.select_tag(data,1)
+    def select_tag(self,name,check=None) :
+        for i,data in enumerate(self.tagWidgets) :
+            if data['name'] == name :
+                data['widget'].config(image=self.imgList['selectBox'],compound=CENTER)
+                if data['status'] == 0 :
+                    if len(self.tagData.tagList) < 5 :
+                        # data['widget'].config(image=self.imgList['selectBox'],compound=CENTER)
+                        print(name)
+                        data['status'] = 1
+                        if data['name'] not in self.tagData.tagList :
+                            self.tagData.tagList.append(data['name'])
+                    else :
+                        if check is not None :
+                            messagebox.showwarning("Add Interest","You can select 4 attentions.")
+                            data['widget'].config(image=self.imgList['box'],compound=CENTER)
+                elif data['status'] == 1:
+                    data['widget'].config(image=self.imgList['box'],compound=CENTER)
+                    print(name)
+                    data['status'] = 0
+                    if data['name'] in self.tagData.tagList :
+                        self.tagData.tagList.remove(data['name'])
+                break
+        print(self.tagData.tagList)
+    def show_tags(self,showList) :
+        print(self.tagData.tagList)
         row = 0
         column = 0
-        def select_tag(name) :
-                for i,data in enumerate(tagWidgetList) :
-                    if data['name'] == name :
-                        if data['status'] == 0 :
-                            if len(self.tagData.tagList) < 5 :
-                                data['widget'].config(image=self.imgList['selectBox'],compound=CENTER)
-                                print(name)
-                                data['status'] = 1
-                                if data['name'] not in self.tagData.tagList :
-                                    self.tagData.tagList.append(data['name'])
-                            else :
-                                messagebox.showwarning("Add Interest","You can select 5 attentions.")
-                        else :
-                            data['widget'].config(image=self.imgList['box'],compound=CENTER)
-                            print(name)
-                            data['status'] = 0
-                            if data['name'] in self.tagData.tagList :
-                                self.tagData.tagList.remove(data['name'])
-                        break
-                print(self.tagData.tagList)
-        tagWidgetList = []
-        for i,data in enumerate(allTags) :
+        self.tagWidgets = []
+        for i,data in enumerate(showList) :
             lb = Button(self.mainFrame,image=self.imgList['box'],text=data['tagName'],bd=0,
             compound=CENTER,font='leelawadee 15 bold',bg=self.bgColor,fg='white',
-            activeforeground='white',activebackground='white',command=lambda name=data['tagName']: select_tag(name))
+            activeforeground='white',activebackground='white',command=lambda name=data['tagName']: self.select_tag(name,1))
             lb.propagate(0)
-            tagWidgetList.append({'tid':data['tid'],'name':data['tagName'],'widget':lb,'status':0})
+            self.tagWidgets.append({'name':data['tagName'],'widget':lb,'status':0})
             # Label(lb,text=data['tagName'],font='leelawadee 15 bold',bg='#88A3F3',fg='white').pack(anchor=W,expand=1,padx=20,side=LEFT)
             # Checkbutton(lb,anchor=E,bg='#88A3F3').pack(expand=1,padx=20)
             lb.grid(row=row,column=column,padx=20,pady=10)
@@ -419,9 +457,6 @@ class EditPage(Frame):
             if i%3 == 2 :
                 column=0
                 row+=1 
-        for i,data in enumerate(self.tagData.tagList) :
-            print(data)
-            select_tag(data)
     def delete_mbti(self,event) :
         self.tagData.tagList[0] = None
         self.bmtiBtn.destroy()
@@ -439,15 +474,20 @@ class EditPage(Frame):
         tid = []
         conn = self.controller.create_connection()
         sql = """UPDATE Users SET DisplayName=?,Bio=? WHERE Uid=?"""
-        sql2 = """SELECT Tid FROM Tags WHERE TagName=?"""
+        # sql2 = """SELECT Tid FROM Tags WHERE TagName=?"""
         sql3 = """UPDATE Userstag SET UserType=?,Tid1=?,Tid2=?,Tid3=?,Tid4=? WHERE Uid=?"""
         if conn is not None:
             c = self.controller.execute_sql(sql,[self.nameStr.get(),self.bioStr,self.controller.uid])
-            for i,data in enumerate(self.tagData.tagList) :
-                c2 = self.controller.execute_sql(sql2,[data])
-                rowData = c2.fetchone()
-                if rowData:
-                    values[i] = rowData[0]
+            valuesIndex = 1
+            for i,data in enumerate(self.allTags) :
+                if data['tagName'] in self.tagData.tagList :
+                    values[valuesIndex] = data['tid']
+                    valuesIndex+=1
+            # for i,data in enumerate(self.tagData.tagList) :
+            #     c2 = self.controller.execute_sql(sql2,[data])
+            #     rowData = c2.fetchone()
+            #     if rowData:
+            #         values[i] = rowData[0]
             values[0] = self.tagData.tagList[0]
             c3 = self.controller.execute_sql(sql3,[values[0],values[1],values[2],values[3],values[4],self.controller.uid])
             messagebox.showinfo("Edit Profile","Profile has been successfully edited.")
