@@ -48,8 +48,8 @@ class BUFriends(Tk):
             self.switch_frame(SignIn)
         else:
             self.uid = self.ssid
-            self.switch_frame(Mbti)
-            #self.switch_frame(Matching)
+            #self.switch_frame(Mbti)
+            self.switch_frame(Matching)
             messagebox.showinfo('BU Friends',"{}Welcome back !{}".format(" "*10," "*10))
 
     def switch_frame(self, frame_class):
@@ -691,11 +691,15 @@ class Matching(Frame):
             print("reqwidth =",self.root.winfo_reqwidth())
             print("reqheight",self.root.winfo_reqheight())
             # widgetzone 
+            self.tframe = None
             self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
             self.headingBg = Label(self.canvasMain,image=self.headBgImg,compound=CENTER, bg=self.bgCanva,width=900,height=20)
             self.headingBg.pack(side=TOP,pady=30)
             self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
-            self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", image=self.searchBarImg, font="leelawadee 18 bold",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
+            self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", command=lambda: self.filter_tags(), image=self.searchBarImg,
+                              font="leelawadee 18 bold",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
+            # self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", command=lambda: self.filter_tags(), image=self.searchBarImg,
+            #                         font="leelawadee 18 bold",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
             self.searchBar.image = self.searchBarImg
             self.searchBar.place(x=35,y=10,anchor=NW)
             self.myImg = self.controller.get_image(r'./assets/icons/profileXs.png')
@@ -731,6 +735,21 @@ class Matching(Frame):
                     self.tagnameLst.append(row['TagName'])
                 print("We have {} tag in Database.".format(len(self.tagnameLst)))
                 self.conn.close()
+            pass
+        
+        def filter_tags(self):
+            def destroy_frame():
+                self.tframe.destroy()
+                self.tframe = None
+            bg = "#eeeeee"
+            if self.tframe:
+                destroy_frame()
+            else:
+                self.tframe = LabelFrame(self.root,bg=bg,width=740,height=480)
+                #self.tframe = Label(self.root,bg=bg,width=61,height=20)
+                self.tframe.propagate(0)
+                self.tframe.place(x=50,y=75,anchor=NW)
+                Button(self.tframe, text="hehe", command=lambda:destroy_frame()).pack()
             pass
         
         def random_user(self):
@@ -846,6 +865,10 @@ class Matching(Frame):
                                bd=0, bg=bgRectangle, activebackground=bgRectangle)
             self.next.image = nextIcon
             self.next.place(x=720,y=45, anchor=NW)
+            pass
+        
+        def get_userfilter(self):
+            print("get_userfilter")
             pass
         
         def goto_review_profile(self,_uidselect):
