@@ -721,7 +721,6 @@ class Matching(Frame):
             for i,info in enumerate(self.uinfoLst):
                 print(*info,end=">=> ")
             print()
-            #self.get_tagname()
             self.display_user()
             
         def get_tagname(self):
@@ -740,10 +739,16 @@ class Matching(Frame):
                     row = cur.fetchone()
                 print("We have {} tag in Database.".format(len(self.tagnameLst)))
                 self.conn.close()
+                return self.tagnameLst
             print("tag name = ",self.tagnameLst)
             pass
+        
+        
+        # people_by_name = build_dict(lst, key="name")
+        # tom_info = people_by_name.get("Tom")
         def find_dict(seq, key):
             return dict((d[key], dict(d, index=index)) for (index, d) in enumerate(seq))
+        
         def filter_tags(self):
             def destroy_frame():
                 self.filterframe.destroy()
@@ -753,34 +758,38 @@ class Matching(Frame):
             if self.filterframe:
                 destroy_frame()
             else:
-                self.filterframe = LabelFrame(self.root,bg=bg,width=740,height=900,relief=GROOVE,highlightthickness=0)
-                self.filterframe.propagate(0)
-                self.filterframe.place(x=50,y=75,anchor=NW)
-                self.selectTags = []
-                self.mbtiFrame = LabelFrame(self.filterframe,bg=bg,width=740,height=380,relief=GROOVE)
+                self.filterFrame = LabelFrame(self.root,bg=bg,width=740,relief=GROOVE,highlightthickness=0)
+                #self.filterFrame.propagate(0)
+                self.filterFrame.place(x=50,y=75,anchor=NW)
+                self.mbtiFrame = LabelFrame(self.filterFrame,bg=bg,width=740,height=360,relief=GROOVE)
                 self.mbtiFrame.pack(side=TOP,fill=X)
                 self.mbtiFrame.propagate(0)
-                ttFrame =Frame(self.mbtiFrame,bg=bg,width=740)
-                ttFrame.pack(side=TOP,fill=X,pady=20)
+                ttFrame = Frame(self.mbtiFrame,bg=bg,width=740)
+                ttFrame.pack(side=TOP,pady=25)
                 Label(self.mbtiFrame, text="MBTI",bg=bg,fg=fg).place(x=20,y=20,anchor=NW)
+                content = Frame(self.mbtiFrame,bg=bg,width=740)
+                content.pack(side=TOP,fill=BOTH)
+                self.selectTags = []
                 mbtiLst = ["INTJ","INTP","ENTJ","ENTP",
                            "INFJ","INFP","ENFJ","ENFP",
                            "ISTJ","ISFJ","ESTJ","ESFJ",
                            "ISTP","ISFP","ESTP","ESFP"]
-                
-                content = Frame(self.mbtiFrame,bg=bg,width=740)
-                content.pack(side=TOP,pady=10)
-                w,h = 130, 48
-                def show_mbti(_i, _tag,r,c):
+                w,h = 140, 50
+                self.mbtiWidgets = []
+                def show_mbti(_i, _utype,r,c):
                     print(r,c)
-                    if "N" in _tag and "T" in _tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
-                    elif "N" in _tag and "F" in _tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
-                    elif "S" in _tag and "J" in _tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
-                    elif "S" in _tag and "P" in _tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
-                    bt = Button(content,command=lambda: print(_tag),text=_tag, image=self.userTagImg,fg=fg,bg=bg,bd=0,compound=CENTER)
-                    #bt = Button(self.filterframe,text=tag, image=self.userTagImg,fg=fg,bg=bg,bd=0,compound=CENTER)
-                    bt.image = self.userTagImg
-                    bt.grid(row=r,column=c,padx=20,pady=10, sticky=NSEW)
+                    if "N" in _utype and "T" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
+                    elif "N" in _utype and "F" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
+                    elif "S" in _utype and "J" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
+                    elif "S" in _utype and "P" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
+                    btn = Button(content,command=lambda: print(_utype),text=_utype,
+                                 image=self.userTagImg,fg=fg,bg=bg,bd=0,
+                                 activebackground=bg,compound=CENTER)
+                    btn.image = self.userTagImg
+                    btn.grid(row=r,column=c,padx=18,pady=10, sticky=NSEW)
+                    self.mbtiWidgets.append({"status":0, 
+                                             "widget":btn, 
+                                             "userType":_utype})
                 r,c = 0,0
                 for i,tag in enumerate(mbtiLst):
                     show_mbti(i,tag,r,c)
@@ -788,15 +797,33 @@ class Matching(Frame):
                     if c==4:
                         c = 0
                         r +=1
-                conn = self.controller.create_connection()
-                conn.row_factory = sqlite3.Row
-                if conn is None:
-                    print('Cant connect DB')
-                    return
-                self.get_tagname()
-                
                     
-            pass
+                self.tagsFrame = LabelFrame(self.filterFrame,bg=bg)
+                self.tagsFrame.pack(side=TOP,fill=BOTH)
+                self.tagnameLst.clear()
+                self.tagnameLst = self.get_tagname()
+                self.tagWidgets = []
+                r,c = 0,0
+                self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton2.png',w,h)
+                def show_tag(_i, _tag):
+                    btnTag = Button(self.tagsFrame, text=_tag['tagName'],command=lambda:print(_tag['tid']),
+                                 image=self.userTagImg,bd=0,bg=bg,fg=fg,font="leelawadee 12 bold",
+                                 activebackground=bg, compound=CENTER)
+                    btnTag.image = self.userTagImg
+                    btnTag.grid(row=r,column=c,padx=18,pady=10, sticky=NSEW)
+                    self.tagWidgets.append({"status":0, 
+                                            "widget":btnTag,
+                                            "tid":_tag['tid'], 
+                                            "tagName":_tag['tagName']})
+                    pass
+                for i,tag in enumerate(self.tagnameLst):
+                    show_tag(i, tag)
+                    c+=1
+                    if c==4:
+                        c = 0
+                        r +=1
+                    pass
+                pass
         
         def random_user(self):
             def reset_var():
@@ -875,8 +902,8 @@ class Matching(Frame):
             self.profileImg.image = self.img
             self.profileImg.place(x=40,y=20,anchor=NW)
             xplace = 200
+            w,h = 140,45
             for i, tag in enumerate((self.uinfoLst[ir])):
-                w,h = 140,45
                 self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png', w,h)
                 if i < 1: continue          # Skip Uid  info
                 if i == 1:                  # MBTi Check
