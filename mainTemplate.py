@@ -79,13 +79,14 @@ class BUFriends(Tk):
             return passkey
     
 class ScrollFrame():
-    def __init__(self,root,scrollable):
+    def __init__(self,root,scrollable,bgColor='white'):
         # creating
         self.root = root
+        self.bgColor = bgColor
         self.scrollable = scrollable
         self.scrollbar = Scrollbar(self.root, orient=VERTICAL,width=0)
         #self.scrollbar.pack(fill=Y, side=RIGHT, expand=0)
-        self.canvas = Canvas(self.root,bg=self.root.bgColor, highlightthickness=0, yscrollcommand=self.scrollbar.set)
+        self.canvas = Canvas(self.root,bg=self.bgColor, highlightthickness=0, yscrollcommand=self.scrollbar.set)
         self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
         self.scrollbar.config(command=self.canvas.yview)
         # reset the view
@@ -93,7 +94,7 @@ class ScrollFrame():
         self.canvas.yview_moveto(0)
 
         # create a frame inside the canvas which will be scrolled with it
-        self.interior = Frame(self.canvas,bg=self.root.bgColor)
+        self.interior = Frame(self.canvas,bg=self.bgColor)
         self.interior_id = self.canvas.create_window(0, 0, window=self.interior,anchor=NW)
 
         self.interior.bind('<Configure>', self._configure_interior)
