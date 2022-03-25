@@ -44,13 +44,14 @@ class BUFriends(Tk):
         with open(r'./database/sessions.txt','r')as ss:
             self.ssid = int(ss.read())
             print(self.ssid)
-        if self.ssid == 0:
-            self.switch_frame(SignIn)
-        else:
+        if self.ssid != 0:
             self.uid = self.ssid
             #self.switch_frame(Mbti)
             self.switch_frame(Matching)
             messagebox.showinfo('BU Friends',"{}Welcome back !{}".format(" "*10," "*10))
+        else:
+            self.switch_frame(SignIn)
+            
 
     def switch_frame(self, frame_class):
         print("switching to {} \n==|with uid = {}".format(frame_class, self.uid))
@@ -232,8 +233,8 @@ class SignIn(Frame):
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
                 self.imgBtn = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
                 self.loginBtn = Button(self.frameBtn, text="Sign-In", command=self.login_query
-                                       , image=self.imgBtn, foreground="white", bg=self.bg,activebackground=self.bg
-                                       , activeforeground="white",bd=0,compound="center")
+                                       , image=self.imgBtn, fg="#ffffff", bg=self.bg,activebackground=self.bg
+                                       , activeforeground="white",bd=0,compound="center",font="leelawadee 16 bold")
                 self.loginBtn.pack(side=TOP,pady=10,ipady=0,padx=3,expand=1)
                 self.frameDonthave = Frame(self.frameBtn,bg=self.bg)
                 Label(self.frameDonthave,text="Don't have an account?",font="leelawadee 10",bg=self.bg).pack(side="left",expand=1)
@@ -693,15 +694,13 @@ class Matching(Frame):
             print("reqwidth =",self.root.winfo_reqwidth())
             print("reqheight",self.root.winfo_reqheight())
             # widgetzone 
-            self.filterframe = None
+            self.filterFrame = None
             self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
             self.headingBg = Label(self.canvasMain,image=self.headBgImg,compound=CENTER, bg=self.bgCanva,width=900,height=20)
             self.headingBg.pack(side=TOP,pady=30)
             self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
             self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", command=lambda: self.filter_tags(), image=self.searchBarImg,
-                              font="leelawadee 18 bold",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
-            # self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", command=lambda: self.filter_tags(), image=self.searchBarImg,
-            #                         font="leelawadee 18 bold",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
+                              font="leelawadee 18 bold",fg="#000000",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
             self.searchBar.image = self.searchBarImg
             self.searchBar.place(x=35,y=10,anchor=NW)
             self.myImg = self.controller.get_image(r'./assets/icons/profileXs.png')
@@ -751,33 +750,38 @@ class Matching(Frame):
         
         def filter_tags(self):
             def destroy_frame():
-                self.filterframe.destroy()
-                self.filterframe = None
+                self.endFrame.destroy()
+                self.filterFrame.destroy()
+                self.filterFrame = None
             bg = "#ffffff"
-            fg = "#444444"
-            if self.filterframe:
+            fg = "#555555"
+            if self.filterFrame is not None and self.mbtiFrame is not None and self.tagsFrame is not None and self.endFrame:
+                print("destroy!!!")
                 destroy_frame()
             else:
-                self.filterFrame = LabelFrame(self.root,bg=bg,width=740,relief=GROOVE,highlightthickness=0)
-                #self.filterFrame.propagate(0)
+                wfilter = 720
+                self.filterFrame = Frame(self.root,bg=bg,width=wfilter,relief=FLAT,highlightthickness=0)
                 self.filterFrame.place(x=50,y=75,anchor=NW)
-                self.mbtiFrame = LabelFrame(self.filterFrame,bg=bg,width=740,height=360,relief=GROOVE)
+                self.mbtiFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter,height=360,highlightthickness=0)
                 self.mbtiFrame.pack(side=TOP,fill=X)
-                self.mbtiFrame.propagate(0)
                 ttFrame = Frame(self.mbtiFrame,bg=bg,width=740)
                 ttFrame.pack(side=TOP,pady=25)
                 Label(self.mbtiFrame, text="MBTI",bg=bg,fg=fg).place(x=20,y=20,anchor=NW)
                 content = Frame(self.mbtiFrame,bg=bg,width=740)
-                content.pack(side=TOP,fill=BOTH)
+                content.pack(side=TOP,fill=BOTH,pady=15)
                 self.selectTags = []
+                self.mbtiWidgets = []
                 mbtiLst = ["INTJ","INTP","ENTJ","ENTP",
                            "INFJ","INFP","ENFJ","ENFP",
                            "ISTJ","ISFJ","ESTJ","ESFJ",
                            "ISTP","ISFP","ESTP","ESFP"]
+                self.tagsFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter)
+                self.tagsFrame.pack(side=TOP,fill=BOTH,ipady=5)
+                self.tagnameLst.clear()
+                self.tagnameLst = self.get_tagname()
+                self.tagWidgets = []
                 w,h = 140, 50
-                self.mbtiWidgets = []
-                def show_mbti(_i, _utype,r,c):
-                    print(r,c)
+                def show_mbti(_i, _utype):
                     if "N" in _utype and "T" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
                     elif "N" in _utype and "F" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
                     elif "S" in _utype and "J" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
@@ -790,22 +794,9 @@ class Matching(Frame):
                     self.mbtiWidgets.append({"status":0, 
                                              "widget":btn, 
                                              "userType":_utype})
-                r,c = 0,0
-                for i,tag in enumerate(mbtiLst):
-                    show_mbti(i,tag,r,c)
-                    c+=1
-                    if c==4:
-                        c = 0
-                        r +=1
                     
-                self.tagsFrame = LabelFrame(self.filterFrame,bg=bg)
-                self.tagsFrame.pack(side=TOP,fill=BOTH)
-                self.tagnameLst.clear()
-                self.tagnameLst = self.get_tagname()
-                self.tagWidgets = []
-                r,c = 0,0
-                self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton2.png',w,h)
                 def show_tag(_i, _tag):
+                    self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton2.png',w,h)
                     btnTag = Button(self.tagsFrame, text=_tag['tagName'],command=lambda:print(_tag['tid']),
                                  image=self.userTagImg,bd=0,bg=bg,fg=fg,font="leelawadee 12 bold",
                                  activebackground=bg, compound=CENTER)
@@ -815,15 +806,57 @@ class Matching(Frame):
                                             "widget":btnTag,
                                             "tid":_tag['tid'], 
                                             "tagName":_tag['tagName']})
-                    pass
+                r,c = 0,0
+                for i,tag in enumerate(mbtiLst):
+                    show_mbti(i,tag)
+                    c+=1
+                    if c==4:
+                        c = 0
+                        r +=1
+                r,c = 0,0
                 for i,tag in enumerate(self.tagnameLst):
                     show_tag(i, tag)
                     c+=1
                     if c==4:
                         c = 0
                         r +=1
-                    pass
-                pass
+                
+                self.endFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter)
+                self.endFrame.pack(side=BOTTOM,fill=X)
+                self.endBtn = Frame(self.endFrame,bg=bg)
+                self.endBtn.pack(side=LEFT,expand=1,fill=Y,pady=15)
+                imgBtn = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
+                matchBtn = Button(self.endBtn,command=lambda:self.get_userfilter(),text="Match!!",
+                                  image=imgBtn,bg=bg,compound=CENTER,bd=0,activebackground=bg)
+                matchBtn.image = imgBtn
+                matchBtn.pack(side=RIGHT,padx=10)
+                imgBtn2 = self.controller.get_image(r'./assets/buttons/buttonDice.png')
+                randBtn = Button(self.endBtn, text=f"""{" "*6}Random!""", command=lambda: self.controller.switch_frame(Matching),
+                                 image=imgBtn2,font="leelawadee 12 bold",bg=bg,compound=CENTER,bd=0,activebackground=bg)
+                randBtn.image = imgBtn2
+                randBtn.pack(side=RIGHT,padx=10)
+                
+                def close_leave(e):
+                    closeBtn.config(bd=0,image=imgBtn3)
+                def close_hover(e):
+                    imgBtn31 = self.controller.get_image(r'./assets/buttons/closeRed.png')
+                    closeBtn.config(bd=0,image=imgBtn31)
+                    closeBtn.image = imgBtn31
+                def close_frame(e):
+                    destroy_frame()
+                cframe = Frame(self.endFrame,bg=bg)
+                cframe.pack(side=LEFT,expand=1)
+                imgBtn3 = self.controller.get_image(r'./assets/buttons/closeGrey.png')
+                closeIcon = self.controller.get_image(r'./assets/darktheme/Close.png')
+                closeBtn = Label(cframe, image=imgBtn3,bd=0,compound=CENTER,bg=bg)
+                closeBtn.image = imgBtn3
+                closeBtn.bind('<Enter>',lambda e: close_hover(e))
+                closeBtn.bind('<Leave>',lambda e: close_leave(e))
+                closeBtn.bind('<Button-1>',lambda e: close_frame(e))
+                closeBtn.pack(side=RIGHT,padx=10)
+                
+                
+                
         
         def random_user(self):
             def reset_var():
@@ -940,6 +973,7 @@ class Matching(Frame):
             pass
         
         def get_userfilter(self):
+            print("Match!!")
             print("get_userfilter")
             pass
         
@@ -956,6 +990,8 @@ class Matching(Frame):
             
             
      
+
+
 class ProfileReviewPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
