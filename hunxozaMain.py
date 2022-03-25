@@ -24,7 +24,7 @@ class BUFriends(Tk):
         self.option_add('*font',self.fontBody)
         self.uid = 3
         self.uidSelect = 4
-        self.switch_frame(ProfilePage)
+        self.switch_frame(Administration)
 
     def create_connection(self):
         try:
@@ -70,18 +70,19 @@ class BUFriends(Tk):
             passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
             return passkey
 class ScrollFrame():
-    def __init__(self,root,scrollable):
+    def __init__(self,root,scrollable,bgColor='white'):
         # creating
         self.root = root
+        self.bgColor = bgColor
         self.scrollable = scrollable
-        self.canvas = Canvas(self.root, bg=self.root.bgColor,highlightthickness=0)
+        self.canvas = Canvas(self.root, bg=self.bgColor,highlightthickness=0)
         self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
         # reset the view
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
 
         # create a frame inside the canvas which will be scrolled with it
-        self.interior = Frame(self.canvas,bg=self.root.bgColor)
+        self.interior = Frame(self.canvas,bg=self.bgColor)
         self.interior_id = self.canvas.create_window(0, 0, window=self.interior,anchor=NW)
 
         self.interior.bind('<Configure>', self._configure_interior)
@@ -263,20 +264,20 @@ class EditPage(Frame):
     def tag_geometry(self) :
         self.addWidget = None
         self.mbtiTag = None
-        self.bmtiBtn = None
+        self.mbtiBtn = None
         self.vars = [StringVar() for i in range(len(self.tagData.tagList))]
         self.tagWidgetList = []
         if self.tagData.tagList[0] is not None :
             self.mbtiTag = Label(self.mainFrame,text=self.tagData.tagList[0],image=self.img,bg=self.bgColor,
             compound=CENTER,fg='white')
             self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)            
-            self.bmtiBtn = Button(self.mainFrame,text="Redo the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            self.mbtiBtn = Button(self.mainFrame,text="Redo the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4')
-            self.bmtiBtn.grid(row=2,column=1)
+            self.mbtiBtn.grid(row=2,column=1)
         else :
-            self.bmtiBtn = Button(self.mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            self.mbtiBtn = Button(self.mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4')
-            self.bmtiBtn.grid(row=2,column=1,sticky=W,padx=115)
+            self.mbtiBtn.grid(row=2,column=1,sticky=W,padx=115)
         if self.mbtiTag is not None :
             self.mbtiTag.bind('<Button-1>',lambda e: self.delete_mbti(e))
         row = 3
@@ -330,7 +331,7 @@ class EditPage(Frame):
             self.addWidget.destroy()
         if self.mbtiTag is not None :
             self.mbtiTag.destroy()
-        self.bmtiBtn.destroy()
+        self.mbtiBtn.destroy()
         for i in range(len(self.tagWidgetList)) :
             self.tagWidgetList[i].destroy()
         self.tag_geometry()
@@ -430,7 +431,7 @@ class EditPage(Frame):
 
     def delete_mbti(self,event) :
         self.tagData.tagList[0] = None
-        self.bmtiBtn.destroy()
+        self.mbtiBtn.destroy()
         self.mbtiTag.destroy()
         self.tag_geometry()
 
@@ -469,8 +470,6 @@ class MyAccountPage(Frame):
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
-        self.my_account()
-    def my_account(self) :
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
@@ -480,7 +479,9 @@ class MyAccountPage(Frame):
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
+        self.my_account()
 
+    def my_account(self) :
         Button(self.root,image=self.imgList['back'],bd=0
         ,bg=self.bgColor,activebackground=self.bgColor,
         command=lambda:self.controller.switch_frame(ProfilePage)).pack(anchor=NW)
@@ -507,17 +508,18 @@ class ChangePasswordPage(Frame):
         self.root = scroll.interior
         fontHead = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontHead)
-        self.page_geometry()
-    def page_geometry(self) :
         self.pwdList = [StringVar(),StringVar(),StringVar()]
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65}]
-        textList = ("Current Password","New Password","Confirm Password")
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
+        self.page_geometry()
+    def page_geometry(self) :
+        textList = ("Current Password","New Password","Confirm Password")
+
         canvas = Canvas(self.root,highlightthickness=0,bg=self.bgColor)
         canvas.pack(fill=BOTH, expand=1)
         Button(canvas,image=self.imgList['back'],bd=0,
@@ -539,6 +541,7 @@ class ChangePasswordPage(Frame):
         Button(canvas,text="Update Password",image=self.imgList['button'],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
         command=self.password_validation).pack(pady=30)
+
     def password_validation(self) :
         self.pwds = []
         for i in range(len(self.pwdList)) :
@@ -556,6 +559,7 @@ class ChangePasswordPage(Frame):
                 messagebox.showerror("Change password","Invalid password!!!\n[ Required ] At Least 8 Characters \n[ Required ] A mixture of letters and numbers")
         else:
             messagebox.showerror("Change password","Please enter current password")
+    
     def change_password(self) :
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
@@ -591,8 +595,6 @@ class DeactivatePage(Frame):
         fontHead = Font(family='leelawadee',size=20,weight='bold')
         self.fontBody = Font(family='leelawadee',size=15,weight='bold')
         self.option_add('*font',fontHead)
-        self.page_geometry()
-    def page_geometry(self) :
         self.password = StringVar()
         self.imgList = {}
         imgPathList = [
@@ -604,6 +606,8 @@ class DeactivatePage(Frame):
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
+        self.page_geometry()
+    def page_geometry(self) :
         canvas = Canvas(self.root,highlightthickness=0,bg=self.bgColor)
         canvas.pack(fill=BOTH, expand=1)
 
@@ -637,7 +641,6 @@ class DeactivatePage(Frame):
         activeforeground='white',font='leelawadee 13 bold',
         command=self.deactivate).pack(pady=30)
     def deactivate(self) :
-        pwd = self.password.get()
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
         sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
@@ -653,7 +656,7 @@ class DeactivatePage(Frame):
             data = c.fetchone()
             passHash = data['passHash']
             passSalt = data['passSalt']
-            passkey = self.controller.password_encryptioncheck(pwd,passSalt)
+            passkey = self.controller.password_encryptioncheck(self.password.get(),passSalt)
             if passkey == passHash :
                 print("same password")
                 ms = messagebox.askquestion("Deactivate","Are you sure you want to deactivate account?")
@@ -675,6 +678,10 @@ class InfoOnProfile() :
         self.optionFrame = None
         self.parent = parent
         self.uid = uid
+        self.get_profile()
+        self.profile_frame()
+        self.tag_frame()    
+    def get_profile(self) :
         conn = self.controller.create_connection()
         sql = """SELECT DisplayName,Bio,Email FROM Users WHERE Uid=?"""
         sql2 = """SELECT UserType,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid=?"""
@@ -697,8 +704,6 @@ class InfoOnProfile() :
         else:
             print("Error! cannot create the database connection.")
         conn.close()
-        self.profile_frame()
-        self.tag_frame()    
 
     def option_click(self) :
         def next_page(index) :
@@ -808,6 +813,9 @@ class PostOnProfile() :
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=1)
         fontTag = Font(family='leelawadee',size=13)
         self.frame.option_add('*font',fontTag)
+        self.get_post()
+        self.post()
+    def get_post(self) :
         conn = self.controller.create_connection()
         sql = """SELECT Detail FROM Postings WHERE Uid=?"""
         sql2 = """SELECT DisplayName FROM Users WHERE Uid=?"""
@@ -823,7 +831,6 @@ class PostOnProfile() :
         conn.close()
         Label(self.frame,text="Post",font="leelawadee 20 bold",bg='#E6EEFD').pack(anchor=W,padx=20,pady=5)
         print(len(self.postList))
-        self.post()
 
     def post(self):
         for i in range(1,len(self.postList)+1):
@@ -838,6 +845,26 @@ class PostOnProfile() :
             textPost.pack(pady=5)
             innerFrame.pack(ipadx=20,pady=10)
 
+class Administration(Frame):
+    def __init__(self,controller):
+        Frame.__init__(self,controller)
+        self.bgColor = '#181B23'
+        self.controller = controller
+        Frame.config(self,bg=self.bgColor)
+        scroll = ScrollFrame(self,TRUE,self.bgColor)
+        self.root = scroll.interior
+        self.imgList = {}
+        imgPathList = [
+            {'name':'logout','path':'./assets/icons/signOut.png','x':35,'y':35}]
+        for i,data in enumerate(imgPathList) :
+            img = self.controller.get_image(data['path'],data['x'],data['y'])
+            self.imgList[data['name']] = img
+        self.page_geometry()
+    def page_geometry(self) :
+        Button(self.root,image=self.imgList['logout'],bd=0,
+        bg=self.bgColor,activebackground=self.bgColor).pack(anchor=NE,pady=5)
+        # Frame(self.root,bg='#282D39',width=800,height=500).pack(pady=15)
+        # Entry(self.root,text="TEST",highlightcolor='white',bg=self.bgColor).pack(side=LEFT)
 if __name__ == '__main__':
     app = BUFriends()
     app.mainloop()
