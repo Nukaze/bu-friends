@@ -48,8 +48,8 @@ class BUFriends(Tk):
             self.switch_frame(SignIn)
         else:
             self.uid = self.ssid
-            self.switch_frame(Mbti)
-            #self.switch_frame(Matching)
+            #self.switch_frame(Mbti)
+            self.switch_frame(Matching)
             messagebox.showinfo('BU Friends',"{}Welcome back !{}".format(" "*10," "*10))
 
     def switch_frame(self, frame_class):
@@ -266,6 +266,7 @@ class SignIn(Frame):
             conn = self.controller.create_connection()
             if conn is None:
                 print("DB Can't Connect!")
+                return
             else:
                 #q = conn.cursor().execute(sqlQuery, [self.userName.get()])
                 q = self.controller.execute_sql(sqlQuery, [self.userName.get()])
@@ -370,9 +371,7 @@ class SignUp(Frame):
         def register_error(self,errorFormat="Unknow error, Please Contact Moderater"):
             print("[SignUp Validator Reject]")
             messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
-            # for var in self.entryLst:
-            #     print(var.get(),end=", ")
-            #self.controller.switch_frame(SignUp)
+
                     
         def signup_reqvalidation(self):
             print("check entry var")
@@ -388,13 +387,16 @@ class SignUp(Frame):
                     self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
                     self.entryLst[0].focus_force()
                     self.entryLst[0].select_range(0,END)
+                    return
                 elif self.entryLst[1].get() != self.entryLst[2].get():
                     self.register_error("Sign Up Password do not Matching")
                     self.entryLst[1].focus_force()
                     self.entryLst[1].select_range(0,END)
                     self.entryLst[2].delete(0,END)
+                    return
                 elif not len(self.entryLst[1].get()) > 7:
-                    self.register_error("Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters\nYour Password Have {} Characters".format(len(self.entryLst[1].get())))
+                    self.register_error(
+                        "Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters\nYour Password Have {} Characters".format(len(self.entryLst[1].get())))
                 elif not self.check_alnumpass(self.entryLst[1].get()):
                     print("check alnum")
                     print(self.check_alnumpass(self.entryLst[1].get()))
@@ -406,7 +408,7 @@ class SignUp(Frame):
                     print(self.regisSubmitDict)
                     def database_validator(self):
                         conn = self.controller.create_connection()
-                        if conn is None: print("DB Can't Create Connection in db validator.")
+                        if conn is None: print("DB Can't Create Connection in db validator.");return
                         else:
                             try:
                                 print("query bumail..")   
@@ -691,11 +693,15 @@ class Matching(Frame):
             print("reqwidth =",self.root.winfo_reqwidth())
             print("reqheight",self.root.winfo_reqheight())
             # widgetzone 
+            self.filterframe = None
             self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
             self.headingBg = Label(self.canvasMain,image=self.headBgImg,compound=CENTER, bg=self.bgCanva,width=900,height=20)
             self.headingBg.pack(side=TOP,pady=30)
             self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
-            self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", image=self.searchBarImg, font="leelawadee 18 bold",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
+            self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", command=lambda: self.filter_tags(), image=self.searchBarImg,
+                              font="leelawadee 18 bold",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
+            # self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", command=lambda: self.filter_tags(), image=self.searchBarImg,
+            #                         font="leelawadee 18 bold",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
             self.searchBar.image = self.searchBarImg
             self.searchBar.place(x=35,y=10,anchor=NW)
             self.myImg = self.controller.get_image(r'./assets/icons/profileXs.png')
@@ -715,22 +721,81 @@ class Matching(Frame):
             for i,info in enumerate(self.uinfoLst):
                 print(*info,end=">=> ")
             print()
+            #self.get_tagname()
             self.display_user()
             
         def get_tagname(self):
             self.tagnameLst = []
-            sql = """SELECT TagName FROM Tags"""
+            sql = """SELECT Tid,TagName FROM Tags"""
             self.conn = self.controller.create_connection()
             self.conn.row_factory = sqlite3.Row
             if self.conn is None:
                 print('self.conn is None!!')
+                return
             else:
                 cur = self.controller.execute_sql(sql)
-                rows = cur.fetchall()
-                for i,row in enumerate(rows):
-                    self.tagnameLst.append(row['TagName'])
+                row = cur.fetchone()
+                while row:
+                    self.tagnameLst.append({'tid':row['Tid'],'tagName':row['TagName']})
+                    row = cur.fetchone()
                 print("We have {} tag in Database.".format(len(self.tagnameLst)))
                 self.conn.close()
+            print("tag name = ",self.tagnameLst)
+            pass
+        def find_dict(seq, key):
+            return dict((d[key], dict(d, index=index)) for (index, d) in enumerate(seq))
+        def filter_tags(self):
+            def destroy_frame():
+                self.filterframe.destroy()
+                self.filterframe = None
+            bg = "#ffffff"
+            fg = "#444444"
+            if self.filterframe:
+                destroy_frame()
+            else:
+                self.filterframe = LabelFrame(self.root,bg=bg,width=740,height=900,relief=GROOVE,highlightthickness=0)
+                self.filterframe.propagate(0)
+                self.filterframe.place(x=50,y=75,anchor=NW)
+                self.selectTags = []
+                self.mbtiFrame = LabelFrame(self.filterframe,bg=bg,width=740,height=380,relief=GROOVE)
+                self.mbtiFrame.pack(side=TOP,fill=X)
+                self.mbtiFrame.propagate(0)
+                ttFrame =Frame(self.mbtiFrame,bg=bg,width=740)
+                ttFrame.pack(side=TOP,fill=X,pady=20)
+                Label(self.mbtiFrame, text="MBTI",bg=bg,fg=fg).place(x=20,y=20,anchor=NW)
+                mbtiLst = ["INTJ","INTP","ENTJ","ENTP",
+                           "INFJ","INFP","ENFJ","ENFP",
+                           "ISTJ","ISFJ","ESTJ","ESFJ",
+                           "ISTP","ISFP","ESTP","ESFP"]
+                
+                content = Frame(self.mbtiFrame,bg=bg,width=740)
+                content.pack(side=TOP,pady=10)
+                w,h = 130, 48
+                def show_mbti(_i, _tag,r,c):
+                    print(r,c)
+                    if "N" in _tag and "T" in _tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
+                    elif "N" in _tag and "F" in _tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
+                    elif "S" in _tag and "J" in _tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
+                    elif "S" in _tag and "P" in _tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
+                    bt = Button(content,command=lambda: print(_tag),text=_tag, image=self.userTagImg,fg=fg,bg=bg,bd=0,compound=CENTER)
+                    #bt = Button(self.filterframe,text=tag, image=self.userTagImg,fg=fg,bg=bg,bd=0,compound=CENTER)
+                    bt.image = self.userTagImg
+                    bt.grid(row=r,column=c,padx=20,pady=10, sticky=NSEW)
+                r,c = 0,0
+                for i,tag in enumerate(mbtiLst):
+                    show_mbti(i,tag,r,c)
+                    c+=1
+                    if c==4:
+                        c = 0
+                        r +=1
+                conn = self.controller.create_connection()
+                conn.row_factory = sqlite3.Row
+                if conn is None:
+                    print('Cant connect DB')
+                    return
+                self.get_tagname()
+                
+                    
             pass
         
         def random_user(self):
@@ -783,7 +848,6 @@ class Matching(Frame):
             pass
                     
         def display_user(self):
-            self.conn.close()
             self.userTabBtnImg = self.controller.get_image(r'./assets/images/rectangle.png',820,180)
             self.idxrandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
             print("Display random index of uuidlst",self.idxrandLst)
@@ -835,8 +899,8 @@ class Matching(Frame):
                     self.userTag.image = self.userTagImg
                     self.userTag.place(x=xplace,y=110)
                 else:
-                    tagname = self.tagnameLst[(self.uinfoLst[ir][i])-1]
-                    self.userTag = Label(self.tabFrame, text="{}".format(tagname), image=self.userTagImg,
+                    tag = self.tagnameLst[(self.uinfoLst[ir][i])-1]
+                    self.userTag = Label(self.tabFrame, text="{}".format(tag['tagName']), image=self.userTagImg,
                                         bg=bgRectangle, compound=CENTER)
                     self.userTag.image = self.userTagImg
                     self.userTag.place(x=xplace,y=110)
@@ -846,6 +910,10 @@ class Matching(Frame):
                                bd=0, bg=bgRectangle, activebackground=bgRectangle)
             self.next.image = nextIcon
             self.next.place(x=720,y=45, anchor=NW)
+            pass
+        
+        def get_userfilter(self):
+            print("get_userfilter")
             pass
         
         def goto_review_profile(self,_uidselect):
