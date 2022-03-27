@@ -500,6 +500,7 @@ class SignUp(Frame):
             self.widgetLst = [["Personality Test ( MBTI ){}".format(" "*22)],["Let's Go! Have fun in BU Friends.{}".format(" "*8)]]
             redirectLst = [lambda:self.controller.switch_frame(Mbti), lambda:self.controller.switch_frame(SignIn)]
             imgPathLst = [r'./assets/buttons/rectangleGreen.png',r'./assets/buttons/rectangleWhite.png']
+            self.controller.pvFrame = 1
             for i,path in enumerate(imgPathLst):
                 img = self.controller.get_image(path)
                 self.widgetLst[i].append(img)
@@ -537,8 +538,8 @@ class Mbti(Frame):
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
-            self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(Matching), image=self.backImg, relief="flat",bd=0)
-            if self.controller.pvFrame == 1: self.back.config(command=lambda:self.controller.switch_frame(EditPage))
+            self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(EditPage), image=self.backImg, relief="flat",bd=0)
+            if self.controller.pvFrame == 1: self.back.config(command=lambda:self.controller.switch_frame(Matching))
             self.back.place(x=20,y=10 ,anchor="nw")
             """if from regis page:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
@@ -697,7 +698,7 @@ class Matching(Frame):
         def __init__(self, root, controllerFrame):
             self.root = root
             self.controller = controllerFrame
-            self.controller.pvFrame = 0
+            self.controller.pvFrame = 1
             self.controller.title("BU Friends  |  Matching")
             print("checkuid =",self.controller.uid)
             self.bgCanva = "#FFFFFF"
@@ -1156,12 +1157,12 @@ class EditPage(Frame):
             self.mbtiTag = Label(self.mainFrame,text=self.tagData.tagList[0],image=self.img,bg=self.bgColor,
             compound=CENTER,fg='white')
             self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)
-            self.controller.pvFrame = 1
+            self.controller.pvFrame = 0
             self.mbtiBtn = Button(self.mainFrame,text="Redo the test?",command=lambda: self.controller.switch_frame(Mbti),bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4')
             self.mbtiBtn.grid(row=2,column=1)
         else :
-            self.mbtiBtn = Button(self.mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            self.mbtiBtn = Button(self.mainFrame,text="Do the test?",command=lambda: self.controller.switch_frame(Mbti),bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4')
             self.mbtiBtn.grid(row=2,column=1,sticky=W,padx=115)
         if self.mbtiTag is not None :
