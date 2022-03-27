@@ -58,7 +58,7 @@ class BUFriends(Tk):
             self.frame.destroy()
         self.frame = new_frame
         self.configure(bg = self.frame.bgColor)
-        self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
+        self.frame.pack(side=BOTTOM, fill=BOTH, expand=True)
 
     def get_image(self, _path, _width, _height):
         origin = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
@@ -108,7 +108,7 @@ class ScrollFrame():
 
     # This can now handle either windows or linux platforms
     def _on_mousewheel(self, event):
-        if self.scrollable == TRUE :
+        if self.scrollable == True :
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
@@ -124,7 +124,7 @@ class ProfileReviewPage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.config(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,TRUE)
+        scroll = ScrollFrame(self,True)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1,self.controller.uidSelect)
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uidSelect)
@@ -135,7 +135,7 @@ class ProfilePage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.config(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,TRUE)
+        scroll = ScrollFrame(self,True)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,2,self.controller.uid)
         self.create_post_frame()
@@ -175,7 +175,7 @@ class EditPage(Frame):
         self.mainFrame = None
         self.tagData = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,TRUE)
+        scroll = ScrollFrame(self,True)
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
@@ -436,7 +436,7 @@ class EditPage(Frame):
         self.tag_geometry()
 
     def save_change(self) :
-        print(self.tagData.tagList)
+        print("tag =",self.tagData.tagList)
         self.bioStr = self.bioEntry.get(1.0,'end-1c')
         if self.bioStr.isspace() :
             self.bioStr = None
@@ -466,7 +466,7 @@ class MyAccountPage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,FALSE)
+        scroll = ScrollFrame(self,False)
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
@@ -504,7 +504,7 @@ class ChangePasswordPage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,FALSE)
+        scroll = ScrollFrame(self,False)
         self.root = scroll.interior
         fontHead = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontHead)
@@ -590,7 +590,7 @@ class DeactivatePage(Frame):
         self.controller = controller
         self.data = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,FALSE)
+        scroll = ScrollFrame(self,False)
         self.root = scroll.interior
         fontHead = Font(family='leelawadee',size=20,weight='bold')
         self.fontBody = Font(family='leelawadee',size=15,weight='bold')
@@ -678,29 +678,40 @@ class InfoOnProfile() :
         self.optionFrame = None
         self.parent = parent
         self.uid = uid
+        self.tagList = []
         self.get_profile()
         self.profile_frame()
         self.tag_frame()    
     def get_profile(self) :
         conn = self.controller.create_connection()
         sql = """SELECT DisplayName,Bio,Email FROM Users WHERE Uid=?"""
-        sql2 = """SELECT UserType,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid=?"""
+        sql2 = """SELECT UserType FROM UsersTag WHERE Uid=?"""
+        sql3 = """SELECT TagName FROM Tags LEFT JOIN UsersTag 
+        ON Tags.Tid=UsersTag.Tid1 OR Tags.Tid=UsersTag.Tid2 
+        OR Tags.Tid=UsersTag.Tid3 OR Tags.Tid=UsersTag.Tid4 WHERE Uid=?"""
         if conn is not None:
             c = self.controller.execute_sql(sql,[self.uid])
-            c2 = self.controller.execute_sql(sql2,[self.uid])
-            tagData = c2.fetchone()
-            print(tagData)
-            self.tagList = []
-            self.tagList.append(tagData[0])
-            for i in range(1,len(tagData)):
-                if tagData[i] is not None :
-                    sql3 = """SELECT TagName FROM Tags WHERE Tid=?"""
-                    c3 = self.controller.execute_sql(sql3,[tagData[i]])
-                    self.tagList.append(c3.fetchone()[0])
             userData = c.fetchone()
             self.name = userData[0]
             self.bio = userData[1]
             self.email = userData[2]
+            c = self.controller.execute_sql(sql2,[self.uid])
+            # tagData = c.fetchone()
+            # print(tagData)
+            self.tagList.append(c.fetchone()[0])
+            c = self.controller.execute_sql(sql3,[self.uid])
+            tagData = c.fetchall()
+            for i,data in enumerate(tagData) :
+                self.tagList.append(data[0])
+            # for i in range(1,len(tagData)):
+            #     if tagData[i] is not None :
+            #         sql3 = """SELECT TagName FROM Tags WHERE Tid=?"""
+            #         c3 = self.controller.execute_sql(sql3,[tagData[i]])
+            #         self.tagList.append(c3.fetchone()[0])
+            # userData = c.fetchone()
+            # self.name = userData[0]
+            # self.bio = userData[1]
+            # self.email = userData[2]
         else:
             print("Error! cannot create the database connection.")
         conn.close()
@@ -851,7 +862,7 @@ class Administration(Frame):
         self.bgColor = '#181B23'
         self.controller = controller
         Frame.config(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,TRUE,self.bgColor)
+        scroll = ScrollFrame(self,False,self.bgColor)
         self.root = scroll.interior
         self.imgList = {}
         imgPathList = [
@@ -863,7 +874,18 @@ class Administration(Frame):
     def page_geometry(self) :
         Button(self.root,image=self.imgList['logout'],bd=0,
         bg=self.bgColor,activebackground=self.bgColor).pack(anchor=NE,pady=5)
-        # Frame(self.root,bg='#282D39',width=800,height=500).pack(pady=15)
+        self.mainFrame = Frame(self.root,bg='#282D39',width=800,height=500)
+        self.mainFrame.pack(pady=15)
+        self.mainFrame.propagate(0)
+        scroll = ScrollFrame(self.mainFrame,True,'#282D39')
+        self.container = scroll.interior
+        for index in range(100):
+            item = Label(self.container,text=index,bg='#282D39')
+            item.pack(side=TOP, fill=X, expand=TRUE)
+
+        # for index in range(100):
+        #     item = Label(self.content,text=index)
+        #     item.pack(side=TOP, fill=X, expand=TRUE)
         # Entry(self.root,text="TEST",highlightcolor='white',bg=self.bgColor).pack(side=LEFT)
 if __name__ == '__main__':
     app = BUFriends()
