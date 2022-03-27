@@ -30,11 +30,12 @@ class BUFriends(Tk):
         self.uid = 0
         self.uidSelect = 0
         self.mbtiCode = ""
+        self.pvFrame = 0
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
         self.y = ((self.winfo_screenheight()//2-50) - (self.height // 2))
-        self.geometry("{}x{}+{}+{}".format(self.width, self.height, self.x, self.y))
+        self.geometry(f"{self.width}x{self.height}+{self.x}+{self.y}")
         self.resizable(0,0)
         self.title("BU Friends  |")
         self.iconbitmap(r'./assets/icons/bufriends.ico')
@@ -48,7 +49,15 @@ class BUFriends(Tk):
             self.uid = self.ssid
             #self.switch_frame(Mbti)
             self.switch_frame(Matching)
-            messagebox.showinfo('BU Friends',"{}Welcome back !{}".format(" "*10," "*10))
+            conn = self.create_connection()
+            if conn is None:
+                print("Cannot Connecting to Database")
+                return
+            sql = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
+            dname = self.execute_sql(sql, [self.ssid]).fetchone()[0]
+            conn.close()
+            messagebox.showinfo('BU Friends',"{}Welcome back!  {}{}".format(" "*4,dname," "*4))
+            
         else:
             self.switch_frame(SignIn)
             
@@ -491,6 +500,7 @@ class SignUp(Frame):
             self.widgetLst = [["Personality Test ( MBTI ){}".format(" "*22)],["Let's Go! Have fun in BU Friends.{}".format(" "*8)]]
             redirectLst = [lambda:self.controller.switch_frame(Mbti), lambda:self.controller.switch_frame(SignIn)]
             imgPathLst = [r'./assets/buttons/rectangleGreen.png',r'./assets/buttons/rectangleWhite.png']
+            self.controller.pvFrame = 1
             for i,path in enumerate(imgPathLst):
                 img = self.controller.get_image(path)
                 self.widgetLst[i].append(img)
@@ -528,7 +538,8 @@ class Mbti(Frame):
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
-            self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(SignIn), image=self.backImg, relief="flat",bd=0)
+            self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(EditPage), image=self.backImg, relief="flat",bd=0)
+            if self.controller.pvFrame == 1: self.back.config(command=lambda:self.controller.switch_frame(Matching))
             self.back.place(x=20,y=10 ,anchor="nw")
             """if from regis page:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
@@ -569,10 +580,10 @@ class Mbti(Frame):
                 request_quiz(i)
                 pass
             self.btnImg = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
-            self.mbtiBtn = Button(self.mbtiFrame, text="Submit!", command=self.mbti_calculator, image=self.btnImg, compound="center",
+            self.mbtiSubmitBtn = Button(self.mbtiFrame, text="Submit!", command=self.mbti_calculator, image=self.btnImg, compound="center",
                                   bd=0,activebackground=bg,bg=bg,fg=bg)
-            self.mbtiBtn.image = self.btnImg
-            self.mbtiBtn.pack(expand=1,pady=30)
+            self.mbtiSubmitBtn.image = self.btnImg
+            self.mbtiSubmitBtn.pack(expand=1,pady=30)
     
         def reset_values(self):
             self.answLst.clear()
@@ -635,11 +646,12 @@ class Mbti(Frame):
         
         def mbti_commit(self):
             print("checkuid b4 mbti commited",self.controller.uid)
-            sqlMbti = """UPDATE UsersTag SET UserType = ? WHERE Uid = ? ;"""
-            if self.controller.conn is None:
+            conn = self.controller.create_connection()
+            if conn is None:
                 print("DB Cannot Connect!")
             else:
                 try:
+                    sqlMbti = """UPDATE UsersTag SET UserType = ? WHERE Uid = ? ;"""
                     self.controller.execute_sql(sqlMbti, (self.controller.mbtiCode, self.controller.uid))
                     print("mbti commited !")
                 except Error as e:
@@ -686,6 +698,7 @@ class Matching(Frame):
         def __init__(self, root, controllerFrame):
             self.root = root
             self.controller = controllerFrame
+            self.controller.pvFrame = 1
             self.controller.title("BU Friends  |  Matching")
             print("checkuid =",self.controller.uid)
             self.bgCanva = "#FFFFFF"
@@ -769,7 +782,7 @@ class Matching(Frame):
                 Label(self.mbtiFrame, text="MBTI",bg=bg,fg=fg).place(x=20,y=20,anchor=NW)
                 content = Frame(self.mbtiFrame,bg=bg,width=740)
                 content.pack(side=TOP,fill=BOTH,pady=15)
-                self.selectTags = []
+                self.matchAllTags = []
                 self.mbtiWidgets = []
                 mbtiLst = ["INTJ","INTP","ENTJ","ENTP",
                            "INFJ","INFP","ENFJ","ENFP",
@@ -794,10 +807,9 @@ class Matching(Frame):
                     self.mbtiWidgets.append({"status":0, 
                                              "widget":btn, 
                                              "userType":_utype})
-                    
                 def show_tag(_i, _tag):
                     self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton2.png',w,h)
-                    btnTag = Button(self.tagsFrame, text=_tag['tagName'],command=lambda:print(_tag['tid']),
+                    btnTag = Button(self.tagsFrame, text=_tag['tagName'],command=lambda:self.select_tag(_tag['tagName']),
                                  image=self.userTagImg,bd=0,bg=bg,fg=fg,font="leelawadee 12 bold",
                                  activebackground=bg, compound=CENTER)
                     btnTag.image = self.userTagImg
@@ -835,7 +847,6 @@ class Matching(Frame):
                                  image=imgBtn2,font="leelawadee 12 bold",bg=bg,compound=CENTER,bd=0,activebackground=bg)
                 randBtn.image = imgBtn2
                 randBtn.pack(side=RIGHT,padx=10)
-                
                 def close_leave(e):
                     closeBtn.config(bd=0,image=imgBtn3)
                 def close_hover(e):
@@ -847,16 +858,27 @@ class Matching(Frame):
                 cframe = Frame(self.endFrame,bg=bg)
                 cframe.pack(side=LEFT,expand=1)
                 imgBtn3 = self.controller.get_image(r'./assets/buttons/closeGrey.png')
-                closeIcon = self.controller.get_image(r'./assets/darktheme/Close.png')
                 closeBtn = Label(cframe, image=imgBtn3,bd=0,compound=CENTER,bg=bg)
                 closeBtn.image = imgBtn3
                 closeBtn.bind('<Enter>',lambda e: close_hover(e))
                 closeBtn.bind('<Leave>',lambda e: close_leave(e))
                 closeBtn.bind('<Button-1>',lambda e: close_frame(e))
                 closeBtn.pack(side=RIGHT,padx=10)
-                
-                
-                
+        
+        def select_tag(self, tag, mbti=None):
+            selectTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png')
+            if mbti is not None:
+                pass
+                        
+            else:
+                for i,select in enumerate(self.tagWidgets):
+                    if select['tagName'] == tag:
+                        select['widget'].config(image=selectTagImg,compound=CENTER)
+            
+            
+            pass
+        def match_tag(self):
+            pass
         
         def random_user(self):
             def reset_var():
@@ -991,7 +1013,6 @@ class Matching(Frame):
             
      
 
-
 class ProfileReviewPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -1043,9 +1064,13 @@ class EditPage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
+        self.nameStr = None
+        self.bioStr = None
+        self.searchEntryBox = None
+        self.mainFrame = None
         self.tagData = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,FALSE)
+        scroll = ScrollFrame(self,TRUE)
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
@@ -1053,6 +1078,8 @@ class EditPage(Frame):
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
             {'name':'entry','path':'./assets/entrys/entry2rz.png','x':400,'y':50},
+            {'name':'longentry','path':'./assets/darktheme/searchtabrz.png','x':760,'y':50},
+            {'name':'search','path':'./assets/darktheme/Search.png','x':35,'y':35},
             {'name':'tag','path':'./assets/buttons/tagEdit.png','x':130,'y':45},
             {'name':'add','path':'./assets/buttons/addTag.png','x':130,'y':45},
             {'name':'yellow','path':'./assets/buttons/mbtiYellowEdit.png','x':130,'y':45},
@@ -1061,31 +1088,51 @@ class EditPage(Frame):
             {'name':'purple','path':'./assets/buttons/mbtiPurpleEdit.png','x':130,'y':45},
             {'name':'longtag','path':'./assets/buttons/tagEditLong.png','x':180,'y':45},
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65},
-            {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40}]
+            {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40},
+            {'name':'entry2','path':'./assets/entrys/entry3.png','x':400,'y':80},
+            {'name':'box','path':'./assets/buttons/rectangleBlue.png','x':200,'y':60},
+            {'name':'selectBox','path':'./assets/buttons/rectangleDarkBlue.png','x':200,'y':60}]
+
+        for i,data in enumerate(imgPathList) :
+            img = self.controller.get_image(data['path'],data['x'],data['y'])
+            self.imgList[data['name']] = img 
         if self.tagData.tagList[0] is not None :
             if self.tagData.tagList[0][1] == "N" :
                 if self.tagData.tagList[0][2] == "T" :
-                    self.img = self.controller.get_image(imgPathList[4]['path'],imgPathList[4]['x'],imgPathList[4]['y'])
+                    self.img = self.imgList['purple']
                 else :
-                    self.img = self.controller.get_image(imgPathList[5]['path'],imgPathList[5]['x'],imgPathList[5]['y'])
+                    self.img = self.imgList['green']
             elif self.tagData.tagList[0][1] == "S" :
                 if self.tagData.tagList[0][3] == "J" :
-                    self.img = self.controller.get_image(imgPathList[6]['path'],imgPathList[6]['x'],imgPathList[6]['y'])
+                    self.img = self.imgList['blue']
                 else :
-                    self.img = self.controller.get_image(imgPathList[7]['path'],imgPathList[7]['x'],imgPathList[7]['y'])
-        for i,data in enumerate(imgPathList) :
-            img = self.controller.get_image(data['path'],data['x'],data['y'])
-            self.imgList[data['name']] = img        
-        self.page_geometry()
-        self.tag_geometry()
-        self.end_geometry()
-    def page_geometry(self) :
-        headList = ("Username","Bio","MBTI","Interest")
-        Button(self.root,image=self.imgList['back'],bd=0
+                    self.img = self.imgList['yellow']  
+        self.head_geometry()                 
+        self.main_geometry()
+    def head_geometry(self) :
+        self.backBtn = Button(self.root,image=self.imgList['back'],bd=0
         ,bg=self.bgColor,activebackground=self.bgColor,
-        command=lambda:self.controller.switch_frame(ProfilePage)).pack(anchor=NW)
-        Label(self.root,text="Edit Profit",font='leelawadee 20 bold',
-        bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
+        command=lambda:self.controller.switch_frame(ProfilePage))
+        self.backBtn.pack(anchor=NW)
+        self.headText = Label(self.root,text="Edit Profit",font='leelawadee 20 bold',
+        bg=self.bgColor,anchor=N)
+        self.headText.pack(anchor=NW,padx=115,ipady=10)
+    def main_geometry(self) :
+        if self.nameStr is None :
+            self.nameStr = StringVar()
+            self.nameStr.set(self.tagData.name) 
+        if self.bioStr is None :
+            if self.tagData.bio is not None :
+                self.bioStr = self.tagData.bio 
+            else :     
+                self.bioStr = "" 
+        if self.searchEntryBox is not None :
+            self.searchEntryBox.destroy()
+        if self.mainFrame is not None :
+            self.mainFrame.destroy()
+        self.backBtn.config(command=lambda:self.controller.switch_frame(ProfilePage))
+        self.headText.config(text="Edit Profit")
+        headList = ("Username","Bio","MBTI","Interest")
         self.mainFrame = Frame(self.root,bg=self.bgColor)
         self.mainFrame.pack(anchor=W,padx=115)
         for i,data in enumerate(headList) :
@@ -1094,48 +1141,41 @@ class EditPage(Frame):
         entryBox = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
         entryBox.grid(row=0,column=1,sticky=N,pady=10,padx=115)
         entryBox.propagate(0)
-        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0)
-        entry.insert(0,self.tagData.name)
+        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0,textvariable=self.nameStr,fg='#868383')
         entry.pack(expand=1)
     
-        entryBox2 = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor,height=75)
+        entryBox2 = Label(self.mainFrame,image=self.imgList['entry2'],bg=self.bgColor)
         entryBox2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
         entryBox2.propagate(0)
-        # entry2 = Entry(entryBox2,font='leelawadee 15',width=35,bd=0)
-        # entry2.insert(0,self.tagData.bio)
-        # entry2.pack(expand=1)
-        entry2 = Text(entryBox2,font='leelawadee 15',bg=self.bgColor,width=35,height=3)
-        if self.tagData.bio is not None :
-            entry2.insert(END,self.tagData.bio)     
-        entry2.pack(expand=1)
 
-        # entry2 = Text(font='leelawadee 15',width=35)
-        # entry2.insert(0,self.tagData.bio)
-        # entry2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
+        self.bioEntry = Text(entryBox2,font='leelawadee 15',
+        bg=self.bgColor,width=35,height=3,bd=0,fg='#868383')
+
+        self.bioEntry.insert(END,self.bioStr)     
+        self.bioEntry.pack(expand=1)
+        self.tag_geometry()
+        self.end_geometry()
         
     def tag_geometry(self) :
         self.addWidget = None
         self.mbtiTag = None
-        self.bmtiBtn = None
+        self.mbtiBtn = None
         self.vars = [StringVar() for i in range(len(self.tagData.tagList))]
         self.tagWidgetList = []
         if self.tagData.tagList[0] is not None :
             self.mbtiTag = Label(self.mainFrame,text=self.tagData.tagList[0],image=self.img,bg=self.bgColor,
             compound=CENTER,fg='white')
-            self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)            
-            self.bmtiBtn = Button(self.mainFrame,text="Redo the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)
+            self.controller.pvFrame = 0
+            self.mbtiBtn = Button(self.mainFrame,text="Redo the test?",command=lambda: self.controller.switch_frame(Mbti),bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4')
-            self.bmtiBtn.grid(row=2,column=1)
+            self.mbtiBtn.grid(row=2,column=1)
         else :
-            self.bmtiBtn = Button(self.mainFrame,text="Do the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            self.mbtiBtn = Button(self.mainFrame,text="Do the test?",command=lambda: self.controller.switch_frame(Mbti),bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4')
-            self.bmtiBtn.grid(row=2,column=1,sticky=W,padx=115)
+            self.mbtiBtn.grid(row=2,column=1,sticky=W,padx=115)
         if self.mbtiTag is not None :
             self.mbtiTag.bind('<Button-1>',lambda e: self.delete_mbti(e))
-        # tagFrame = Frame(self.mainFrame,bg=self.bgColor)
-        # tagFrame.grid(row=3,column=1,sticky=W,padx=115)
-        # row = 0
-        # column = 0
         row = 3
         top = Frame(self.mainFrame,bg=self.bgColor)
         top.grid(row=row,column=1,sticky=W,padx=115)
@@ -1145,7 +1185,6 @@ class EditPage(Frame):
                 self.vars[i].set(self.tagData.tagList[i])
                 if len(self.tagData.tagList[i]) <= 9 :
                     tag = Label(frame,image=self.imgList['tag'],bg=self.bgColor)
-                    # tag.grid(row=row,column=column,sticky=W)
                     tag.pack(anchor=W)
                     tag.propagate(0)
                     lb = Label(tag,text=self.tagData.tagList[i],fg='white',bg='#88A3F3',width=8,textvariable=self.vars[i])
@@ -1153,58 +1192,170 @@ class EditPage(Frame):
 
                 else:
                     tag = Label(frame,image=self.imgList['longtag'],bg=self.bgColor)
-                    # tag.grid(row=row,column=column,sticky=W)
                     tag.pack(anchor=W)
                     tag.propagate(0)
                     lb = Label(tag,text=self.tagData.tagList[i],fg='white',bg='#88A3F3',width=12,textvariable=self.vars[i])
                     lb.pack(expand=1,anchor=W,padx=12)
                 tag.bind('<Button-1>',lambda e,c=i: self.delete_tag(e,c))
                 self.tagWidgetList.append(tag)
-                # column+= 1
                 if i%2 == 0 :
                     row+=1
                     newframe = Frame(self.mainFrame,bg=self.bgColor)
                     newframe.grid(row=row,column=1,sticky=W,padx=115)
                     frame = newframe
-                    # column=0
                 else :
                     tag.pack(side=LEFT)
             elif i > 0 and i >= len(self.tagData.tagList):
                 if len(self.tagData.tagList) <= 4 :
-                    # Button(frame,image=self.imgList['add'],bg=self.bgColor,
-                    # bd=0,activebackground=self.bgColor).pack(anchor=W)
                     self.addWidget = Label(frame,image=self.imgList['add'],bg=self.bgColor)
                     self.addWidget.pack(anchor=W)
-                    self.addWidget.bind('<Button-1>',lambda e,c=i: self.add_tag(e))
+                    self.addWidget.bind('<Button-1>',lambda e,c=i: self.addtag_page(e))
     def end_geometry(self) :
-            frame = Frame(self.root,bg=self.bgColor)
-            frame.pack(pady=25)
-            Button(frame,image=self.imgList['button'],text="Save Change",bd=0,compound=CENTER,
+            self.endFrame = Frame(self.root,bg=self.bgColor)
+            self.endFrame.pack(pady=25)
+            Button(self.endFrame,image=self.imgList['button'],text="Save Change",bd=0,compound=CENTER,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,activeforeground='white',
             command=lambda : self.save_change()).pack(side=LEFT,padx=20)
 
-            Button(frame,image=self.imgList['cancel'],text="Cancel",bd=0,
+            Button(self.endFrame,image=self.imgList['cancel'],text="Cancel",bd=0,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
-            activeforeground='white').pack(side=LEFT)
+            activeforeground='white',command=lambda:self.controller.switch_frame(ProfilePage)).pack(side=LEFT)
+    
     def delete_tag(self,event,index) :
         self.tagData.tagList.pop(index)
         if self.addWidget is not None :
             self.addWidget.destroy()
         if self.mbtiTag is not None :
             self.mbtiTag.destroy()
-        self.bmtiBtn.destroy()
+        self.mbtiBtn.destroy()
         for i in range(len(self.tagWidgetList)) :
             self.tagWidgetList[i].destroy()
         self.tag_geometry()
-    def add_tag(self,event) :
-        print("add tag")
+
+    def searchTag(self,event) : 
+        if self.search.get() == "Search" : 
+            self.search.set("")
+
+    def addtag_page(self,event) :
+        self.search = StringVar()
+        self.search.set("Search")
+        self.bioStr = self.bioEntry.get(1.0,'end-1c')
+        self.mainFrame.destroy()
+        self.endFrame.destroy()
+        self.backBtn.config(command=lambda:self.main_geometry())
+        self.headText.config(text="Add Interest")
+        self.searchEntryBox = Label(self.root,image=self.imgList['longentry'],bg=self.bgColor)
+        self.searchEntryBox.pack(pady=10)
+        self.searchEntryBox.propagate(0)
+        searchEntry = Entry(self.searchEntryBox,bd=0,font='leelawadee 16',fg='#868383',width=62,textvariable=self.search)
+        searchEntry.pack(expand=1,anchor=W,padx=10,side=LEFT)
+        searchEntry.focus_force()
+        searchEntry.select_range(0,END)
+        searchEntry.bind('<Button-1>',lambda e :self.searchTag(e))
+        Button(self.searchEntryBox,image=self.imgList['search'],bg=self.bgColor,bd=0,
+        activebackground=self.bgColor,command=lambda : self.search_event()).pack(anchor=E,expand=1,padx=10,side=LEFT)
+        self.mainFrame = Frame(self.root,bg=self.bgColor)
+        self.mainFrame.pack()
+        self.get_alltag()
+        self.show_tags(self.allTags)
+        for i,data in enumerate(self.tagData.tagList) :
+            print(data)
+            self.select_tag(data,1)
+    def search_event(self) :
+        searchList = []
+        self.mainFrame.destroy()
+        self.mainFrame = Frame(self.root,bg=self.bgColor)
+        self.mainFrame.pack()
+        for i,data in enumerate(self.allTags) :
+            if self.search.get().lower() in data['tagName'].lower():
+                searchList.append({'tagName':data['tagName']})
+        print(searchList)
+        self.show_tags(searchList)
+        for i,data in enumerate(self.tagData.tagList) :
+            print(data)
+            self.select_tag(data)
+    def get_alltag(self) :
+        self.allTags = []
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        sql = """SELECT Tid,TagName FROM Tags"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql)
+            data = c.fetchone()
+            while data :
+                self.allTags.append({'tid':data['Tid'],'tagName':data['TagName']})
+                data = c.fetchone()
+            conn.close()
+    def select_tag(self,name,check=None) :
+        for i,data in enumerate(self.tagWidgets) :
+            if data['name'] == name :
+                data['widget'].config(image=self.imgList['selectBox'],compound=CENTER)
+                if data['status'] == 0 :
+                    if len(self.tagData.tagList) < 5 :
+                        print(name)
+                        data['status'] = 1
+                        if data['name'] not in self.tagData.tagList :
+                            self.tagData.tagList.append(data['name'])
+                    else :
+                        if check is not None :
+                            messagebox.showwarning("Add Interest","You can select 4 attentions.")
+                            data['widget'].config(image=self.imgList['box'],compound=CENTER)
+                elif data['status'] == 1:
+                    data['widget'].config(image=self.imgList['box'],compound=CENTER)
+                    print(name)
+                    data['status'] = 0
+                    if data['name'] in self.tagData.tagList :
+                        self.tagData.tagList.remove(data['name'])
+                break
+        print(self.tagData.tagList)
+    def show_tags(self,showList) :
+        print(self.tagData.tagList)
+        row = 0
+        column = 0
+        self.tagWidgets = []
+        for i,data in enumerate(showList) :
+            lb = Button(self.mainFrame,image=self.imgList['box'],text=data['tagName'],bd=0,
+            compound=CENTER,font='leelawadee 15 bold',bg=self.bgColor,fg='white',
+            activeforeground='white',activebackground='white',command=lambda name=data['tagName']: self.select_tag(name,1))
+            lb.propagate(0)
+            self.tagWidgets.append({'name':data['tagName'],'widget':lb,'status':0})
+            lb.grid(row=row,column=column,padx=20,pady=10)
+            column+=1
+            if i%3 == 2 :
+                column=0
+                row+=1 
+
     def delete_mbti(self,event) :
         self.tagData.tagList[0] = None
-        self.bmtiBtn.destroy()
+        self.mbtiBtn.destroy()
         self.mbtiTag.destroy()
         self.tag_geometry()
+
     def save_change(self) :
         print(self.tagData.tagList)
+        self.bioStr = self.bioEntry.get(1.0,'end-1c')
+        if self.bioStr.isspace() :
+            self.bioStr = None
+        values = [None for i in range(5)]
+        values[0] = self.tagData.tagList[0]
+        print(values)
+        self.get_alltag()
+        conn = self.controller.create_connection()
+        sql = """UPDATE Users SET DisplayName=?,Bio=? WHERE Uid=?"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql,[self.nameStr.get(),self.bioStr,self.controller.uid])
+            conn.close()
+            valuesIndex = 1
+            for i,data in enumerate(self.allTags) :
+                if data['tagName'] in self.tagData.tagList :
+                    values[valuesIndex] = data['tid']
+                    valuesIndex+=1
+            conn = self.controller.create_connection()
+            sql = """UPDATE Userstag SET UserType=?,Tid1=?,Tid2=?,Tid3=?,Tid4=? WHERE Uid=?"""
+            c = self.controller.execute_sql(sql,[values[0],values[1],values[2],values[3],values[4],self.controller.uid])
+            conn.close()
+            messagebox.showinfo("Edit Profile","Profile has been successfully edited.")
+            self.controller.switch_frame(ProfilePage)
 class MyAccountPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -1215,8 +1366,6 @@ class MyAccountPage(Frame):
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
-        self.my_account()
-    def my_account(self) :
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
@@ -1226,7 +1375,9 @@ class MyAccountPage(Frame):
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
+        self.my_account()
 
+    def my_account(self) :
         Button(self.root,image=self.imgList['back'],bd=0
         ,bg=self.bgColor,activebackground=self.bgColor,
         command=lambda:self.controller.switch_frame(ProfilePage)).pack(anchor=NW)
@@ -1253,21 +1404,18 @@ class ChangePasswordPage(Frame):
         self.root = scroll.interior
         fontHead = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontHead)
-        self.page_geometry()
-    def page_geometry(self) :
         self.pwdList = [StringVar(),StringVar(),StringVar()]
-        # self.pwdList = {
-        #     'current':StringVar(),
-        #     'new':StringVar(),
-        #     'confirm':StringVar()}
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65}]
-        textList = ("Current Password","New Password","Confirm Password")
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
+        self.page_geometry()
+    def page_geometry(self) :
+        textList = ("Current Password","New Password","Confirm Password")
+
         canvas = Canvas(self.root,highlightthickness=0,bg=self.bgColor)
         canvas.pack(fill=BOTH, expand=1)
         Button(canvas,image=self.imgList['back'],bd=0,
@@ -1289,6 +1437,7 @@ class ChangePasswordPage(Frame):
         Button(canvas,text="Update Password",image=self.imgList['button'],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
         command=self.password_validation).pack(pady=30)
+
     def password_validation(self) :
         self.pwds = []
         for i in range(len(self.pwdList)) :
@@ -1306,6 +1455,7 @@ class ChangePasswordPage(Frame):
                 messagebox.showerror("Change password","Invalid password!!!\n[ Required ] At Least 8 Characters \n[ Required ] A mixture of letters and numbers")
         else:
             messagebox.showerror("Change password","Please enter current password")
+    
     def change_password(self) :
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
@@ -1321,15 +1471,13 @@ class ChangePasswordPage(Frame):
                 newSalt = os.urandom(32)
                 newpass = self.controller.password_encryptioncheck(self.pwds[1],newSalt)
                 sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
-                try:
-                    c2 = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
-                    messagebox.showinfo("Change password","Password has been successfully changed.")
-                    self.controller.switch_frame(MyAccountPage)
-                except Error as e:
-                    print(e)
+                c2 = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
+                conn.close()
+                messagebox.showinfo("Change password","Password has been successfully changed.")
+                self.controller.switch_frame(MyAccountPage)
             else :
                 messagebox.showerror("Change password","Incorrect current password!!!")
-        conn.close()
+
 
 class DeactivatePage(Frame):
     def __init__(self,controller):
@@ -1343,8 +1491,6 @@ class DeactivatePage(Frame):
         fontHead = Font(family='leelawadee',size=20,weight='bold')
         self.fontBody = Font(family='leelawadee',size=15,weight='bold')
         self.option_add('*font',fontHead)
-        self.page_geometry()
-    def page_geometry(self) :
         self.password = StringVar()
         self.imgList = {}
         imgPathList = [
@@ -1356,6 +1502,8 @@ class DeactivatePage(Frame):
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
+        self.page_geometry()
+    def page_geometry(self) :
         canvas = Canvas(self.root,highlightthickness=0,bg=self.bgColor)
         canvas.pack(fill=BOTH, expand=1)
 
@@ -1389,7 +1537,6 @@ class DeactivatePage(Frame):
         activeforeground='white',font='leelawadee 13 bold',
         command=self.deactivate).pack(pady=30)
     def deactivate(self) :
-        pwd = self.password.get()
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
         sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
@@ -1405,26 +1552,23 @@ class DeactivatePage(Frame):
             data = c.fetchone()
             passHash = data['passHash']
             passSalt = data['passSalt']
-            passkey = self.controller.password_encryptioncheck(pwd,passSalt)
+            passkey = self.controller.password_encryptioncheck(self.password.get(),passSalt)
             if passkey == passHash :
                 print("same password")
-                ms = messagebox.askquestion("Deactivate","Are you sure you want to deactivate account?")
+                ms = messagebox.askquestion("BU Friends  |  Deactivate Account","Are you sure you want to deactivate account?")
                 if ms == "yes" :
                     for i,data in enumerate(sqlDelete):
                         c = self.controller.execute_sql(data,[self.controller.uid])
-                    print("deactivate account")
+                    print("deactivate account") 
+                    self.controller.uid = 0
+                    with open(r'./database/sessions.txt','w')as ss:
+                        ss.write("{}".format(0))
+                    messagebox.showinfo("BU Friends  |  Deactivate Account","Your Account Has Been Deactivated.\nHave a nice time and Good Bye...")
                     self.controller.destroy()
                 else :
                     self.password.set('')
-            #     # newSalt = os.urandom(32)
-            #     # newpass = self.controller.password_encryptioncheck("test1234",newSalt)
-            #     # sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
-            #     # try:
-            #     #     c = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
-            #     # except Error as e:
-            #     #     print(e)
             else :
-                messagebox.showerror("Deactivate","Incorrect password!!!")
+                messagebox.showerror("BU Friends  |  Deactivate Account","Incorrect password! Please Try Again.")
         conn.close()
 class InfoOnProfile() :
     def __init__(self, root, bgcolor,controller,parent,uid):
@@ -1434,6 +1578,10 @@ class InfoOnProfile() :
         self.optionFrame = None
         self.parent = parent
         self.uid = uid
+        self.get_profile()
+        self.profile_frame()
+        self.tag_frame()    
+    def get_profile(self) :
         conn = self.controller.create_connection()
         sql = """SELECT DisplayName,Bio,Email FROM Users WHERE Uid=?"""
         sql2 = """SELECT UserType,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid=?"""
@@ -1456,8 +1604,6 @@ class InfoOnProfile() :
         else:
             print("Error! cannot create the database connection.")
         conn.close()
-        self.profile_frame()
-        self.tag_frame()    
 
     def option_click(self) :
         def next_page(index) :
@@ -1506,26 +1652,16 @@ class InfoOnProfile() :
         imgPathList = ( ('./assets/icons/goback.png',50,50),
                         ('./assets/icons/hamberger.png',25,25),
                         ('./assets/icons/profile.png',180,180))
-        profilePathLst = [r'./assets/images/avt0.png', 
-                          r'./assets/images/avt1.png',
-                          r'./assets/images/avt2.png', 
-                          r'./assets/images/avt3.png',
-                          r'./assets/images/avt4.png', 
-                          r'./assets/images/avt5.png',]
         fontTag = Font(family='leelawadee',size=13)
         bottomFrame.option_add('*font',fontTag)
         self.imgList = []
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data[0],data[1],data[2])
             self.imgList.append(img)
-        self.profileImgLst = []
-        for i, path in enumerate(profilePathLst):
-            img = self.controller.get_image(path,180,180)
-            self.profileImgLst.append(img)
         Button(topFrame,image=self.imgList[0],command=lambda:self.controller.switch_frame(Matching),bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=LEFT)
         Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
-        Label(bottomFrame,image=self.profileImgLst[self.uid%6],bg=self.bgColor).pack()
+        Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
         if self.bio is not None :
             bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
@@ -1580,6 +1716,9 @@ class PostOnProfile() :
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=1)
         fontTag = Font(family='leelawadee',size=13)
         self.frame.option_add('*font',fontTag)
+        self.get_post()
+        self.post()
+    def get_post(self) :
         conn = self.controller.create_connection()
         sql = """SELECT Detail FROM Postings WHERE Uid=?"""
         sql2 = """SELECT DisplayName FROM Users WHERE Uid=?"""
@@ -1595,7 +1734,6 @@ class PostOnProfile() :
         conn.close()
         Label(self.frame,text="Post",font="leelawadee 20 bold",bg='#E6EEFD').pack(anchor=W,padx=20,pady=5)
         print(len(self.postList))
-        self.post()
 
     def post(self):
         for i in range(1,len(self.postList)+1):
@@ -1610,6 +1748,26 @@ class PostOnProfile() :
             textPost.pack(pady=5)
             innerFrame.pack(ipadx=20,pady=10)
 
+class Administration(Frame):
+    def __init__(self,controller):
+        Frame.__init__(self,controller)
+        self.bgColor = '#181B23'
+        self.controller = controller
+        Frame.config(self,bg=self.bgColor)
+        scroll = ScrollFrame(self,TRUE,self.bgColor)
+        self.root = scroll.interior
+        self.imgList = {}
+        imgPathList = [
+            {'name':'logout','path':'./assets/icons/signOut.png','x':35,'y':35}]
+        for i,data in enumerate(imgPathList) :
+            img = self.controller.get_image(data['path'],data['x'],data['y'])
+            self.imgList[data['name']] = img
+        self.page_geometry()
+    def page_geometry(self) :
+        Button(self.root,image=self.imgList['logout'],bd=0,
+        bg=self.bgColor,activebackground=self.bgColor).pack(anchor=NE,pady=5)
+        # Frame(self.root,bg='#282D39',width=800,height=500).pack(pady=15)
+        # Entry(self.root,text="TEST",highlightcolor='white',bg=self.bgColor).pack(side=LEFT)
 
 if __name__ == '__main__':
     BUFriends().mainloop()

@@ -15,17 +15,19 @@ class BUFriends(Tk):
         self.uid = 0
         self.uidSelect = 0
         self.mbtiCode = ""
+        self.pvFrame = 0
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
         self.y = ((self.winfo_screenheight()//2-50) - (self.height // 2))
-        self.geometry("{}x{}+{}+{}".format(self.width, self.height, self.x, self.y))
+        self.geometry(f"{self.width}x{self.height}+{self.x}+{self.y}")
         self.resizable(0,0)
         self.title("BU Friends  |")
         self.iconbitmap(r'./assets/icons/bufriends.ico')
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
-        self.switch_frame(PageOne)
+        
+        
 # switch page event
     def switch_frame(self, frameClass):
         print("switching to {} \n=|with uid = {}".format(frameClass, self.uid))
