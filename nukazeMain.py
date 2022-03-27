@@ -29,8 +29,9 @@ class BUFriends(Tk):
         self.frame = None
         self.uid = 0
         self.uidSelect = 0
-        self.mbtiCode = ""
+        self.mbtiCode = None
         self.pvFrame = 0
+        self.matchPoint = 0
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -688,7 +689,6 @@ class Matching(Frame):
         Frame.config(self,bg=self.bgColor)
         self.pack(expand=1,fill=BOTH)
         self.controller = controllerFrame
-        print("matching id = ",self.controller.uid)
         with open(r'./database/sessions.txt','w')as ss:
             ss.write("{}".format(self.controller.uid))
         self.root = ScrollFrame(self, True).interior
@@ -699,6 +699,7 @@ class Matching(Frame):
             self.root = root
             self.controller = controllerFrame
             self.controller.pvFrame = 1
+            self.controller.matchpoint = 0
             self.controller.title("BU Friends  |  Matching")
             print("checkuid =",self.controller.uid)
             self.bgCanva = "#FFFFFF"
@@ -725,15 +726,18 @@ class Matching(Frame):
             self.usersFrame.pack(side=BOTTOM,expand=1)
             self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
             self.cntLoop = 0
-            self.random_user()
+            if self.controller.matchPoint == 0:
+                self.random_user()
+                self.display_user_random()
+            else:
+                self.get_userfilter()
             print("\nRe-Loop count (Found ADMIN or Your-Self) =",self.cntLoop)
             print("\nuuidLst user to show =",self.uuidLst)
             print("dname cnt=",len(self.udnameLst))
             print("dnamelst =",self.udnameLst)
             for i,info in enumerate(self.uinfoLst):
                 print(*info,end=">=> ")
-            print()
-            self.display_user()
+            
             
         def get_tagname(self):
             self.tagnameLst = []
@@ -752,8 +756,6 @@ class Matching(Frame):
                 print("We have {} tag in Database.".format(len(self.tagnameLst)))
                 self.conn.close()
                 return self.tagnameLst
-            print("tag name = ",self.tagnameLst)
-            pass
         
         
         def filter_tags(self):
@@ -838,7 +840,10 @@ class Matching(Frame):
                 matchBtn.image = imgBtn
                 matchBtn.pack(side=RIGHT,padx=10)
                 imgBtn2 = self.controller.get_image(r'./assets/buttons/buttonDice.png')
-                randBtn = Button(self.endBtn, text=f"""{" "*6}Random!""", command=lambda: self.controller.switch_frame(Matching),
+                def random_filter():
+                    self.controller.matchPoint = 0
+                    self.controller.switch_frame(Matching)
+                randBtn = Button(self.endBtn, text=f"""{" "*6}Random!""", command=lambda: random_filter(),
                                  image=imgBtn2,font="leelawadee 12 bold",bg=bg,compound=CENTER,bd=0,activebackground=bg)
                 randBtn.image = imgBtn2
                 randBtn.pack(side=RIGHT,padx=10)
@@ -924,11 +929,14 @@ class Matching(Frame):
         def match_tags_commit(self):
             if self.matchAllTags == []:
                 messagebox.showinfo("BU Friends  |  Matching","You didn't select any tags.\nPlease Try again.")
-                return 
+                return
             else:
                 # Resorting All Tags
+                self.controller.matchPoint = 1
+                print(self.controller.matchPoint)
                 self.matchAllTags = list(map(int,filter(lambda x:x.isdigit(),sorted(map(str,self.matchAllTags)))))+list(filter(lambda x:x.isalpha(),sorted(map(str,self.matchAllTags))))
                 messagebox.showinfo("BU Friends  | Matching",f"You selected tags is\n{self.matchAllTags}")
+                self.controller.switch_frame(Matching)
             pass
         
         def random_user(self):
@@ -980,7 +988,7 @@ class Matching(Frame):
                     self.udnameLst.append(row['DisplayName'])
             pass
                     
-        def display_user(self):
+        def display_user_random(self):
             self.userTabBtnImg = self.controller.get_image(r'./assets/images/rectangle.png',820,180)
             self.idxrandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
             print("Display random index of uuidlst",self.idxrandLst)
