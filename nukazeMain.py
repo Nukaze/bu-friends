@@ -35,7 +35,7 @@ class BUFriends(Tk):
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
         self.y = ((self.winfo_screenheight()//2-50) - (self.height // 2))
-        self.geometry("{}x{}+{}+{}".format(self.width, self.height, self.x, self.y))
+        self.geometry(f"{self.width}x{self.height}+{self.x}+{self.y}")
         self.resizable(0,0)
         self.title("BU Friends  |")
         self.iconbitmap(r'./assets/icons/bufriends.ico')
