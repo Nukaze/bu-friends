@@ -782,7 +782,7 @@ class Matching(Frame):
                 Label(self.mbtiFrame, text="MBTI",bg=bg,fg=fg).place(x=20,y=20,anchor=NW)
                 content = Frame(self.mbtiFrame,bg=bg,width=740)
                 content.pack(side=TOP,fill=BOTH,pady=15)
-                self.selectTags = []
+                self.matchAllTags = []
                 self.mbtiWidgets = []
                 mbtiLst = ["INTJ","INTP","ENTJ","ENTP",
                            "INFJ","INFP","ENFJ","ENFP",
@@ -807,10 +807,9 @@ class Matching(Frame):
                     self.mbtiWidgets.append({"status":0, 
                                              "widget":btn, 
                                              "userType":_utype})
-                    
                 def show_tag(_i, _tag):
                     self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton2.png',w,h)
-                    btnTag = Button(self.tagsFrame, text=_tag['tagName'],command=lambda:print(_tag['tid']),
+                    btnTag = Button(self.tagsFrame, text=_tag['tagName'],command=lambda:self.select_tag(_tag['tagName']),
                                  image=self.userTagImg,bd=0,bg=bg,fg=fg,font="leelawadee 12 bold",
                                  activebackground=bg, compound=CENTER)
                     btnTag.image = self.userTagImg
@@ -848,7 +847,6 @@ class Matching(Frame):
                                  image=imgBtn2,font="leelawadee 12 bold",bg=bg,compound=CENTER,bd=0,activebackground=bg)
                 randBtn.image = imgBtn2
                 randBtn.pack(side=RIGHT,padx=10)
-                
                 def close_leave(e):
                     closeBtn.config(bd=0,image=imgBtn3)
                 def close_hover(e):
@@ -860,16 +858,27 @@ class Matching(Frame):
                 cframe = Frame(self.endFrame,bg=bg)
                 cframe.pack(side=LEFT,expand=1)
                 imgBtn3 = self.controller.get_image(r'./assets/buttons/closeGrey.png')
-                closeIcon = self.controller.get_image(r'./assets/darktheme/Close.png')
                 closeBtn = Label(cframe, image=imgBtn3,bd=0,compound=CENTER,bg=bg)
                 closeBtn.image = imgBtn3
                 closeBtn.bind('<Enter>',lambda e: close_hover(e))
                 closeBtn.bind('<Leave>',lambda e: close_leave(e))
                 closeBtn.bind('<Button-1>',lambda e: close_frame(e))
                 closeBtn.pack(side=RIGHT,padx=10)
-                
-                
-                
+        
+        def select_tag(self, tag, mbti=None):
+            selectTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png')
+            if mbti is not None:
+                pass
+                        
+            else:
+                for i,select in enumerate(self.tagWidgets):
+                    if select['tagName'] == tag:
+                        select['widget'].config(image=selectTagImg,compound=CENTER)
+            
+            
+            pass
+        def match_tag(self):
+            pass
         
         def random_user(self):
             def reset_var():
