@@ -756,11 +756,6 @@ class Matching(Frame):
             pass
         
         
-        # people_by_name = build_dict(lst, key="name")
-        # tom_info = people_by_name.get("Tom")
-        def find_dict(seq, key):
-            return dict((d[key], dict(d, index=index)) for (index, d) in enumerate(seq))
-        
         def filter_tags(self):
             def destroy_frame():
                 self.endFrame.destroy()
@@ -783,8 +778,9 @@ class Matching(Frame):
                 content = Frame(self.mbtiFrame,bg=bg,width=740)
                 content.pack(side=TOP,fill=BOTH,pady=15)
                 self.matchAllTags = []
+                self.tagWidgets = []
                 self.mbtiWidgets = []
-                mbtiLst = ["INTJ","INTP","ENTJ","ENTP",
+                self.mbtiLst = ["INTJ","INTP","ENTJ","ENTP",
                            "INFJ","INFP","ENFJ","ENFP",
                            "ISTJ","ISFJ","ESTJ","ESFJ",
                            "ISTP","ISFP","ESTP","ESFP"]
@@ -792,14 +788,13 @@ class Matching(Frame):
                 self.tagsFrame.pack(side=TOP,fill=BOTH,ipady=5)
                 self.tagnameLst.clear()
                 self.tagnameLst = self.get_tagname()
-                self.tagWidgets = []
                 w,h = 140, 50
                 def show_mbti(_i, _utype):
-                    if "N" in _utype and "T" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
-                    elif "N" in _utype and "F" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
-                    elif "S" in _utype and "J" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
-                    elif "S" in _utype and "P" in _utype: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
-                    btn = Button(content,command=lambda: print(_utype),text=_utype,
+                    if "N" in _utype and "T" in _utype: letter = "NT";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
+                    elif "N" in _utype and "F" in _utype: letter = "NF";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
+                    elif "S" in _utype and "J" in _utype: letter = "SJ";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
+                    elif "S" in _utype and "P" in _utype: letter = "SP";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
+                    btn = Button(content,command=lambda:self.select_tag(_utype,letter),text=_utype,
                                  image=self.userTagImg,fg=fg,bg=bg,bd=0,
                                  activebackground=bg,compound=CENTER)
                     btn.image = self.userTagImg
@@ -819,7 +814,7 @@ class Matching(Frame):
                                             "tid":_tag['tid'], 
                                             "tagName":_tag['tagName']})
                 r,c = 0,0
-                for i,tag in enumerate(mbtiLst):
+                for i,tag in enumerate(self.mbtiLst):
                     show_mbti(i,tag)
                     c+=1
                     if c==4:
@@ -838,7 +833,7 @@ class Matching(Frame):
                 self.endBtn = Frame(self.endFrame,bg=bg)
                 self.endBtn.pack(side=LEFT,expand=1,fill=Y,pady=15)
                 imgBtn = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
-                matchBtn = Button(self.endBtn,command=lambda:self.get_userfilter(),text="Match!!",
+                matchBtn = Button(self.endBtn,command=lambda:self.match_tags_commit(),text="Match!!",
                                   image=imgBtn,bg=bg,compound=CENTER,bd=0,activebackground=bg)
                 matchBtn.image = imgBtn
                 matchBtn.pack(side=RIGHT,padx=10)
@@ -865,19 +860,75 @@ class Matching(Frame):
                 closeBtn.bind('<Button-1>',lambda e: close_frame(e))
                 closeBtn.pack(side=RIGHT,padx=10)
         
-        def select_tag(self, tag, mbti=None):
-            selectTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png')
-            if mbti is not None:
-                pass
-                        
+        def select_tag(self, tag, mbtiLetter=None):
+            limitTag = 5
+            w,h = 140, 50
+            if mbtiLetter:
+                if mbtiLetter == "NT": 
+                    selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiPurple.png', w, h)
+                    unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
+                elif mbtiLetter == "NF": 
+                    selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiGreen.png', w, h)
+                    unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
+                elif mbtiLetter == "SJ": 
+                    selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiCyan.png', w, h)
+                    unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
+                elif mbtiLetter == "SP": 
+                    selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiYellow.png', w, h)
+                    unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
+
+                for i,select in enumerate(self.mbtiWidgets):
+                    if select['userType'] == tag:
+                        select['widget'].config(image=selectMbtiImg,compound=CENTER,fg="#eeeeee")
+                        select['widget'].image = selectMbtiImg
+                        if select['status'] == 0:
+                            if len(self.matchAllTags) < limitTag:
+                                self.matchAllTags.append(select['userType'])
+                                select['status'] = 1
+                            else:
+                                select['widget'].config(image=unselectMbtiImg,compound=CENTER,fg="#555555")
+                                select['widget'].image = unselectMbtiImg
+                                select['status'] = 0    
+                                messagebox.showwarning("BU Friends  |  Matching",f"You can select Tag at most {limitTag} Tags")
+                        elif select['status'] == 1:
+                            if select['userType'] in self.matchAllTags:
+                                self.matchAllTags.remove(select['userType'])
+                            select['widget'].config(image=unselectMbtiImg,compound=CENTER,fg="#555555")
+                            select['widget'].image = unselectMbtiImg
+                            select['status'] = 0    
             else:
+                selectTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png',w,h)
                 for i,select in enumerate(self.tagWidgets):
                     if select['tagName'] == tag:
-                        select['widget'].config(image=selectTagImg,compound=CENTER)
-            
-            
+                        select['widget'].config(image=selectTagImg,compound=CENTER,fg="#eeeeee")
+                        select['widget'].image = selectTagImg
+                        if select['status'] == 0:
+                            if len(self.matchAllTags) < limitTag:
+                                self.matchAllTags.append(select['tid'])
+                                select['status'] = 1
+                            else:
+                                select['widget'].config(image=self.userTagImg,compound=CENTER,fg="#555555")
+                                select['widget'].image = self.userTagImg
+                                select['status'] = 0    
+                                messagebox.showwarning("BU Friends  |  Matching",f"You can select Tag at most {limitTag} Tags")
+                                
+                        elif select['status'] == 1:
+                            if select['tid'] in self.matchAllTags:
+                                self.matchAllTags.remove(select['tid'])
+                            select['widget'].config(image=self.userTagImg,compound=CENTER,fg="#555555")
+                            select['widget'].image = self.userTagImg
+                            select['status'] = 0    
+            print(self.matchAllTags)    
             pass
-        def match_tag(self):
+        
+        def match_tags_commit(self):
+            if self.matchAllTags == []:
+                messagebox.showinfo("BU Friends  |  Matching","You didn't select any tags.\nPlease Try again.")
+                return 
+            else:
+                # Resorting All Tags
+                self.matchAllTags = list(map(int,filter(lambda x:x.isdigit(),sorted(map(str,self.matchAllTags)))))+list(filter(lambda x:x.isalpha(),sorted(map(str,self.matchAllTags))))
+                messagebox.showinfo("BU Friends  | Matching",f"You selected tags is\n{self.matchAllTags}")
             pass
         
         def random_user(self):
