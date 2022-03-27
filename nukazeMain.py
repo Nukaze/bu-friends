@@ -30,6 +30,7 @@ class BUFriends(Tk):
         self.uid = 0
         self.uidSelect = 0
         self.mbtiCode = ""
+        self.pvFrame = 0
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -536,7 +537,8 @@ class Mbti(Frame):
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
-            self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(SignIn), image=self.backImg, relief="flat",bd=0)
+            self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(Matching), image=self.backImg, relief="flat",bd=0)
+            if self.controller.pvFrame == 1: self.back.config(command=lambda:self.controller.switch_frame(EditPage))
             self.back.place(x=20,y=10 ,anchor="nw")
             """if from regis page:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
@@ -577,10 +579,10 @@ class Mbti(Frame):
                 request_quiz(i)
                 pass
             self.btnImg = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
-            self.mbtiBtn = Button(self.mbtiFrame, text="Submit!", command=self.mbti_calculator, image=self.btnImg, compound="center",
+            self.mbtiSubmitBtn = Button(self.mbtiFrame, text="Submit!", command=self.mbti_calculator, image=self.btnImg, compound="center",
                                   bd=0,activebackground=bg,bg=bg,fg=bg)
-            self.mbtiBtn.image = self.btnImg
-            self.mbtiBtn.pack(expand=1,pady=30)
+            self.mbtiSubmitBtn.image = self.btnImg
+            self.mbtiSubmitBtn.pack(expand=1,pady=30)
     
         def reset_values(self):
             self.answLst.clear()
@@ -695,6 +697,7 @@ class Matching(Frame):
         def __init__(self, root, controllerFrame):
             self.root = root
             self.controller = controllerFrame
+            self.controller.pvFrame = 0
             self.controller.title("BU Friends  |  Matching")
             print("checkuid =",self.controller.uid)
             self.bgCanva = "#FFFFFF"
@@ -1152,7 +1155,8 @@ class EditPage(Frame):
         if self.tagData.tagList[0] is not None :
             self.mbtiTag = Label(self.mainFrame,text=self.tagData.tagList[0],image=self.img,bg=self.bgColor,
             compound=CENTER,fg='white')
-            self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)            
+            self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)
+            self.controller.pvFrame = 1
             self.mbtiBtn = Button(self.mainFrame,text="Redo the test?",command=lambda: self.controller.switch_frame(Mbti),bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4')
             self.mbtiBtn.grid(row=2,column=1)
