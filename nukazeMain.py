@@ -643,11 +643,12 @@ class Mbti(Frame):
         
         def mbti_commit(self):
             print("checkuid b4 mbti commited",self.controller.uid)
-            sqlMbti = """UPDATE UsersTag SET UserType = ? WHERE Uid = ? ;"""
-            if self.controller.conn is None:
+            conn = self.controller.create_connection()
+            if conn is None:
                 print("DB Cannot Connect!")
             else:
                 try:
+                    sqlMbti = """UPDATE UsersTag SET UserType = ? WHERE Uid = ? ;"""
                     self.controller.execute_sql(sqlMbti, (self.controller.mbtiCode, self.controller.uid))
                     print("mbti commited !")
                 except Error as e:
@@ -1152,7 +1153,7 @@ class EditPage(Frame):
             self.mbtiTag = Label(self.mainFrame,text=self.tagData.tagList[0],image=self.img,bg=self.bgColor,
             compound=CENTER,fg='white')
             self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)            
-            self.mbtiBtn = Button(self.mainFrame,text="Redo the test?",bg=self.bgColor,fg='#23B7F4',bd=0,
+            self.mbtiBtn = Button(self.mainFrame,text="Redo the test?",command=lambda: self.controller.switch_frame(Mbti),bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4')
             self.mbtiBtn.grid(row=2,column=1)
         else :
@@ -1540,16 +1541,20 @@ class DeactivatePage(Frame):
             passkey = self.controller.password_encryptioncheck(self.password.get(),passSalt)
             if passkey == passHash :
                 print("same password")
-                ms = messagebox.askquestion("Deactivate","Are you sure you want to deactivate account?")
+                ms = messagebox.askquestion("BU Friends  |  Deactivate Account","Are you sure you want to deactivate account?")
                 if ms == "yes" :
                     for i,data in enumerate(sqlDelete):
                         c = self.controller.execute_sql(data,[self.controller.uid])
-                    print("deactivate account")
+                    print("deactivate account") 
+                    self.controller.uid = 0
+                    with open(r'./database/sessions.txt','w')as ss:
+                        ss.write("{}".format(0))
+                    messagebox.showinfo("BU Friends  |  Deactivate Account","Your Account Has Been Deactivated.\nHave a nice time and Good Bye...")
                     self.controller.destroy()
                 else :
                     self.password.set('')
             else :
-                messagebox.showerror("Deactivate","Incorrect password!!!")
+                messagebox.showerror("BU Friends  |  Deactivate Account","Incorrect password! Please Try Again.")
         conn.close()
 class InfoOnProfile() :
     def __init__(self, root, bgcolor,controller,parent,uid):
