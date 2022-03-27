@@ -1652,16 +1652,26 @@ class InfoOnProfile() :
         imgPathList = ( ('./assets/icons/goback.png',50,50),
                         ('./assets/icons/hamberger.png',25,25),
                         ('./assets/icons/profile.png',180,180))
+        profilePathLst = [r'./assets/images/avt0.png', 
+                          r'./assets/images/avt1.png',
+                          r'./assets/images/avt2.png', 
+                          r'./assets/images/avt3.png',
+                          r'./assets/images/avt4.png', 
+                          r'./assets/images/avt5.png',]
         fontTag = Font(family='leelawadee',size=13)
         bottomFrame.option_add('*font',fontTag)
         self.imgList = []
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data[0],data[1],data[2])
             self.imgList.append(img)
+        self.profileImgLst = []
+        for i, path in enumerate(profilePathLst):
+            img = self.controller.get_image(path,180,180)
+            self.profileImgLst.append(img)
         Button(topFrame,image=self.imgList[0],command=lambda:self.controller.switch_frame(Matching),bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=LEFT)
         Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
-        Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
+        Label(bottomFrame,image=self.profileImgLst[self.uid%6],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
         if self.bio is not None :
             bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
