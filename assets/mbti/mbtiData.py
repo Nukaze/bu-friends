@@ -1,4 +1,5 @@
 import random
+from sqlite3 import *
 def get_MbtiQuizTH():
      return [["IE","คุณมักพบกว่าเป็นเรื่องไม่ยากที่จะผ่อนคลาย\nเมื่อต้องพูดต่อหน้าคนจำนวนมาก"],
             ["IE","ในหมู่เพื่อนของคุณ คุณคือคนแบบไหน ?"],
@@ -67,6 +68,4 @@ def get_MbtiAnsTH():
             ["P","J","เป็นไปตามธรรมชาติ ตามสัญชาตญาณ","เป็นระบบระเบียบ ตามแนวปฏิบัติ"]    
 ]
 
-#quiz = get_MbtiQuizTH()
-#randLst = random.sample(range(len(quiz)),len(quiz))
-#print(randLst)
+                
