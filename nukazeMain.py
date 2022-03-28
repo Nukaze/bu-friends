@@ -44,19 +44,37 @@ class BUFriends(Tk):
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
         with open(r'./database/sessions.txt','r')as ss:
-            self.ssid = int(ss.read())
-            print(self.ssid)
+            try:
+                self.ssid = int(ss.read())
+                print(self.ssid)
+            except ValueError as ve:
+                print(ve)
+                self.uid,self.ssid = 0,0
+                with open(r'./database/sessions.txt','w')as ss:
+                    ss.write("{}".format(0))
+                self.switch_frame(SignIn)
+                return
         if self.ssid != 0:
             self.uid = self.ssid
             #self.switch_frame(Mbti)
-            self.switch_frame(Matching)
             conn = self.create_connection()
             if conn is None:
                 print("Cannot Connecting to Database")
                 return
-            sql = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
-            dname = self.execute_sql(sql, [self.ssid]).fetchone()[0]
+            sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
+            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
+            lastUid = self.execute_sql(sqlLastUid).fetchone()[0]
+            print(lastUid)
+            if self.ssid > lastUid:
+                self.uid,self.ssid = 0,0
+                with open(r'./database/sessions.txt','w')as ss:
+                    ss.write("{}".format(0))
+                print(self.ssid)
+                self.switch_frame(SignIn)
+                return
+            dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
             conn.close()
+            self.switch_frame(Matching)
             messagebox.showinfo('BU Friends',"{}Welcome back!  {}{}".format(" "*4,dname," "*4))
             
         else:
@@ -499,7 +517,7 @@ class SignUp(Frame):
             self.completeImg = self.controller.get_image(r'./assets/images/regiscompleterz.png')
             self.canvasFrame.create_image(0, 0, image=self.completeImg, anchor="nw")
             self.widgetLst = [["Personality Test ( MBTI ){}".format(" "*22)],["Let's Go! Have fun in BU Friends.{}".format(" "*8)]]
-            redirectLst = [lambda:self.controller.switch_frame(Mbti), lambda:self.controller.switch_frame(SignIn)]
+            redirectLst = [lambda:self.controller.switch_frame(Mbti), lambda:self.controller.switch_frame(Matching)]
             imgPathLst = [r'./assets/buttons/rectangleGreen.png',r'./assets/buttons/rectangleWhite.png']
             self.controller.pvFrame = 1
             for i,path in enumerate(imgPathLst):
@@ -730,7 +748,7 @@ class Matching(Frame):
                 self.random_user()
                 self.display_user_random()
             else:
-                self.get_userfilter()
+                self.get_usertab_filter()
             print("\nRe-Loop count (Found ADMIN or Your-Self) =",self.cntLoop)
             print("\nuuidLst user to show =",self.uuidLst)
             print("dname cnt=",len(self.udnameLst))
@@ -931,13 +949,27 @@ class Matching(Frame):
                 messagebox.showinfo("BU Friends  |  Matching","You didn't select any tags.\nPlease Try again.")
                 return
             else:
-                # Resorting All Tags
                 self.controller.matchPoint = 1
-                print(self.controller.matchPoint)
+                print("MatchPoint = 1",self.controller.matchPoint)
+                # Resorting str & int in All Tags
                 self.matchAllTags = list(map(int,filter(lambda x:x.isdigit(),sorted(map(str,self.matchAllTags)))))+list(filter(lambda x:x.isalpha(),sorted(map(str,self.matchAllTags))))
-                messagebox.showinfo("BU Friends  | Matching",f"You selected tags is\n{self.matchAllTags}")
-                self.controller.switch_frame(Matching)
-            pass
+                self.matchTagsLst = [tag for tag in self.matchAllTags if isinstance(tag, int)]
+                self.matchMbtiLst = [tag for tag in self.matchAllTags if isinstance(tag, str)]
+                print(self.matchTagsLst)
+                print(self.matchMbtiLst)
+                messagebox.showinfo("BU Friends  | Matching",f"You selected All tags is {self.matchAllTags}\nYou selected tags is {self.matchTagsLst}\nYou selected Mbti is {self.matchMbtiLst}")
+                conn = self.controller.create_connection()
+                if conn is None:
+                    print('Cant connect DB')
+                    return
+                if len(self.matchAllTags):
+                    sqlMatch = """SELECT ua.Uid FROM(SELECT UsersTag ut1 WHERE ut1.Tid1 = in ({})) ua
+                    
+                    """
+                
+                
+                
+                #self.controller.switch_frame(Matching)
         
         def random_user(self):
             def reset_var():
@@ -995,9 +1027,9 @@ class Matching(Frame):
             self.get_tagname()
             print(self.tagnameLst)
             for i in range(len(self.uuidLst)):
-                self.get_usertab(i)
+                self.get_usertab_random(i)
                 
-        def get_usertab(self,_i):
+        def get_usertab_random(self,_i):
             bgRectangle = "#e6eefd"
             ir = self.idxrandLst[_i]
             self.tabFrame = Frame(self.canvasMain,bg=self.bgCanva)
@@ -1053,7 +1085,7 @@ class Matching(Frame):
             self.next.place(x=720,y=45, anchor=NW)
             pass
         
-        def get_userfilter(self):
+        def get_usertab_filter(self):
             print("Match!!")
             print("get_userfilter")
             pass
