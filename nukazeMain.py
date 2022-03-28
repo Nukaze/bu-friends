@@ -882,7 +882,7 @@ class Matching(Frame):
                 closeBtn.pack(side=RIGHT,padx=10)
         
         def select_tag(self, tag, _mbtiLetter=None):
-            limitTag = 5
+            limitTag = 8
             w,h = 140, 50
             if _mbtiLetter:
                 if _mbtiLetter == "NT": 
