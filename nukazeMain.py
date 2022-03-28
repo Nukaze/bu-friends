@@ -977,31 +977,32 @@ class Matching(Frame):
                 if self.matchMbtiLst:
                     limitRangeMbti = len(self.matchMbtiLst)
                     qMbtiSet = gen_qmark(limitRangeMbti)
-                    #if len(self.matchMbtiLst) > 1:  
-                        #self.matchMbtiLst = tuple(self.matchMbtiLst)
                     if self.matchTagsLst:
-                        limitRangeTag = len(self.matchTagsLst)
-                        print(self.matchTagsLst)
-                        qTagSet = gen_qmark(limitRangeTag)
-                        sqlMatch = f"""select uA.* FROM (SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
+                        sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
                                                     UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
                                                     UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
                                                     UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
-                                                    ) ua WHERE uA.UserType in ({qMbtiSet});"""
+                                                    ) uniA WHERE uniA.UserType in ({qMbtiSet});"""
                     else:
                         sqlMatch = f"""SELECT * FROM UsersTag WHERE userType in ({qMbtiSet});"""
-                        pass
-                    print(sqlMatch)
-                    curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
-                    for data in curr:
-                        print(*data)
-                        self.uuidFilter.append(data['Uid'])
-                    print(self.uuidFilter)
-                    return
                 else:
-                    
-                    pass
-                    
+                    sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
+                                                UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
+                                                UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
+                                                UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
+                                                ) uniA ;"""
+                print(sqlMatch)
+                curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
+                for data in curr:
+                    print(*data)
+                    self.uuidFilter.append(data['Uid'])
+                if self.uuidFilter == []:
+                    messagebox.showinfo("BU Friends  |  Matching","Currently no one matches your tags required.\nTry to changing the tags again. \n[ Don't give up and you'll meet new friends ]")
+                else:
+                    messagebox.showinfo("BU Friends  |  Matching","Matched!!!")
+                    print(self.uuidFilter)
+                    print(len(self.uuidFilter))
+                return
                 
                 messagebox.showinfo("BU Friends  | Matching",f"You selected All tags is {self.matchAllTags}\nYou selected tags is {self.matchTagsLst}\nYou selected Mbti is {self.matchMbtiLst}")
                 #self.controller.switch_frame(Matching)
