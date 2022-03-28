@@ -865,20 +865,20 @@ class Matching(Frame):
                 closeBtn.bind('<Button-1>',lambda e: close_frame(e))
                 closeBtn.pack(side=RIGHT,padx=10)
         
-        def select_tag(self, tag, mbtiLetter=None):
+        def select_tag(self, tag, _mbtiLetter=None):
             limitTag = 5
             w,h = 140, 50
-            if mbtiLetter:
-                if mbtiLetter == "NT": 
+            if _mbtiLetter:
+                if _mbtiLetter == "NT": 
                     selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiPurple.png', w, h)
                     unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
-                elif mbtiLetter == "NF": 
+                elif _mbtiLetter == "NF": 
                     selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiGreen.png', w, h)
                     unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
-                elif mbtiLetter == "SJ": 
+                elif _mbtiLetter == "SJ": 
                     selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiCyan.png', w, h)
                     unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
-                elif mbtiLetter == "SP": 
+                elif _mbtiLetter == "SP": 
                     selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiYellow.png', w, h)
                     unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
 
