@@ -14,8 +14,9 @@ class BUFriends(Tk):
         self.frame = None
         self.uid = 0
         self.uidSelect = 0
-        self.mbtiCode = ""
         self.pvFrame = 0
+        self.matchPoint = 0
+        self.mbtiCode = None
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
         self.y = ((self.winfo_screenheight()//2-50) - (self.height // 2))
