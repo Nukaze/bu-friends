@@ -46,9 +46,7 @@ class BUFriends(Tk):
         with open(r'./database/sessions.txt','r')as ss:
             try:
                 self.ssid = int(ss.read())
-                print(self.ssid)
             except ValueError as ve:
-                print(ve)
                 self.uid,self.ssid = 0,0
                 with open(r'./database/sessions.txt','w')as ss:
                     ss.write("{}".format(0))
@@ -56,7 +54,6 @@ class BUFriends(Tk):
                 return
         if self.ssid != 0:
             self.uid = self.ssid
-            #self.switch_frame(Mbti)
             conn = self.create_connection()
             if conn is None:
                 print("Cannot Connecting to Database")
@@ -74,6 +71,7 @@ class BUFriends(Tk):
                 return
             dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
             conn.close()
+            #self.switch_frame(Mbti)
             self.switch_frame(Matching)
             messagebox.showinfo('BU Friends',"{}Welcome back!  {}{}".format(" "*4,dname," "*4))
             
