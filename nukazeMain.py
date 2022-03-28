@@ -943,56 +943,65 @@ class Matching(Frame):
             pass
         
         def match_tags_commit(self):
-            def gen_qmark_list(_rangelimit):
-                questionMark = ["?,","?"]
-                qLst = []
-                for i in range(_rangelimit):
-                    if i+1 == _rangelimit:
-                        qLst.append(questionMark[1])
-                        break
-                    qLst.append(questionMark[0])
-                return qLst
+            def gen_qmark(_rangelimit):
+                    questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
+                    return questionMarkSet
             if self.matchAllTags == []:
                 messagebox.showinfo("BU Friends  |  Matching","You didn't select any tags.\nPlease Try again.")
                 return
             else:
                 self.controller.matchPoint = 1
-                print("MatchPoint = ",self.controller.matchPoint)
+                self.uuidFilter = []
+                print("\n\nMatchPoint = ",self.controller.matchPoint)
                 # Resorting str & int in All Tags
                 self.matchAllTags = list(map(int,filter(lambda x:x.isdigit(),sorted(map(str,self.matchAllTags)))))+list(filter(lambda x:x.isalpha(),sorted(map(str,self.matchAllTags))))
-                self.matchTagsLst = [tag for tag in self.matchAllTags if isinstance(tag, int)]
-                self.matchMbtiLst = [tag for tag in self.matchAllTags if isinstance(tag, str)]
-                self.matchTagsLst = ", ".join(map(str,self.matchTagsLst))
-                print(self.matchTagsLst)
-                print(self.matchMbtiLst)
+                print(self.matchAllTags)
+                self.matchTagsLst,self.matchMbtiLst = None, None
+                try:
+                    if any(isinstance(tag, int) for tag in self.matchAllTags):
+                        print("any digit\n")
+                        self.matchTagsLst = [tag for tag in self.matchAllTags if isinstance(tag, int)]
+                        self.matchTagsLst = ", ".join(map(str,self.matchTagsLst))
+                        print(self.matchTagsLst)
+                    if any(isinstance(tag, str) for tag in self.matchAllTags):
+                        print("any alpha\n")
+                        self.matchMbtiLst = [tag for tag in self.matchAllTags if isinstance(tag, str)]
+                        print(self.matchMbtiLst)
+                except ValueError as ve: print(ve); return 
                 conn = self.controller.create_connection()
                 conn.row_factory = sqlite3.Row
                 sqlMatch = None
                 if conn is None:
                     print('Cant connect DB')
                     return
-                if self.matchMbtiLst != []:
+                if self.matchMbtiLst:
                     limitRangeMbti = len(self.matchMbtiLst)
-                    qMbtiLst = tuple(gen_qmark_list(limitRangeMbti))
-                    if len(self.matchMbtiLst) > 1:  
-                        self.matchMbtiLst = tuple(self.matchMbtiLst)
-                    if self.matchTagsLst != []:
+                    qMbtiSet = gen_qmark(limitRangeMbti)
+                    #if len(self.matchMbtiLst) > 1:  
+                        #self.matchMbtiLst = tuple(self.matchMbtiLst)
+                    if self.matchTagsLst:
                         limitRangeTag = len(self.matchTagsLst)
                         print(self.matchTagsLst)
-                        qTagLst = gen_qmark_list(limitRangeTag)
-                        sqlMatch = """select ua.* FROM (SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({}) 
-                                                        UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({}) 
-                                                        UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({}) 
-                                                        UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({})
-                                                        ) ua WHERE ua.UserType in ({});
-                                                """.format(self.matchTagsLst,self.matchTagsLst,
-                                                           self.matchTagsLst,self.matchTagsLst,
-                                                           ("?"+" ,?"*(limitRangeMbti-1)))
-                        print(sqlMatch)
-                        curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
-                        for data in curr:
-                            print(*data)
-                
+                        qTagSet = gen_qmark(limitRangeTag)
+                        sqlMatch = f"""select uA.* FROM (SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
+                                                    UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
+                                                    UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
+                                                    UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
+                                                    ) ua WHERE uA.UserType in ({qMbtiSet});"""
+                    else:
+                        sqlMatch = f"""SELECT * FROM UsersTag WHERE userType in ({qMbtiSet});"""
+                        pass
+                    print(sqlMatch)
+                    curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
+                    for data in curr:
+                        print(*data)
+                        self.uuidFilter.append(data['Uid'])
+                    print(self.uuidFilter)
+                    return
+                else:
+                    
+                    pass
+                    
                 
                 messagebox.showinfo("BU Friends  | Matching",f"You selected All tags is {self.matchAllTags}\nYou selected tags is {self.matchTagsLst}\nYou selected Mbti is {self.matchMbtiLst}")
                 #self.controller.switch_frame(Matching)
