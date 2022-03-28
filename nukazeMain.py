@@ -973,21 +973,23 @@ class Matching(Frame):
                     return
                 if self.matchMbtiLst != []:
                     limitRangeMbti = len(self.matchMbtiLst)
-                    qMbtiLst = gen_qmark_list(limitRangeMbti)
+                    qMbtiLst = tuple(gen_qmark_list(limitRangeMbti))
+                    if len(self.matchMbtiLst) > 1:  
+                        self.matchMbtiLst = tuple(self.matchMbtiLst)
                     if self.matchTagsLst != []:
                         limitRangeTag = len(self.matchTagsLst)
-                        print(*self.matchTagsLst)
+                        print(self.matchTagsLst)
                         qTagLst = gen_qmark_list(limitRangeTag)
                         sqlMatch = """select ua.* FROM (SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({}) 
                                                         UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({}) 
                                                         UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({}) 
                                                         UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({})
-                                                        ) ua WHERE ua.UserType in {};
+                                                        ) ua WHERE ua.UserType in ({});
                                                 """.format(self.matchTagsLst,self.matchTagsLst,
                                                            self.matchTagsLst,self.matchTagsLst,
-                                                           tuple(self.matchMbtiLst))
+                                                           ("?"+" ,?"*(limitRangeMbti-1)))
                         print(sqlMatch)
-                        curr = self.controller.execute_sql(sqlMatch).fetchall()
+                        curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
                         for data in curr:
                             print(*data)
                 
