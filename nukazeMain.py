@@ -992,20 +992,20 @@ class Matching(Frame):
                                                 UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
                                                 ) uniA ;"""
                 print(sqlMatch)
+                messagebox.showinfo("BU Friends  | Matching",f"You selected All tags is {self.matchAllTags}\nYou selected tags is {self.matchTagsLst}\nYou selected Mbti is {self.matchMbtiLst}")
                 curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
                 for data in curr:
                     print(*data)
                     self.uuidFilter.append(data['Uid'])
                 if self.uuidFilter == []:
-                    messagebox.showinfo("BU Friends  |  Matching","Currently no one matches your tags required.\nTry to changing the tags again. \n[ Don't give up and you'll meet new friends ]")
+                    messagebox.showinfo("BU Friends  |  Matching","Currently no one matches your tags required.\nTry to changing the tags again. \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
                 else:
-                    messagebox.showinfo("BU Friends  |  Matching","Matched!!!")
+                    messagebox.showinfo("BU Friends  |  Matching",f"Matched!!!\n{[[*data] for data in curr]}")
                     print(self.uuidFilter)
                     print(len(self.uuidFilter))
+                #self.controller.switch_frame(Matching)
                 return
                 
-                messagebox.showinfo("BU Friends  | Matching",f"You selected All tags is {self.matchAllTags}\nYou selected tags is {self.matchTagsLst}\nYou selected Mbti is {self.matchMbtiLst}")
-                #self.controller.switch_frame(Matching)
         
         def random_user(self):
             def reset_var():
