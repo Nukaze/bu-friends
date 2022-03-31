@@ -1,3 +1,4 @@
+from operator import le
 import sqlite3
 from sqlite3 import Error
 from tkinter import *
@@ -5,7 +6,7 @@ from tkinter.font import Font
 from PIL import Image, ImageTk
 from tkinter import ttk,messagebox
 import hashlib
-import os
+import os, io
 
 class BUFriends(Tk):
     def __init__(self):
@@ -24,7 +25,7 @@ class BUFriends(Tk):
         self.option_add('*font',self.fontBody)
         self.uid = 3
         self.uidSelect = 4
-        self.switch_frame(Administration)
+        self.switch_frame(ProfilePage)
 
     def create_connection(self):
         try:
@@ -142,7 +143,11 @@ class ProfilePage(Frame):
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uid)
     def post_event(self):
         txt = self.post.get(1.0,END)
-        if not txt.isspace() and len(txt) <=300 :
+        if txt.isspace() :
+            messagebox.showwarning("Posting","Your post cannot be empty.")
+        elif len(txt) >300 :
+            messagebox.showwarning("Posting","Your post cannot be longer than 300 characters.")
+        else :
             conn = self.controller.create_connection()
             sql = """INSERT INTO Postings(Detail,Uid) VALUES (?,?)""".format(txt,self.controller.uid)
             if conn is not None:
@@ -182,7 +187,7 @@ class EditPage(Frame):
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
-            {'name':'entry','path':'./assets/entrys/entry2rz.png','x':400,'y':50},
+            {'name':'entry','path':'./assets/entrys/entry2rz.png','x':440,'y':50},
             {'name':'longentry','path':'./assets/darktheme/searchtabrz.png','x':760,'y':50},
             {'name':'search','path':'./assets/darktheme/Search.png','x':35,'y':35},
             {'name':'tag','path':'./assets/buttons/tagEdit.png','x':130,'y':45},
@@ -194,7 +199,7 @@ class EditPage(Frame):
             {'name':'longtag','path':'./assets/buttons/tagEditLong.png','x':180,'y':45},
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65},
             {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40},
-            {'name':'entry2','path':'./assets/entrys/entry3.png','x':400,'y':80},
+            {'name':'entry2','path':'./assets/entrys/entry3.png','x':440,'y':80},
             {'name':'box','path':'./assets/buttons/rectangleBlue.png','x':200,'y':60},
             {'name':'selectBox','path':'./assets/buttons/rectangleDarkBlue.png','x':200,'y':60}]
 
@@ -246,7 +251,7 @@ class EditPage(Frame):
         entryBox = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
         entryBox.grid(row=0,column=1,sticky=N,pady=10,padx=115)
         entryBox.propagate(0)
-        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0,textvariable=self.nameStr,fg='#868383')
+        entry = Entry(entryBox,font='leelawadee 15',width=38,bd=0,textvariable=self.nameStr,fg='#868383')
         entry.pack(expand=1)
     
         entryBox2 = Label(self.mainFrame,image=self.imgList['entry2'],bg=self.bgColor)
@@ -254,7 +259,7 @@ class EditPage(Frame):
         entryBox2.propagate(0)
 
         self.bioEntry = Text(entryBox2,font='leelawadee 15',
-        bg=self.bgColor,width=35,height=3,bd=0,fg='#868383')
+        bg=self.bgColor,width=38,height=3,bd=0,fg='#868383')
 
         self.bioEntry.insert(END,self.bioStr)     
         self.bioEntry.pack(expand=1)
@@ -344,6 +349,7 @@ class EditPage(Frame):
         self.search = StringVar()
         self.search.set("Search")
         self.bioStr = self.bioEntry.get(1.0,'end-1c')
+        print(len(self.bioStr))
         self.mainFrame.destroy()
         self.endFrame.destroy()
         self.backBtn.config(command=lambda:self.main_geometry())
@@ -440,9 +446,18 @@ class EditPage(Frame):
         self.bioStr = self.bioEntry.get(1.0,'end-1c')
         if self.bioStr.isspace() :
             self.bioStr = None
+        if self.nameStr.get() == "" or self.nameStr.get().isspace():
+            messagebox.showwarning("Save change","Your name cannot be empty.")
+            return
+        if len(self.nameStr.get()) > 32 :
+            messagebox.showwarning("Save change","Your name cannot be longer than 32 characters.")
+            return
+        if len(self.bioStr) > 100 :
+            messagebox.showwarning("Save change","Your bio cannot be longer than 100 characters.")
+            return
         values = [None for i in range(5)]
         values[0] = self.tagData.tagList[0]
-        print(values)
+        print("here")
         self.get_alltag()
         conn = self.controller.create_connection()
         sql = """UPDATE Users SET DisplayName=?,Bio=? WHERE Uid=?"""
@@ -772,7 +787,7 @@ class InfoOnProfile() :
         Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
         if self.bio is not None :
-            bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
+            bioWidget = Text(bottomFrame,bg=self.bgColor,width=40,bd=0)
             bioWidget.insert(END,self.bio)     
             bioWidget.tag_configure("center",justify=CENTER)
             bioWidget.tag_add("center",1.0,END)
