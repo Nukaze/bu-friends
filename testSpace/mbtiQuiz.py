@@ -1,4 +1,5 @@
 import random
+import sqlite3
 def get_MbtiQuizEN():
     return [["I","E","Expend energy, enjoy groups or b. conserve energy, enjoy one-on-one"],
             ["I","E","Are u out-going?"],
@@ -66,7 +67,26 @@ def get_MbtiQuizTH():
             ["P","J","28 Have you wake-up instanly when alarm is clocking"]    
 ]
     
+def gen_qmark_list(_rangelimit):
+    lastRange = 12
+    questionMark = ["?,","?"]
+    qLst = []
+    for i in range(_rangelimit):
+        rlm = _rangelimit
+        if i+1 == _rangelimit:
+            qLst.append(questionMark[1])
+            break
+        qLst.append(questionMark[0])
+    qstr = "{}{}".format("?",", ?"*(rlm-1))
+    return qLst, qstr
     
-lst = [1,2,3,4,5,6]    
-quiz = get_MbtiQuizTH()
-randLst = random.sample(range(len(quiz)),len(quiz))
+# quiz = get_MbtiQuizTH()
+# selectist = [2, 3, 4, 5, 7, 9, 12, 14, 15, 19, 23, 25, 26, 27, 29, 31, 32, 33, 35, 36, 37]
+# randLst = random.sample(range(len(selectist)),12)
+# print(randLst)
+
+# qstr = ""
+# ql, qq= gen_qmark_list(12)
+# print(ql)
+# print(qq)
+# print(len(qq))

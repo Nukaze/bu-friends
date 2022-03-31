@@ -30,7 +30,7 @@ class BUFriends(Tk):
         self.uidSelect = 0
         self.mbtiCode = None
         self.pvFrame = 0
-        self.matchPoint = 0
+        self.matchFilter = 0
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -427,6 +427,12 @@ class SignUp(Frame):
                     print("check alnum")
                     print(self.check_alnumpass(self.entryLst[1].get()))
                     self.register_error("Sign Up Password Again\n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters")
+                    return
+                elif len(self.entryLst[3].get()) >32:
+                    self.register_error("Sign Up Display Name Again\n[ Required ] Display Name can't be longer than 32 characters")
+                    self.entryLst[3].focus_force()
+                    self.entryLst[3].select_range(0,END)
+                    return
                 else:
                     self.regisSubmitDict['bumail']=self.entryLst[0].get()
                     self.regisSubmitDict['displayname']=self.entryLst[3].get()
@@ -555,7 +561,7 @@ class Mbti(Frame):
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
             self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(EditPage), image=self.backImg, relief="flat",bd=0)
-            if self.controller.pvFrame == 1: self.back.config(command=lambda:self.controller.switch_frame(Matching))
+            if self.controller.pvFrame == 0: self.back.config(command=lambda:self.controller.switch_frame(Matching))
             self.back.place(x=20,y=10 ,anchor="nw")
             """if from regis page:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
@@ -714,7 +720,6 @@ class Matching(Frame):
             self.root = root
             self.controller = controllerFrame
             self.controller.pvFrame = 1
-            self.controller.matchpoint = 0
             self.controller.title("BU Friends  |  Matching")
             print("checkuid =",self.controller.uid)
             self.bgCanva = "#FFFFFF"
@@ -741,11 +746,12 @@ class Matching(Frame):
             self.usersFrame.pack(side=BOTTOM,expand=1)
             self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
             self.cntLoop = 0
-            if self.controller.matchPoint == 0:
-                self.random_user()
-                self.display_user_random()
-            else:
+            if self.controller.matchFilter == 1:
+                self.request_users_infomation()
                 self.get_usertab_filter()
+            else:
+                self.request_users_infomation()
+                self.display_user_random()
             print("\nRe-Loop count (Found ADMIN or Your-Self) =",self.cntLoop)
             print("\nuuidLst user to show =",self.uuidLst)
             print("dname cnt=",len(self.udnameLst))
@@ -856,7 +862,7 @@ class Matching(Frame):
                 matchBtn.pack(side=RIGHT,padx=10)
                 imgBtn2 = self.controller.get_image(r'./assets/buttons/buttonDice.png')
                 def random_filter():
-                    self.controller.matchPoint = 0
+                    self.controller.matchFilter = 0
                     self.controller.switch_frame(Matching)
                 randBtn = Button(self.endBtn, text=f"""{" "*6}Random!""", command=lambda: random_filter(),
                                  image=imgBtn2,font="leelawadee 12 bold",bg=bg,compound=CENTER,bd=0,activebackground=bg)
@@ -949,9 +955,9 @@ class Matching(Frame):
                 messagebox.showinfo("BU Friends  |  Matching","You didn't select any tags.\nPlease Try again.")
                 return
             else:
-                self.controller.matchPoint = 1
+                self.controller.matchFilter = 1
                 self.uuidFilter = []
-                print("\n\nMatchPoint = ",self.controller.matchPoint)
+                print("\n\nMatchFilter = ",self.controller.matchFilter)
                 # Resorting str & int in All Tags
                 self.matchAllTags = list(map(int,filter(lambda x:x.isdigit(),sorted(map(str,self.matchAllTags)))))+list(filter(lambda x:x.isalpha(),sorted(map(str,self.matchAllTags))))
                 print(self.matchAllTags)
@@ -999,74 +1005,92 @@ class Matching(Frame):
                 if self.uuidFilter == []:
                     messagebox.showinfo("BU Friends  |  Matching","Currently no one matches your tags required.\nTry to changing the tags again. \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
                 else:
-                    messagebox.showinfo("BU Friends  |  Matching",f"Matched!!!\n{[[*data] for data in curr]}")
-                    print(self.uuidFilter)
+                    print("raw uid filter",self.uuidFilter)
                     print(len(self.uuidFilter))
-                #self.controller.switch_frame(Matching)
+                    self.uuidLst.clear()
+                    print("uuidlst before get uuid filter",self.uuidLst)
+                    if len(self.uuidFilter) > 12:
+                        print("uuid filter more than 12 uuid")
+                        randLst = random.sample(range(len(self.uuidFilter)),12)
+                        print(randLst)
+                        for i,indexdata in enumerate(randLst):
+                            self.uuidLst.append(self.uuidFilter[indexdata])
+                    else:
+                        self.uuidLst = self.uuidFilter
+                    messagebox.showinfo("BU Friends  |  Matching",f"Matched!!!\n{[[*data] for data in curr]}")
+                    print("final uuidlst",self.uuidLst)
+                    self.controller.matchFilter = 1
+                    self.controller.switch_frame(Matching)
                 return
                 
         
-        def random_user(self):
-            def reset_var():
+        def request_users_infomation(self):
+            def reset_list_data():
                 self.uuidLst.clear()
                 self.uinfoLst.clear()
                 self.udnameLst.clear()
-            reset_var()
             self.conn = self.controller.create_connection()
             self.conn.row_factory = sqlite3.Row
             if self.conn is None:
                 print("DB connot connect")            
             else:
-                sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
-                cur = self.controller.execute_sql(sqlLastUid)
-                userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
-                randLst = []
-                randLst = random.sample(range(1,userCount),12)
-                while self.controller.uid in randLst:
-                    reset_var()
-                    randLst = random.sample(range(1,userCount),12)
-                print(randLst)
-                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
-                                                                     ?,?,?,?,?,?);"""
-                cur = self.controller.execute_sql(sqlRandTag, randLst)
-                infoRows = cur.fetchall()
-                print(self.controller.uid)
-                print(type(self.controller.uid))
-                for i, row in enumerate(infoRows):
-                    if row['UserType'] is None:
-                        pass
-                    elif "ADMIN" in row['UserType']:
-                        self.cntLoop +=1
-                        print("check admin")
-                        reset_var()
-                        randLst.clear()
-                        self.conn.close()
-                        self.random_user()
-                        break
-                    self.uinfoLst.append(row)
-                    self.uuidLst.append(infoRows[i]['Uid'])
+                if self.controller.matchFilter == 1:
+                    self.uinfoLst.clear()
+                    self.udnameLst.clear()
+                    print("pass uuidLst filter = ",self.uuidLst)
                     
-                sqlDisplayName = """SELECT DisplayName FROM Users WHERE Uid IN (?,?,?,?,?,?,
-                                                                                ?,?,?,?,?,?);"""
-                curr = self.controller.execute_sql(sqlDisplayName, self.uuidLst)
-                dnameRows = curr.fetchall()
-                self.udnameLst.clear()
-                for i,row in enumerate(dnameRows):
-                    self.udnameLst.append(row['DisplayName'])
+                    pass
+                else:
+                    reset_list_data()
+                    sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
+                    cur = self.controller.execute_sql(sqlLastUid)
+                    userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
+                    randLst = []
+                    randLst = random.sample(range(1,userCount),12)
+                    while self.controller.uid in randLst:
+                        reset_list_data()
+                        randLst = random.sample(range(1,userCount),12)
+                    print(randLst)
+                    sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
+                                                                        ?,?,?,?,?,?);"""
+                    cur = self.controller.execute_sql(sqlRandTag, randLst)
+                    infoRows = cur.fetchall()
+                    print(self.controller.uid)
+                    print(type(self.controller.uid))
+                    for i, row in enumerate(infoRows):
+                        if row['UserType'] is None:
+                            pass
+                        elif "ADMIN" in row['UserType']:
+                            self.cntLoop +=1
+                            print("check admin")
+                            reset_list_data()
+                            randLst.clear()
+                            self.conn.close()
+                            self.request_users_infomation()
+                            break
+                        self.uinfoLst.append(row)
+                        self.uuidLst.append(infoRows[i]['Uid'])    
+                    sqlDisplayName = """SELECT DisplayName FROM Users WHERE Uid IN (?,?,?,?,?,?,
+                                                                                    ?,?,?,?,?,?);"""
+                    curr = self.controller.execute_sql(sqlDisplayName, self.uuidLst)
+                    dnameRows = curr.fetchall()
+                    self.udnameLst.clear()
+                    for i,row in enumerate(dnameRows):
+                        self.udnameLst.append(row['DisplayName'])
             pass
                     
         def display_user_random(self):
             self.userTabBtnImg = self.controller.get_image(r'./assets/images/rectangle.png',820,180)
-            self.idxrandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
-            print("Display random index of uuidlst",self.idxrandLst)
+            self.idxRandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
+            print("Display random index of uuidlst",self.idxRandLst)
             self.get_tagname()
             print(self.tagnameLst)
             for i in range(len(self.uuidLst)):
-                self.get_usertab_random(i)
+                self.get_users_tab(i)
                 
-        def get_usertab_random(self,_i):
+        def get_users_tab(self,_i):
             bgRectangle = "#e6eefd"
-            ir = self.idxrandLst[_i]
+            ir = self.idxRandLst[_i]
             self.tabFrame = Frame(self.canvasMain,bg=self.bgCanva)
             self.tabFrame.pack(pady=10)
             self.tabFrame.option_add("*font","leelawadee 15 bold")
@@ -1120,9 +1144,10 @@ class Matching(Frame):
             self.next.place(x=720,y=45, anchor=NW)
             pass
         
-        def get_usertab_filter(self):
+        def get_usertab_filter(self,_i):
             print("Match!!")
             print("get_userfilter")
+            ir = self.idxRandLst[_i]
             pass
         
         def goto_review_profile(self,_uidselect):
@@ -1145,7 +1170,7 @@ class ProfileReviewPage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.config(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,TRUE)
+        scroll = ScrollFrame(self,True)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1,self.controller.uidSelect)
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uidSelect)
@@ -1156,14 +1181,18 @@ class ProfilePage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.config(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,TRUE)
+        scroll = ScrollFrame(self,True)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,2,self.controller.uid)
         self.create_post_frame()
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uid)
     def post_event(self):
         txt = self.post.get(1.0,END)
-        if not txt.isspace() and len(txt) <=300 :
+        if txt.isspace() :
+            messagebox.showwarning("Posting","Your post cannot be empty.")
+        elif len(txt) >300 :
+            messagebox.showwarning("Posting","Your post cannot be longer than 300 characters.")
+        else :
             conn = self.controller.create_connection()
             sql = """INSERT INTO Postings(Detail,Uid) VALUES (?,?)""".format(txt,self.controller.uid)
             if conn is not None:
@@ -1196,14 +1225,14 @@ class EditPage(Frame):
         self.mainFrame = None
         self.tagData = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,TRUE)
+        scroll = ScrollFrame(self,True)
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
-            {'name':'entry','path':'./assets/entrys/entry2rz.png','x':400,'y':50},
+            {'name':'entry','path':'./assets/entrys/entry2rz.png','x':440,'y':50},
             {'name':'longentry','path':'./assets/darktheme/searchtabrz.png','x':760,'y':50},
             {'name':'search','path':'./assets/darktheme/Search.png','x':35,'y':35},
             {'name':'tag','path':'./assets/buttons/tagEdit.png','x':130,'y':45},
@@ -1215,7 +1244,7 @@ class EditPage(Frame):
             {'name':'longtag','path':'./assets/buttons/tagEditLong.png','x':180,'y':45},
             {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65},
             {'name':'cancel','path':'./assets/buttons/back_newrz.png','x':180,'y':40},
-            {'name':'entry2','path':'./assets/entrys/entry3.png','x':400,'y':80},
+            {'name':'entry2','path':'./assets/entrys/entry3.png','x':440,'y':80},
             {'name':'box','path':'./assets/buttons/rectangleBlue.png','x':200,'y':60},
             {'name':'selectBox','path':'./assets/buttons/rectangleDarkBlue.png','x':200,'y':60}]
 
@@ -1267,7 +1296,7 @@ class EditPage(Frame):
         entryBox = Label(self.mainFrame,image=self.imgList['entry'],bg=self.bgColor)
         entryBox.grid(row=0,column=1,sticky=N,pady=10,padx=115)
         entryBox.propagate(0)
-        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0,textvariable=self.nameStr,fg='#868383')
+        entry = Entry(entryBox,font='leelawadee 15',width=38,bd=0,textvariable=self.nameStr,fg='#868383')
         entry.pack(expand=1)
     
         entryBox2 = Label(self.mainFrame,image=self.imgList['entry2'],bg=self.bgColor)
@@ -1275,7 +1304,7 @@ class EditPage(Frame):
         entryBox2.propagate(0)
 
         self.bioEntry = Text(entryBox2,font='leelawadee 15',
-        bg=self.bgColor,width=35,height=3,bd=0,fg='#868383')
+        bg=self.bgColor,width=38,height=3,bd=0,fg='#868383')
 
         self.bioEntry.insert(END,self.bioStr)     
         self.bioEntry.pack(expand=1)
@@ -1291,8 +1320,7 @@ class EditPage(Frame):
         if self.tagData.tagList[0] is not None :
             self.mbtiTag = Label(self.mainFrame,text=self.tagData.tagList[0],image=self.img,bg=self.bgColor,
             compound=CENTER,fg='white')
-            self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)
-            self.controller.pvFrame = 0
+            self.mbtiTag.grid(row=2,column=1,sticky=W,padx=115)            
             self.mbtiBtn = Button(self.mainFrame,text="Redo the test?",command=lambda: self.controller.switch_frame(Mbti),bg=self.bgColor,fg='#23B7F4',bd=0,
             activebackground=self.bgColor,activeforeground='#23B7F4')
             self.mbtiBtn.grid(row=2,column=1)
@@ -1366,6 +1394,7 @@ class EditPage(Frame):
         self.search = StringVar()
         self.search.set("Search")
         self.bioStr = self.bioEntry.get(1.0,'end-1c')
+        print(len(self.bioStr))
         self.mainFrame.destroy()
         self.endFrame.destroy()
         self.backBtn.config(command=lambda:self.main_geometry())
@@ -1458,13 +1487,22 @@ class EditPage(Frame):
         self.tag_geometry()
 
     def save_change(self) :
-        print(self.tagData.tagList)
+        print("tag =",self.tagData.tagList)
         self.bioStr = self.bioEntry.get(1.0,'end-1c')
         if self.bioStr.isspace() :
             self.bioStr = None
+        if self.nameStr.get() == "" or self.nameStr.get().isspace():
+            messagebox.showwarning("Save change","Your name cannot be empty.")
+            return
+        if len(self.nameStr.get()) > 32 :
+            messagebox.showwarning("Save change","Your name cannot be longer than 32 characters.")
+            return
+        if len(self.bioStr) > 100 :
+            messagebox.showwarning("Save change","Your bio cannot be longer than 100 characters.")
+            return
         values = [None for i in range(5)]
         values[0] = self.tagData.tagList[0]
-        print(values)
+        print("here")
         self.get_alltag()
         conn = self.controller.create_connection()
         sql = """UPDATE Users SET DisplayName=?,Bio=? WHERE Uid=?"""
@@ -1488,7 +1526,7 @@ class MyAccountPage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,FALSE)
+        scroll = ScrollFrame(self,False)
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
@@ -1526,7 +1564,7 @@ class ChangePasswordPage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,FALSE)
+        scroll = ScrollFrame(self,False)
         self.root = scroll.interior
         fontHead = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontHead)
@@ -1612,7 +1650,7 @@ class DeactivatePage(Frame):
         self.controller = controller
         self.data = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,FALSE)
+        scroll = ScrollFrame(self,False)
         self.root = scroll.interior
         fontHead = Font(family='leelawadee',size=20,weight='bold')
         self.fontBody = Font(family='leelawadee',size=15,weight='bold')
@@ -1681,14 +1719,14 @@ class DeactivatePage(Frame):
             passkey = self.controller.password_encryptioncheck(self.password.get(),passSalt)
             if passkey == passHash :
                 print("same password")
-                ms = messagebox.askquestion("BU Friends  |  Deactivate Account","Are you sure you want to deactivate account?")
+                ms = messagebox.askquestion("Deactivate","Are you sure you want to deactivate account?")
                 if ms == "yes" :
                     for i,data in enumerate(sqlDelete):
                         c = self.controller.execute_sql(data,[self.controller.uid])
-                    print("deactivate account") 
+                    print("deactivate account")
                     self.controller.uid = 0
                     with open(r'./database/sessions.txt','w')as ss:
-                        ss.write("{}".format(0))
+                        ss.write("{}".format(self.controller.uid))
                     messagebox.showinfo("BU Friends  |  Deactivate Account","Your Account Has Been Deactivated.\nHave a nice time and Good Bye...")
                     self.controller.destroy()
                 else :
@@ -1704,29 +1742,40 @@ class InfoOnProfile() :
         self.optionFrame = None
         self.parent = parent
         self.uid = uid
+        self.tagList = []
         self.get_profile()
         self.profile_frame()
         self.tag_frame()    
     def get_profile(self) :
         conn = self.controller.create_connection()
         sql = """SELECT DisplayName,Bio,Email FROM Users WHERE Uid=?"""
-        sql2 = """SELECT UserType,Tid1,Tid2,Tid3,Tid4 FROM UsersTag WHERE Uid=?"""
+        sql2 = """SELECT UserType FROM UsersTag WHERE Uid=?"""
+        sql3 = """SELECT TagName FROM Tags LEFT JOIN UsersTag 
+        ON Tags.Tid=UsersTag.Tid1 OR Tags.Tid=UsersTag.Tid2 
+        OR Tags.Tid=UsersTag.Tid3 OR Tags.Tid=UsersTag.Tid4 WHERE Uid=?"""
         if conn is not None:
             c = self.controller.execute_sql(sql,[self.uid])
-            c2 = self.controller.execute_sql(sql2,[self.uid])
-            tagData = c2.fetchone()
-            print(tagData)
-            self.tagList = []
-            self.tagList.append(tagData[0])
-            for i in range(1,len(tagData)):
-                if tagData[i] is not None :
-                    sql3 = """SELECT TagName FROM Tags WHERE Tid=?"""
-                    c3 = self.controller.execute_sql(sql3,[tagData[i]])
-                    self.tagList.append(c3.fetchone()[0])
             userData = c.fetchone()
             self.name = userData[0]
             self.bio = userData[1]
             self.email = userData[2]
+            c = self.controller.execute_sql(sql2,[self.uid])
+            # tagData = c.fetchone()
+            # print(tagData)
+            self.tagList.append(c.fetchone()[0])
+            c = self.controller.execute_sql(sql3,[self.uid])
+            tagData = c.fetchall()
+            for i,data in enumerate(tagData) :
+                self.tagList.append(data[0])
+            # for i in range(1,len(tagData)):
+            #     if tagData[i] is not None :
+            #         sql3 = """SELECT TagName FROM Tags WHERE Tid=?"""
+            #         c3 = self.controller.execute_sql(sql3,[tagData[i]])
+            #         self.tagList.append(c3.fetchone()[0])
+            # userData = c.fetchone()
+            # self.name = userData[0]
+            # self.bio = userData[1]
+            # self.email = userData[2]
         else:
             print("Error! cannot create the database connection.")
         conn.close()
@@ -1787,20 +1836,20 @@ class InfoOnProfile() :
         fontTag = Font(family='leelawadee',size=13)
         bottomFrame.option_add('*font',fontTag)
         self.imgList = []
+        self.profileImgLst = []
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data[0],data[1],data[2])
             self.imgList.append(img)
-        self.profileImgLst = []
-        for i, path in enumerate(profilePathLst):
-            img = self.controller.get_image(path,180,180)
+        for i,data in enumerate(profilePathLst):
+            img = self.controller.get_image(data,180,180)
             self.profileImgLst.append(img)
-        Button(topFrame,image=self.imgList[0],command=lambda:self.controller.switch_frame(Matching),bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=LEFT)
+        Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,command=lambda:self.controller.switch_frame(Matching),activebackground=self.bgColor).pack(side=LEFT)
         Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
         Label(bottomFrame,image=self.profileImgLst[self.uid%6],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
         if self.bio is not None :
-            bioWidget = Text(bottomFrame,bg=self.bgColor,width=30,bd=0)
+            bioWidget = Text(bottomFrame,bg=self.bgColor,width=40,bd=0)
             bioWidget.insert(END,self.bio)     
             bioWidget.tag_configure("center",justify=CENTER)
             bioWidget.tag_add("center",1.0,END)
@@ -1890,7 +1939,7 @@ class Administration(Frame):
         self.bgColor = '#181B23'
         self.controller = controller
         Frame.config(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,TRUE,self.bgColor)
+        scroll = ScrollFrame(self,False,self.bgColor)
         self.root = scroll.interior
         self.imgList = {}
         imgPathList = [
@@ -1902,8 +1951,14 @@ class Administration(Frame):
     def page_geometry(self) :
         Button(self.root,image=self.imgList['logout'],bd=0,
         bg=self.bgColor,activebackground=self.bgColor).pack(anchor=NE,pady=5)
-        # Frame(self.root,bg='#282D39',width=800,height=500).pack(pady=15)
-        # Entry(self.root,text="TEST",highlightcolor='white',bg=self.bgColor).pack(side=LEFT)
+        self.mainFrame = Frame(self.root,bg='#282D39',width=800,height=500)
+        self.mainFrame.pack(pady=15)
+        self.mainFrame.propagate(0)
+        scroll = ScrollFrame(self.mainFrame,True,'#282D39')
+        self.container = scroll.interior
+        for index in range(100):
+            item = Label(self.container,text=index,bg='#282D39')
+            item.pack(side=TOP, fill=X, expand=TRUE)
 
 if __name__ == '__main__':
     print(BUFriends_Time())
