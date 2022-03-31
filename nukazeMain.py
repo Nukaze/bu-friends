@@ -15,7 +15,6 @@ import time
 import random
 import assets.mbti.mbtiData as qz
 
-
 def BUFriends_Time():
     timeFull = datetime.now()
     timeNow = timeFull.strftime("%d-%b-%Y",) + " " + timeFull.strftime("( %H:%M:%S )")
@@ -1907,5 +1906,6 @@ class Administration(Frame):
         # Entry(self.root,text="TEST",highlightcolor='white',bg=self.bgColor).pack(side=LEFT)
 
 if __name__ == '__main__':
+    print(BUFriends_Time())
     BUFriends().mainloop()
     
