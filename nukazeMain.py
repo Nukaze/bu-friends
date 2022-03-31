@@ -745,10 +745,11 @@ class Matching(Frame):
             self.usersFrame = Frame(self.canvasMain,width=900,bg=self.bgCanva)
             self.usersFrame.pack(side=BOTTOM,expand=1)
             self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
+            self.uuidFilter = None
             self.cntLoop = 0
-            if self.controller.matchFilter == 1:
-                self.request_users_infomation()
-                self.get_usertab_filter()
+            if self.controller.matchFilter == 1 or self.uuidFilter:
+                #self.get_usertab_filter()
+                pass
             else:
                 self.request_users_infomation()
                 self.display_user_random()
@@ -778,6 +779,9 @@ class Matching(Frame):
                 self.conn.close()
                 return self.tagnameLst
         
+        def gen_qmark(self,_rangelimit):
+                    questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
+                    return questionMarkSet
         
         def filter_tags(self):
             def destroy_frame():
@@ -817,7 +821,7 @@ class Matching(Frame):
                     elif "N" in _utype and "F" in _utype: letter = "NF";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
                     elif "S" in _utype and "J" in _utype: letter = "SJ";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
                     elif "S" in _utype and "P" in _utype: letter = "SP";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
-                    btn = Button(content,command=lambda:self.select_tag(_utype,letter),text=_utype,
+                    btn = Button(content,command=lambda:self.selection_tag(_utype,letter),text=_utype,
                                  image=self.userTagImg,fg=fg,bg=bg,bd=0,
                                  activebackground=bg,compound=CENTER)
                     btn.image = self.userTagImg
@@ -827,7 +831,7 @@ class Matching(Frame):
                                              "userType":_utype})
                 def show_tag(_i, _tag):
                     self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton2.png',w,h)
-                    btnTag = Button(self.tagsFrame, text=_tag['tagName'],command=lambda:self.select_tag(_tag['tagName']),
+                    btnTag = Button(self.tagsFrame, text=_tag['tagName'],command=lambda:self.selection_tag(_tag['tagName']),
                                  image=self.userTagImg,bd=0,bg=bg,fg=fg,font="leelawadee 12 bold",
                                  activebackground=bg, compound=CENTER)
                     btnTag.image = self.userTagImg
@@ -886,7 +890,7 @@ class Matching(Frame):
                 closeBtn.bind('<Button-1>',lambda e: close_frame(e))
                 closeBtn.pack(side=RIGHT,padx=10)
         
-        def select_tag(self, tag, _mbtiLetter=None):
+        def selection_tag(self, tag, _mbtiLetter=None):
             limitTag = 8
             w,h = 140, 50
             if _mbtiLetter:
@@ -948,9 +952,6 @@ class Matching(Frame):
             pass
         
         def match_tags_commit(self):
-            def gen_qmark(_rangelimit):
-                    questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
-                    return questionMarkSet
             if self.matchAllTags == []:
                 messagebox.showinfo("BU Friends  |  Matching","You didn't select any tags.\nPlease Try again.")
                 return
@@ -963,15 +964,15 @@ class Matching(Frame):
                 print(self.matchAllTags)
                 self.matchTagsLst,self.matchMbtiLst = None, None
                 try:
+                    if any(isinstance(tag, str) for tag in self.matchAllTags):
+                        print("any alpha\n")
+                        self.matchMbtiLst = [tag for tag in self.matchAllTags if isinstance(tag, str)]
+                        print(self.matchMbtiLst)
                     if any(isinstance(tag, int) for tag in self.matchAllTags):
                         print("any digit\n")
                         self.matchTagsLst = [tag for tag in self.matchAllTags if isinstance(tag, int)]
                         self.matchTagsLst = ", ".join(map(str,self.matchTagsLst))
                         print(self.matchTagsLst)
-                    if any(isinstance(tag, str) for tag in self.matchAllTags):
-                        print("any alpha\n")
-                        self.matchMbtiLst = [tag for tag in self.matchAllTags if isinstance(tag, str)]
-                        print(self.matchMbtiLst)
                 except ValueError as ve: print(ve); return 
                 conn = self.controller.create_connection()
                 conn.row_factory = sqlite3.Row
@@ -981,7 +982,7 @@ class Matching(Frame):
                     return
                 if self.matchMbtiLst:
                     limitRangeMbti = len(self.matchMbtiLst)
-                    qMbtiSet = gen_qmark(limitRangeMbti)
+                    qMbtiSet = self.gen_qmark(limitRangeMbti)
                     if self.matchTagsLst:
                         sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
                                                     UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
@@ -1015,13 +1016,14 @@ class Matching(Frame):
                         print(randLst)
                         for i,indexdata in enumerate(randLst):
                             self.uuidLst.append(self.uuidFilter[indexdata])
+                        self.uuidFilter = self.uuidLst
                     else:
                         self.uuidLst = self.uuidFilter
                     messagebox.showinfo("BU Friends  |  Matching",f"Matched!!!\n{[[*data] for data in curr]}")
                     print("final uuidlst",self.uuidLst)
                     self.controller.matchFilter = 1
-                    self.controller.switch_frame(Matching)
-                return
+                    self.request_users_infomation()
+                    #self.controller.switch_frame(Matching)
                 
         
         def request_users_infomation(self):
@@ -1038,7 +1040,14 @@ class Matching(Frame):
                     self.uinfoLst.clear()
                     self.udnameLst.clear()
                     print("pass uuidLst filter = ",self.uuidLst)
-                    
+                    print("pass uuidFilter = ",self.uuidFilter)
+                    conn = self.controller.create_connection()
+                    if conn is None:
+                        print("cannot create connection")
+                        return
+                    qmark = self.gen_qmark(len(self.uuidFilter))
+                    sqlGetTag = """SELECT * FROM UsersTag WHERE Uid IN ({})""".format(qmark)
+                    print(sqlGetTag)
                     pass
                 else:
                     reset_list_data()
