@@ -31,6 +31,7 @@ class BUFriends(Tk):
         self.mbtiCode = None
         self.pvFrame = 0
         self.matchFilter = 0
+        self.uuidLst,self.uinfoLst, self.udnameLst = [],[],[]
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -696,10 +697,6 @@ class MbtiSuccess(Frame):
         self.controller.title("BUFriends  |  MBTi Test Successfully!")
         Button(self.frame,text="Go to Matching",command=lambda:self.controller.switch_frame(Matching)).pack(expand=1)
         Button(self.frame,text="Go to Edit Profile",command=lambda:self.controller.switch_frame(EditPage)).pack(expand=1)
-        #get mbti code 
-        #get mbti image
-        #update mbti tag
-        #wait designer Mbti Charecters
         pass
 
 
@@ -713,465 +710,485 @@ class Matching(Frame):
         with open(r'./database/sessions.txt','w')as ss:
             ss.write("{}".format(self.controller.uid))
         self.root = ScrollFrame(self, True).interior
-        self.MatchingContent(self.root, self.controller)
+        self.controller.pvFrame = 1
+        self.controller.title("BU Friends  |  Matching")
+        print("checkuid =",self.controller.uid)
+        self.bgCanva = "#FFFFFF"
+        self.canvasMain = Canvas(self.root, width=900, height=6000 ,bg=self.bgCanva,bd=0, highlightthickness=0)
+        self.canvasMain.pack(expand=1,fill=BOTH)
+        print("reqwidth =",self.root.winfo_reqwidth())
+        print("reqheight",self.root.winfo_reqheight())
+        # widgetzone 
+        self.filterFrame = None
+        self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
+        self.headingBg = Label(self.canvasMain,image=self.headBgImg,compound=CENTER, bg=self.bgCanva,width=900,height=20)
+        self.headingBg.pack(side=TOP,pady=30)
+        self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
+        self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", command=lambda: self.filter_tags(), image=self.searchBarImg,
+                            font="leelawadee 18 bold",fg="#000000",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
+        self.searchBar.image = self.searchBarImg
+        self.searchBar.place(x=35,y=10,anchor=NW)
+        self.myImg = self.controller.get_image(r'./assets/icons/profileXs.png')
+        self.myProfile = Button(self.canvasMain, image=self.myImg, command=lambda:self.goto_my_profile(),bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
+        self.myProfile.image = self.myImg
+        self.myProfile.place(x=815,y=11,anchor=NW)
+        #Display user filter result
+        print("checklen uuid ",len(self.controller.uuidLst))
+        self.usersFrame = Frame(self.canvasMain,width=900,height=1400,bg=self.bgCanva)
+        self.usersFrame.pack(side=TOP,expand=1)
+        self.uuidFilter = []
+        self.cntLoop = 0
+        self.usersTabFrame = []
+        if self.controller.matchFilter == 1:
+            self.display_users()
+        else:
+            self.request_users_infomation()
+            self.display_users()
+        print("\nRe-Loop count (Found ADMIN or Your-Self) =",self.cntLoop)
+        print("\nuuidLst user to show =",self.controller.uuidLst)
+        print("dname cnt=",len(self.controller.udnameLst))
+        print("dnamelst =",self.controller.udnameLst)
+        for i,info in enumerate(self.controller.uinfoLst):
+            print(*info,end=">=> ")
         
-    class MatchingContent:
-        def __init__(self, root, controllerFrame):
-            self.root = root
-            self.controller = controllerFrame
-            self.controller.pvFrame = 1
-            self.controller.title("BU Friends  |  Matching")
-            print("checkuid =",self.controller.uid)
-            self.bgCanva = "#FFFFFF"
-            self.canvasMain = Canvas(self.root, width=900, height=6000 ,bg=self.bgCanva,bd=0, highlightthickness=0)
-            self.canvasMain.pack(expand=1,fill=BOTH)
-            print("reqwidth =",self.root.winfo_reqwidth())
-            print("reqheight",self.root.winfo_reqheight())
-            # widgetzone 
-            self.filterFrame = None
-            self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
-            self.headingBg = Label(self.canvasMain,image=self.headBgImg,compound=CENTER, bg=self.bgCanva,width=900,height=20)
-            self.headingBg.pack(side=TOP,pady=30)
-            self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
-            self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", command=lambda: self.filter_tags(), image=self.searchBarImg,
-                              font="leelawadee 18 bold",fg="#000000",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
-            self.searchBar.image = self.searchBarImg
-            self.searchBar.place(x=35,y=10,anchor=NW)
-            self.myImg = self.controller.get_image(r'./assets/icons/profileXs.png')
-            self.myProfile = Button(self.canvasMain, image=self.myImg, command=lambda:self.goto_my_profile(),bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
-            self.myProfile.image = self.myImg
-            self.myProfile.place(x=815,y=11,anchor=NW)
-            # Display user filter result
-            self.usersFrame = Frame(self.canvasMain,width=900,bg=self.bgCanva)
-            self.usersFrame.pack(side=BOTTOM,expand=1)
-            self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
-            self.uuidFilter = None
-            self.cntLoop = 0
-            if self.controller.matchFilter == 1 or self.uuidFilter:
-                #self.get_usertab_filter()
-                pass
-            else:
-                self.request_users_infomation()
-                self.display_user_random()
-            print("\nRe-Loop count (Found ADMIN or Your-Self) =",self.cntLoop)
-            print("\nuuidLst user to show =",self.uuidLst)
-            print("dname cnt=",len(self.udnameLst))
-            print("dnamelst =",self.udnameLst)
-            for i,info in enumerate(self.uinfoLst):
-                print(*info,end=">=> ")
             
-            
-        def get_tagname(self):
-            self.tagnameLst = []
-            sql = """SELECT Tid,TagName FROM Tags"""
-            self.conn = self.controller.create_connection()
-            self.conn.row_factory = sqlite3.Row
-            if self.conn is None:
-                print('self.conn is None!!')
-                return
-            else:
-                cur = self.controller.execute_sql(sql)
+    def get_tagname(self):
+        self.tagnameLst = []
+        sql = """SELECT Tid,TagName FROM Tags"""
+        self.conn = self.controller.create_connection()
+        self.conn.row_factory = sqlite3.Row
+        if self.conn is None:
+            print('self.conn is None!!')
+            return
+        else:
+            cur = self.controller.execute_sql(sql)
+            row = cur.fetchone()
+            while row:
+                self.tagnameLst.append({'tid':row['Tid'],'tagName':row['TagName']})
                 row = cur.fetchone()
-                while row:
-                    self.tagnameLst.append({'tid':row['Tid'],'tagName':row['TagName']})
-                    row = cur.fetchone()
-                print("We have {} tag in Database.".format(len(self.tagnameLst)))
-                self.conn.close()
-                return self.tagnameLst
-        
-        def gen_qmark(self,_rangelimit):
-                    questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
-                    return questionMarkSet
-        
-        def filter_tags(self):
-            def destroy_frame():
-                self.endFrame.destroy()
-                self.filterFrame.destroy()
-                self.filterFrame = None
-            bg = "#ffffff"
-            fg = "#555555"
-            if self.filterFrame is not None and self.mbtiFrame is not None and self.tagsFrame is not None and self.endFrame:
-                print("destroy!!!")
-                destroy_frame()
-            else:
-                wfilter = 720
-                self.filterFrame = Frame(self.root,bg=bg,width=wfilter,relief=FLAT,highlightthickness=0)
-                self.filterFrame.place(x=50,y=75,anchor=NW)
-                self.mbtiFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter,height=360,highlightthickness=0)
-                self.mbtiFrame.pack(side=TOP,fill=X)
-                ttFrame = Frame(self.mbtiFrame,bg=bg,width=740)
-                ttFrame.pack(side=TOP,pady=25)
-                Label(self.mbtiFrame, text="MBTI",bg=bg,fg=fg).place(x=20,y=20,anchor=NW)
-                content = Frame(self.mbtiFrame,bg=bg,width=740)
-                content.pack(side=TOP,fill=BOTH,pady=15)
-                self.matchAllTags = []
-                self.tagWidgets = []
-                self.mbtiWidgets = []
-                self.mbtiLst = ["INTJ","INTP","ENTJ","ENTP",
-                           "INFJ","INFP","ENFJ","ENFP",
-                           "ISTJ","ISFJ","ESTJ","ESFJ",
-                           "ISTP","ISFP","ESTP","ESFP"]
-                self.tagsFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter)
-                self.tagsFrame.pack(side=TOP,fill=BOTH,ipady=5)
-                self.tagnameLst.clear()
-                self.tagnameLst = self.get_tagname()
-                w,h = 140, 50
-                def show_mbti(_i, _utype):
-                    if "N" in _utype and "T" in _utype: letter = "NT";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
-                    elif "N" in _utype and "F" in _utype: letter = "NF";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
-                    elif "S" in _utype and "J" in _utype: letter = "SJ";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
-                    elif "S" in _utype and "P" in _utype: letter = "SP";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
-                    btn = Button(content,command=lambda:self.selection_tag(_utype,letter),text=_utype,
-                                 image=self.userTagImg,fg=fg,bg=bg,bd=0,
-                                 activebackground=bg,compound=CENTER)
-                    btn.image = self.userTagImg
-                    btn.grid(row=r,column=c,padx=18,pady=10, sticky=NSEW)
-                    self.mbtiWidgets.append({"status":0, 
-                                             "widget":btn, 
-                                             "userType":_utype})
-                def show_tag(_i, _tag):
-                    self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton2.png',w,h)
-                    btnTag = Button(self.tagsFrame, text=_tag['tagName'],command=lambda:self.selection_tag(_tag['tagName']),
-                                 image=self.userTagImg,bd=0,bg=bg,fg=fg,font="leelawadee 12 bold",
-                                 activebackground=bg, compound=CENTER)
-                    btnTag.image = self.userTagImg
-                    btnTag.grid(row=r,column=c,padx=18,pady=10, sticky=NSEW)
-                    self.tagWidgets.append({"status":0, 
-                                            "widget":btnTag,
-                                            "tid":_tag['tid'], 
-                                            "tagName":_tag['tagName']})
-                r,c = 0,0
-                for i,tag in enumerate(self.mbtiLst):
-                    show_mbti(i,tag)
-                    c+=1
-                    if c==4:
-                        c = 0
-                        r +=1
-                r,c = 0,0
-                for i,tag in enumerate(self.tagnameLst):
-                    show_tag(i, tag)
-                    c+=1
-                    if c==4:
-                        c = 0
-                        r +=1
-                
-                self.endFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter)
-                self.endFrame.pack(side=BOTTOM,fill=X)
-                self.endBtn = Frame(self.endFrame,bg=bg)
-                self.endBtn.pack(side=LEFT,expand=1,fill=Y,pady=15)
-                imgBtn = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
-                matchBtn = Button(self.endBtn,command=lambda:self.match_tags_commit(),text="Match!!",
-                                  image=imgBtn,bg=bg,compound=CENTER,bd=0,activebackground=bg)
-                matchBtn.image = imgBtn
-                matchBtn.pack(side=RIGHT,padx=10)
-                imgBtn2 = self.controller.get_image(r'./assets/buttons/buttonDice.png')
-                def random_filter():
-                    self.controller.matchFilter = 0
-                    self.controller.switch_frame(Matching)
-                randBtn = Button(self.endBtn, text=f"""{" "*6}Random!""", command=lambda: random_filter(),
-                                 image=imgBtn2,font="leelawadee 12 bold",bg=bg,compound=CENTER,bd=0,activebackground=bg)
-                randBtn.image = imgBtn2
-                randBtn.pack(side=RIGHT,padx=10)
-                def close_leave(e):
-                    closeBtn.config(bd=0,image=imgBtn3)
-                def close_hover(e):
-                    imgBtn31 = self.controller.get_image(r'./assets/buttons/closeRed.png')
-                    closeBtn.config(bd=0,image=imgBtn31)
-                    closeBtn.image = imgBtn31
-                def close_frame(e):
-                    destroy_frame()
-                cframe = Frame(self.endFrame,bg=bg)
-                cframe.pack(side=LEFT,expand=1)
-                imgBtn3 = self.controller.get_image(r'./assets/buttons/closeGrey.png')
-                closeBtn = Label(cframe, image=imgBtn3,bd=0,compound=CENTER,bg=bg)
-                closeBtn.image = imgBtn3
-                closeBtn.bind('<Enter>',lambda e: close_hover(e))
-                closeBtn.bind('<Leave>',lambda e: close_leave(e))
-                closeBtn.bind('<Button-1>',lambda e: close_frame(e))
-                closeBtn.pack(side=RIGHT,padx=10)
-        
-        def selection_tag(self, tag, _mbtiLetter=None):
-            limitTag = 8
-            w,h = 140, 50
-            if _mbtiLetter:
-                if _mbtiLetter == "NT": 
-                    selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiPurple.png', w, h)
-                    unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
-                elif _mbtiLetter == "NF": 
-                    selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiGreen.png', w, h)
-                    unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
-                elif _mbtiLetter == "SJ": 
-                    selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiCyan.png', w, h)
-                    unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
-                elif _mbtiLetter == "SP": 
-                    selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiYellow.png', w, h)
-                    unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
+            print("We have {} tag in Database.".format(len(self.tagnameLst)))
+            self.conn.close()
+            return self.tagnameLst
 
-                for i,select in enumerate(self.mbtiWidgets):
-                    if select['userType'] == tag:
-                        select['widget'].config(image=selectMbtiImg,compound=CENTER,fg="#eeeeee")
-                        select['widget'].image = selectMbtiImg
-                        if select['status'] == 0:
-                            if len(self.matchAllTags) < limitTag:
-                                self.matchAllTags.append(select['userType'])
-                                select['status'] = 1
-                            else:
-                                select['widget'].config(image=unselectMbtiImg,compound=CENTER,fg="#555555")
-                                select['widget'].image = unselectMbtiImg
-                                select['status'] = 0    
-                                messagebox.showwarning("BU Friends  |  Matching",f"You can select Tag at most {limitTag} Tags")
-                        elif select['status'] == 1:
-                            if select['userType'] in self.matchAllTags:
-                                self.matchAllTags.remove(select['userType'])
+    def gen_qmark(self,_rangelimit):
+                questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
+                return questionMarkSet
+    
+    def filter_tags(self):
+        def destroy_frame():
+            self.endFrame.destroy()
+            self.tagsFrame.destroy()
+            self.mbtiFrame.destroy()
+            self.filterFrame.destroy()
+            self.filterFrame = None
+        bg = "#ffffff"
+        fg = "#555555"
+        if self.filterFrame is not None and self.mbtiFrame is not None and self.tagsFrame is not None and self.endFrame:
+            print("filter destroy!!!")
+            destroy_frame()
+        else:
+            wfilter = 720
+            self.filterFrame = Frame(self.root,bg=bg,width=wfilter,relief=FLAT,highlightthickness=0)
+            self.filterFrame.place(x=50,y=75,anchor=NW)
+            self.mbtiFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter,height=360,highlightthickness=0)
+            self.mbtiFrame.pack(side=TOP,fill=X)
+            ttFrame = Frame(self.mbtiFrame,bg=bg,width=740)
+            ttFrame.pack(side=TOP,pady=25)
+            xmbti, ymbti = 64, 20
+            Label(self.mbtiFrame, text="MBTI",bg=bg,fg=fg).place(x=xmbti,y=ymbti,anchor=NW)
+            Label(self.mbtiFrame, text="( more specific )",bg=bg,fg=fg,font="leelawadee 12").place(x=xmbti+60,y=ymbti+2,anchor=NW)
+            content = Frame(self.mbtiFrame,bg=bg,width=740)
+            content.pack(side=TOP,fill=BOTH,pady=15)
+            self.matchAllTags = []
+            self.tagWidgets = []
+            self.mbtiWidgets = []
+            self.mbtiLst = ["INTJ","INTP","ENTJ","ENTP",
+                        "INFJ","INFP","ENFJ","ENFP",
+                        "ISTJ","ISFJ","ESTJ","ESFJ",
+                        "ISTP","ISFP","ESTP","ESFP"]
+            self.tagsFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter)
+            self.tagsFrame.pack(side=TOP,fill=BOTH,ipady=5)
+            self.tagnameLst.clear()
+            self.tagnameLst = self.get_tagname()
+            w,h = 140, 50
+            def show_mbti(_i, _utype):
+                if "N" in _utype and "T" in _utype: letter = "NT";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
+                elif "N" in _utype and "F" in _utype: letter = "NF";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
+                elif "S" in _utype and "J" in _utype: letter = "SJ";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
+                elif "S" in _utype and "P" in _utype: letter = "SP";self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
+                btn = Button(content,command=lambda:self.selection_tag(_utype,letter),text=_utype,
+                                image=self.userTagImg,fg=fg,bg=bg,bd=0,
+                                activebackground=bg,compound=CENTER)
+                btn.image = self.userTagImg
+                btn.grid(row=r,column=c,padx=18,pady=10, sticky=NSEW)
+                self.mbtiWidgets.append({"status":0, 
+                                            "widget":btn, 
+                                            "userType":_utype})
+            def show_tag(_i, _tag):
+                self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton2.png',w,h)
+                btnTag = Button(self.tagsFrame, text=_tag['tagName'],command=lambda:self.selection_tag(_tag['tagName']),
+                                image=self.userTagImg,bd=0,bg=bg,fg=fg,font="leelawadee 12 bold",
+                                activebackground=bg, compound=CENTER)
+                btnTag.image = self.userTagImg
+                btnTag.grid(row=r,column=c,padx=18,pady=10, sticky=NSEW)
+                self.tagWidgets.append({"status":0, 
+                                        "widget":btnTag,
+                                        "tid":_tag['tid'], 
+                                        "tagName":_tag['tagName']})
+            r,c = 0,0
+            for i,tag in enumerate(self.mbtiLst):
+                show_mbti(i,tag)
+                c+=1
+                if c==4:
+                    c = 0
+                    r +=1
+            r,c = 0,0
+            for i,tag in enumerate(self.tagnameLst):
+                show_tag(i, tag)
+                c+=1
+                if c==4:
+                    c = 0
+                    r +=1
+            
+            self.endFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter)
+            self.endFrame.pack(side=BOTTOM,fill=X)
+            self.endBtn = Frame(self.endFrame,bg=bg)
+            self.endBtn.pack(side=LEFT,expand=1,fill=Y,pady=15)
+            imgBtn = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
+            matchBtn = Button(self.endBtn,command=lambda:self.match_tags_commit(),text="Match!!",
+                                image=imgBtn,bg=bg,compound=CENTER,bd=0,activebackground=bg)
+            matchBtn.image = imgBtn
+            matchBtn.pack(side=RIGHT,padx=10)
+            imgBtn2 = self.controller.get_image(r'./assets/buttons/buttonDice.png')
+            def random_filter():
+                self.controller.matchFilter = 0
+                self.controller.switch_frame(Matching)
+            randBtn = Button(self.endBtn, text=f"""{" "*6}Random!""", command=lambda: random_filter(),
+                                image=imgBtn2,font="leelawadee 12 bold",bg=bg,compound=CENTER,bd=0,activebackground=bg)
+            randBtn.image = imgBtn2
+            randBtn.pack(side=RIGHT,padx=10)
+            def close_leave(e):
+                closeBtn.config(bd=0,image=imgBtn3)
+            def close_hover(e):
+                imgBtn31 = self.controller.get_image(r'./assets/buttons/closeRed.png')
+                closeBtn.config(bd=0,image=imgBtn31)
+                closeBtn.image = imgBtn31
+            def close_frame(e):
+                destroy_frame()
+            cframe = Frame(self.endFrame,bg=bg)
+            cframe.pack(side=LEFT,expand=1)
+            imgBtn3 = self.controller.get_image(r'./assets/buttons/closeGrey.png')
+            closeBtn = Label(cframe, image=imgBtn3,bd=0,compound=CENTER,bg=bg)
+            closeBtn.image = imgBtn3
+            closeBtn.bind('<Enter>',lambda e: close_hover(e))
+            closeBtn.bind('<Leave>',lambda e: close_leave(e))
+            closeBtn.bind('<Button-1>',lambda e: close_frame(e))
+            closeBtn.pack(side=RIGHT,padx=10)
+    
+    def selection_tag(self, tag, _mbtiLetter=None):
+        limitTag = 8
+        w,h = 140, 50
+        if _mbtiLetter:
+            if _mbtiLetter == "NT": 
+                selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiPurple.png', w, h)
+                unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiPurple2.png', w, h)
+            elif _mbtiLetter == "NF": 
+                selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiGreen.png', w, h)
+                unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiGreen2.png', w, h)
+            elif _mbtiLetter == "SJ": 
+                selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiCyan.png', w, h)
+                unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiCyan2.png', w, h)
+            elif _mbtiLetter == "SP": 
+                selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiYellow.png', w, h)
+                unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
+
+            for i,select in enumerate(self.mbtiWidgets):
+                if select['userType'] == tag:
+                    select['widget'].config(image=selectMbtiImg,compound=CENTER,fg="#eeeeee")
+                    select['widget'].image = selectMbtiImg
+                    if select['status'] == 0:
+                        if len(self.matchAllTags) < limitTag:
+                            self.matchAllTags.append(select['userType'])
+                            select['status'] = 1
+                        else:
                             select['widget'].config(image=unselectMbtiImg,compound=CENTER,fg="#555555")
                             select['widget'].image = unselectMbtiImg
                             select['status'] = 0    
-            else:
-                selectTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png',w,h)
-                for i,select in enumerate(self.tagWidgets):
-                    if select['tagName'] == tag:
-                        select['widget'].config(image=selectTagImg,compound=CENTER,fg="#eeeeee")
-                        select['widget'].image = selectTagImg
-                        if select['status'] == 0:
-                            if len(self.matchAllTags) < limitTag:
-                                self.matchAllTags.append(select['tid'])
-                                select['status'] = 1
-                            else:
-                                select['widget'].config(image=self.userTagImg,compound=CENTER,fg="#555555")
-                                select['widget'].image = self.userTagImg
-                                select['status'] = 0    
-                                messagebox.showwarning("BU Friends  |  Matching",f"You can select Tag at most {limitTag} Tags")
-                                
-                        elif select['status'] == 1:
-                            if select['tid'] in self.matchAllTags:
-                                self.matchAllTags.remove(select['tid'])
+                            messagebox.showwarning("BU Friends  |  Matching",f"You can select Tag at most {limitTag} Tags")
+                    elif select['status'] == 1:
+                        if select['userType'] in self.matchAllTags:
+                            self.matchAllTags.remove(select['userType'])
+                        select['widget'].config(image=unselectMbtiImg,compound=CENTER,fg="#555555")
+                        select['widget'].image = unselectMbtiImg
+                        select['status'] = 0    
+        else:
+            selectTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png',w,h)
+            for i,select in enumerate(self.tagWidgets):
+                if select['tagName'] == tag:
+                    select['widget'].config(image=selectTagImg,compound=CENTER,fg="#eeeeee")
+                    select['widget'].image = selectTagImg
+                    if select['status'] == 0:
+                        if len(self.matchAllTags) < limitTag:
+                            self.matchAllTags.append(select['tid'])
+                            select['status'] = 1
+                        else:
                             select['widget'].config(image=self.userTagImg,compound=CENTER,fg="#555555")
                             select['widget'].image = self.userTagImg
                             select['status'] = 0    
-            print(self.matchAllTags)    
-            pass
-        
-        def match_tags_commit(self):
-            if self.matchAllTags == []:
-                messagebox.showinfo("BU Friends  |  Matching","You didn't select any tags.\nPlease Try again.")
+                            messagebox.showwarning("BU Friends  |  Matching",f"You can select Tag at most {limitTag} Tags")
+                            
+                    elif select['status'] == 1:
+                        if select['tid'] in self.matchAllTags:
+                            self.matchAllTags.remove(select['tid'])
+                        select['widget'].config(image=self.userTagImg,compound=CENTER,fg="#555555")
+                        select['widget'].image = self.userTagImg
+                        select['status'] = 0    
+        print(self.matchAllTags)    
+        pass
+    
+    def match_tags_commit(self):
+        self.filterFrame.destroy()
+        self.filterFrame = None
+        if self.matchAllTags == []:
+            messagebox.showinfo("BU Friends  |  Matching","You didn't select any Tags.\nPlease Try again.")
+            return
+        else:
+            self.controller.matchFilter = 1
+            self.uuidFilter.clear()
+            print("\n\nMatchFilter = ",self.controller.matchFilter)
+            # Resorting str & int in All Tags
+            self.matchAllTags = list(map(int,filter(lambda x:x.isdigit(),sorted(map(str,self.matchAllTags)))))+list(filter(lambda x:x.isalpha(),sorted(map(str,self.matchAllTags))))
+            print(self.matchAllTags)
+            self.matchTagsLst,self.matchMbtiLst = None, None
+            try:
+                if any(isinstance(tag, str) for tag in self.matchAllTags):
+                    print("any alpha\n")
+                    self.matchMbtiLst = [tag for tag in self.matchAllTags if isinstance(tag, str)]
+                    print(self.matchMbtiLst)
+                if any(isinstance(tag, int) for tag in self.matchAllTags):
+                    print("any digit\n")
+                    self.matchTagsLst = [tag for tag in self.matchAllTags if isinstance(tag, int)]
+                    self.matchTagsLst = ", ".join(map(str,self.matchTagsLst))
+                    print(self.matchTagsLst)
+            except ValueError as ve: print(ve); return 
+            conn = self.controller.create_connection()
+            conn.row_factory = sqlite3.Row
+            sqlMatch = None
+            if conn is None:
+                print('Cant connect DB')
                 return
-            else:
-                self.controller.matchFilter = 1
-                self.uuidFilter = []
-                print("\n\nMatchFilter = ",self.controller.matchFilter)
-                # Resorting str & int in All Tags
-                self.matchAllTags = list(map(int,filter(lambda x:x.isdigit(),sorted(map(str,self.matchAllTags)))))+list(filter(lambda x:x.isalpha(),sorted(map(str,self.matchAllTags))))
-                print(self.matchAllTags)
-                self.matchTagsLst,self.matchMbtiLst = None, None
-                try:
-                    if any(isinstance(tag, str) for tag in self.matchAllTags):
-                        print("any alpha\n")
-                        self.matchMbtiLst = [tag for tag in self.matchAllTags if isinstance(tag, str)]
-                        print(self.matchMbtiLst)
-                    if any(isinstance(tag, int) for tag in self.matchAllTags):
-                        print("any digit\n")
-                        self.matchTagsLst = [tag for tag in self.matchAllTags if isinstance(tag, int)]
-                        self.matchTagsLst = ", ".join(map(str,self.matchTagsLst))
-                        print(self.matchTagsLst)
-                except ValueError as ve: print(ve); return 
-                conn = self.controller.create_connection()
-                conn.row_factory = sqlite3.Row
-                sqlMatch = None
-                if conn is None:
-                    print('Cant connect DB')
-                    return
-                if self.matchMbtiLst:
-                    limitRangeMbti = len(self.matchMbtiLst)
-                    qMbtiSet = self.gen_qmark(limitRangeMbti)
-                    if self.matchTagsLst:
-                        sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
-                                                    UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
-                                                    UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
-                                                    UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
-                                                    ) uniA WHERE uniA.UserType in ({qMbtiSet});"""
-                    else:
-                        sqlMatch = f"""SELECT * FROM UsersTag WHERE userType in ({qMbtiSet});"""
-                else:
+            if self.matchMbtiLst:
+                limitRangeMbti = len(self.matchMbtiLst)
+                qMbtiSet = self.gen_qmark(limitRangeMbti)
+                if self.matchTagsLst:
                     sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
                                                 UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
                                                 UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
                                                 UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
-                                                ) uniA ;"""
-                print(sqlMatch)
-                messagebox.showinfo("BU Friends  | Matching",f"You selected All tags is {self.matchAllTags}\nYou selected tags is {self.matchTagsLst}\nYou selected Mbti is {self.matchMbtiLst}")
-                curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
-                for data in curr:
-                    print(*data)
-                    self.uuidFilter.append(data['Uid'])
-                if self.uuidFilter == []:
-                    messagebox.showinfo("BU Friends  |  Matching","Currently no one matches your tags required.\nTry to changing the tags again. \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
+                                                ) uniA WHERE uniA.UserType in ({qMbtiSet});"""
                 else:
-                    print("raw uid filter",self.uuidFilter)
-                    print(len(self.uuidFilter))
-                    self.uuidLst.clear()
-                    print("uuidlst before get uuid filter",self.uuidLst)
-                    if len(self.uuidFilter) > 12:
-                        print("uuid filter more than 12 uuid")
-                        randLst = random.sample(range(len(self.uuidFilter)),12)
-                        print(randLst)
-                        for i,indexdata in enumerate(randLst):
-                            self.uuidLst.append(self.uuidFilter[indexdata])
-                        self.uuidFilter = self.uuidLst
-                    else:
-                        self.uuidLst = self.uuidFilter
-                    messagebox.showinfo("BU Friends  |  Matching",f"Matched!!!\n{[[*data] for data in curr]}")
-                    print("final uuidlst",self.uuidLst)
-                    self.controller.matchFilter = 1
-                    self.request_users_infomation()
-                    #self.controller.switch_frame(Matching)
-                
-        
-        def request_users_infomation(self):
-            def reset_list_data():
-                self.uuidLst.clear()
-                self.uinfoLst.clear()
-                self.udnameLst.clear()
-            self.conn = self.controller.create_connection()
-            self.conn.row_factory = sqlite3.Row
-            if self.conn is None:
-                print("DB connot connect")            
+                    sqlMatch = f"""SELECT * FROM UsersTag WHERE userType in ({qMbtiSet});"""
             else:
-                if self.controller.matchFilter == 1:
-                    self.uinfoLst.clear()
-                    self.udnameLst.clear()
-                    print("pass uuidLst filter = ",self.uuidLst)
-                    print("pass uuidFilter = ",self.uuidFilter)
-                    conn = self.controller.create_connection()
-                    if conn is None:
-                        print("cannot create connection")
-                        return
-                    qmark = self.gen_qmark(len(self.uuidFilter))
-                    sqlGetTag = """SELECT * FROM UsersTag WHERE Uid IN ({})""".format(qmark)
-                    print(sqlGetTag)
-                    pass
-                else:
-                    reset_list_data()
-                    sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
-                    cur = self.controller.execute_sql(sqlLastUid)
-                    userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
-                    randLst = []
-                    randLst = random.sample(range(1,userCount),12)
-                    while self.controller.uid in randLst:
-                        reset_list_data()
-                        randLst = random.sample(range(1,userCount),12)
+                sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
+                                            UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
+                                            UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
+                                            UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
+                                            ) uniA ;"""
+            print(sqlMatch)
+            #messagebox.showinfo("BU Friends  | Matching",f"You selected All tags is {self.matchAllTags}\nYou selected tags is {self.matchTagsLst}\nYou selected Mbti is {self.matchMbtiLst}")
+            curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
+            for data in curr:
+                self.uuidFilter.append(data['Uid'])
+            if self.uuidFilter == []:
+                messagebox.showinfo("BU Friends  |  Matching","Currently no one matches your tags required.\nTry to changing the tags again. \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
+            else:
+                print("raw uid filter",self.uuidFilter)
+                print(len(self.uuidFilter))
+                self.controller.uuidLst.clear()
+                print("uuidlst before get uuid filter",self.controller.uuidLst)
+                if len(self.uuidFilter) > 12:
+                    print("uuid filter more than 12 uuid")
+                    randLst = random.sample(range(len(self.uuidFilter)),12)
                     print(randLst)
-                    sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
-                                                                        ?,?,?,?,?,?);"""
-                    cur = self.controller.execute_sql(sqlRandTag, randLst)
-                    infoRows = cur.fetchall()
-                    print(self.controller.uid)
-                    print(type(self.controller.uid))
-                    for i, row in enumerate(infoRows):
-                        if row['UserType'] is None:
-                            pass
-                        elif "ADMIN" in row['UserType']:
-                            self.cntLoop +=1
-                            print("check admin")
-                            reset_list_data()
-                            randLst.clear()
-                            self.conn.close()
-                            self.request_users_infomation()
-                            break
-                        self.uinfoLst.append(row)
-                        self.uuidLst.append(infoRows[i]['Uid'])    
-                    sqlDisplayName = """SELECT DisplayName FROM Users WHERE Uid IN (?,?,?,?,?,?,
-                                                                                    ?,?,?,?,?,?);"""
-                    curr = self.controller.execute_sql(sqlDisplayName, self.uuidLst)
-                    dnameRows = curr.fetchall()
-                    self.udnameLst.clear()
-                    for i,row in enumerate(dnameRows):
-                        self.udnameLst.append(row['DisplayName'])
-            pass
-                    
-        def display_user_random(self):
-            self.userTabBtnImg = self.controller.get_image(r'./assets/images/rectangle.png',820,180)
-            self.idxRandLst = random.sample(range(len(self.uuidLst)), len(self.uuidLst))
-            print("Display random index of uuidlst",self.idxRandLst)
-            self.get_tagname()
-            print(self.tagnameLst)
-            for i in range(len(self.uuidLst)):
-                self.get_users_tab(i)
-                
-        def get_users_tab(self,_i):
-            bgRectangle = "#e6eefd"
-            ir = self.idxRandLst[_i]
-            self.tabFrame = Frame(self.canvasMain,bg=self.bgCanva)
-            self.tabFrame.pack(pady=10)
-            self.tabFrame.option_add("*font","leelawadee 15 bold")
-            self.tabFrame.option_add("*foreground","#ffffff")
-            self.userTabBtn = Button(self.tabFrame, command=lambda:self.goto_review_profile(self.uuidLst[ir]), 
-                                     image=self.userTabBtnImg, justify=LEFT,bg=self.bgCanva, 
-                                     bd=0,compound=CENTER,activebackground=self.bgCanva,
-                                    relief=FLAT)
-            self.userTabBtn.pack(pady=10,anchor=W)
-            self.userDisname = Label(self.tabFrame, text=self.udnameLst[ir],bg=bgRectangle, font="leelawadee 20 bold",fg="#000000")
-            self.userDisname.place(x=210,y=40)
-            self.img = self.controller.get_image(r'./assets/images/avt{}.png'.format(self.uuidLst[ir]%6),138,144)
-            self.profileImg = Label(self.tabFrame, image=self.img ,bg=bgRectangle,bd=0)
-            self.profileImg.image = self.img
-            self.profileImg.place(x=40,y=20,anchor=NW)
-            xplace = 200
-            w,h = 140,45
-            for i, tag in enumerate((self.uinfoLst[ir])):
-                self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png', w,h)
-                if i < 1: continue          # Skip Uid  info
-                if i == 1:                  # MBTi Check
-                    if tag is None: continue
-                    elif "N" in tag and "T" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple.png', w, h)
-                    elif "N" in tag and "F" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen.png', w, h)
-                    elif "S" in tag and "J" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan.png', w, h)
-                    elif "S" in tag and "P" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow.png', w, h)
-                if i > 4: break             # stop tag place
-                if tag is None:             # didnt show None Tag 
-                    if i == 1:              # except Mbti
-                        self.userTag = Label(self.tabFrame, text="{}".format(tag), image=self.userTagImg,
-                                            bg=bgRectangle, compound=CENTER)
-                        self.userTag.image = self.userTagImg
-                        self.userTag.place(x=xplace,y=110)
-                    else:pass
-                elif isinstance(tag, str):
-                    self.userTag = Label(self.tabFrame, text="{}".format(self.uinfoLst[ir][i]), image=self.userTagImg,
-                                        bg=bgRectangle, compound=CENTER)
-                    self.userTag.image = self.userTagImg
-                    self.userTag.place(x=xplace,y=110)
+                    for i,indexdata in enumerate(randLst):
+                        self.controller.uuidLst.append(self.uuidFilter[indexdata])
+                    self.uuidFilter = self.controller.uuidLst
+                elif len(self.uuidFilter) > 0:
+                    print("uuidfilter <= 12")
+                    self.controller.uuidLst = self.uuidFilter
                 else:
-                    tag = self.tagnameLst[(self.uinfoLst[ir][i])-1]
-                    self.userTag = Label(self.tabFrame, text="{}".format(tag['tagName']), image=self.userTagImg,
+                    print("not match pass condition")
+                    pass
+                messagebox.showinfo("BU Friends  |  Matching",f"Matched!!!\n{[[*data] for data in curr]}")
+                print("final uuidlst",self.controller.uuidLst)
+                self.controller.matchFilter = 1
+                self.request_users_infomation()
+            
+    def request_users_infomation(self):
+        def reset_list_data():
+            self.controller.uuidLst.clear()
+            self.controller.uinfoLst.clear()
+            self.controller.udnameLst.clear()
+        self.conn = self.controller.create_connection()
+        self.conn.row_factory = sqlite3.Row
+        if self.conn is None:
+            print("DB connot connect")            
+        else:
+            if self.controller.matchFilter == 1:
+                self.controller.uinfoLst.clear()
+                self.controller.udnameLst.clear()
+                print("pass uuidLst filter = ",self.controller.uuidLst)
+                print("pass uuidFilter = ",self.uuidFilter)
+                qmark = self.gen_qmark(len(self.controller.uuidLst))
+                sqlGetTag = f"""SELECT * FROM UsersTag WHERE Uid IN ({qmark});"""
+                sqlGetDisplayName = f"""SELECT DisplayName FROM Users WHERE Uid IN ({qmark})"""
+                print(sqlGetTag)
+                infoRows = self.controller.execute_sql(sqlGetTag, self.controller.uuidLst).fetchall()
+                dnameRows = self.controller.execute_sql(sqlGetDisplayName, self.controller.uuidLst).fetchall()
+                for i,info in enumerate(infoRows):
+                    self.controller.uinfoLst.append(info)
+                for dname in dnameRows:
+                    self.controller.udnameLst.append(dname['DisplayName'])
+                print("user info filter =",self.controller.uinfoLst)
+                print("user dname filter =",self.controller.udnameLst)
+                self.conn.close()
+                self.controller.switch_frame(Matching)
+                pass
+            else:
+                reset_list_data()
+                sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
+                cur = self.controller.execute_sql(sqlLastUid)
+                userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
+                randLst = []
+                randLst = random.sample(range(1,userCount),12)
+                while self.controller.uid in randLst:
+                    reset_list_data()
+                    randLst = random.sample(range(1,userCount),12)
+                print(randLst)
+                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
+                                                                    ?,?,?,?,?,?);"""
+                cur = self.controller.execute_sql(sqlRandTag, randLst)
+                infoRows = cur.fetchall()
+                print(self.controller.uid)
+                print(type(self.controller.uid))
+                for i, row in enumerate(infoRows):
+                    if row['UserType'] is None:
+                        pass
+                    elif "ADMIN" in row['UserType']:
+                        self.cntLoop +=1
+                        print("check admin")
+                        reset_list_data()
+                        randLst.clear()
+                        self.conn.close()
+                        self.request_users_infomation()
+                        break
+                    self.controller.uinfoLst.append(row)
+                    self.controller.uuidLst.append(infoRows[i]['Uid'])    
+                sqlDisplayName = """SELECT DisplayName FROM Users WHERE Uid IN (?,?,?,?,?,?,
+                                                                                ?,?,?,?,?,?);"""
+                curr = self.controller.execute_sql(sqlDisplayName, self.controller.uuidLst)
+                dnameRows = curr.fetchall()
+                self.controller.udnameLst.clear()
+                for i,row in enumerate(dnameRows):
+                    self.controller.udnameLst.append(row['DisplayName'])
+        pass
+                
+    def display_users(self):
+        self.userTabBtnImg = self.controller.get_image(r'./assets/images/rectangle.png',820,180)
+        print("range len uuidlst",range(len(self.controller.uuidLst)))
+        print("len uuidlst =",(len(self.controller.uuidLst)))
+        self.idxRandLst = random.sample(range(len(self.controller.uuidLst)), len(self.controller.uuidLst))
+        print("index of uuidlst",self.controller.uuidLst)
+        print("Display random index of uuidlst",self.idxRandLst)
+        self.get_tagname()
+        print(self.tagnameLst)
+        print("now show usertab id =",self.controller.uuidLst)
+        print("udnamelst =",self.controller.udnameLst)
+        for i in range(len(self.controller.uuidLst)):
+            self.get_users_tab(i)
+        if len(self.controller.uuidLst) < 7:
+            uuidFillSpace = 7-(len(self.controller.uuidLst))
+            for i in range(uuidFillSpace):
+                self.get_blank_tab(i)
+            
+    def get_users_tab(self,_i):
+        bgRectangle = "#e6eefd"
+        ir = self.idxRandLst[_i]
+        print("ir =",ir)
+        print("uuidLst pos ir =",self.controller.uuidLst[ir])
+        self.tabFrame = Frame(self.usersFrame,bg=self.bgCanva)
+        self.tabFrame.pack(pady=10)
+        self.tabFrame.option_add("*font","leelawadee 15 bold")
+        self.tabFrame.option_add("*foreground","#ffffff")
+        self.userTabBtn = Button(self.tabFrame, command=lambda:self.goto_review_profile(self.controller.uuidLst[ir]), 
+                                    image=self.userTabBtnImg, justify=LEFT,bg=self.bgCanva, 
+                                    bd=0,compound=CENTER,activebackground=self.bgCanva,
+                                relief=FLAT)
+        self.userTabBtn.pack(pady=10,anchor=W)
+        self.userDisname = Label(self.tabFrame, text=self.controller.udnameLst[ir],bg=bgRectangle, font="leelawadee 20 bold",fg="#000000")
+        self.userDisname.place(x=210,y=40)
+        self.img = self.controller.get_image(r'./assets/images/avt{}.png'.format(self.controller.uuidLst[ir]%6),138,144)
+        self.profileImg = Label(self.tabFrame, image=self.img ,bg=bgRectangle,bd=0)
+        self.profileImg.image = self.img
+        self.profileImg.place(x=40,y=20,anchor=NW)
+        xplace = 200
+        w,h = 140,45
+        for i, tag in enumerate((self.controller.uinfoLst[ir])):
+            self.userTagImg = self.controller.get_image(r'./assets/buttons/tagButton.png', w,h)
+            if i < 1: continue          # Skip Uid  info
+            if i == 1:                  # MBTi Check
+                if tag is None: continue
+                elif "N" in tag and "T" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiPurple.png', w, h)
+                elif "N" in tag and "F" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiGreen.png', w, h)
+                elif "S" in tag and "J" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiCyan.png', w, h)
+                elif "S" in tag and "P" in tag: self.userTagImg = self.controller.get_image(r'./assets/buttons/mbtiYellow.png', w, h)
+            if i > 4: break             # stop tag place
+            if tag is None:             # didnt show None Tag 
+                if i == 1:              # except Mbti
+                    self.userTag = Label(self.tabFrame, text="{}".format(tag), image=self.userTagImg,
                                         bg=bgRectangle, compound=CENTER)
                     self.userTag.image = self.userTagImg
                     self.userTag.place(x=xplace,y=110)
-                xplace += 150
-            nextIcon = self.controller.get_image(r'./assets/icons/next.png')
-            self.next = Button(self.tabFrame,command=lambda:self.goto_review_profile(self.uuidLst[ir]), image=nextIcon, 
-                               bd=0, bg=bgRectangle, activebackground=bgRectangle)
-            self.next.image = nextIcon
-            self.next.place(x=720,y=45, anchor=NW)
-            pass
+                else:pass
+            elif isinstance(tag, str):
+                self.userTag = Label(self.tabFrame, text="{}".format(self.controller.uinfoLst[ir][i]), image=self.userTagImg,
+                                    bg=bgRectangle, compound=CENTER)
+                self.userTag.image = self.userTagImg
+                self.userTag.place(x=xplace,y=110)
+            else:
+                tag = self.tagnameLst[(self.controller.uinfoLst[ir][i])-1]
+                self.userTag = Label(self.tabFrame, text="{}".format(tag['tagName']), image=self.userTagImg,
+                                    bg=bgRectangle, compound=CENTER)
+                self.userTag.image = self.userTagImg
+                self.userTag.place(x=xplace,y=110)
+            xplace += 150
+        nextIcon = self.controller.get_image(r'./assets/icons/next.png')
+        self.next = Button(self.tabFrame,command=lambda:self.goto_review_profile(self.controller.uuidLst[ir]), image=nextIcon, 
+                            bd=0, bg=bgRectangle, activebackground=bgRectangle)
+        self.next.image = nextIcon
+        self.next.place(x=720,y=45, anchor=NW)
+        pass
+       
+    def get_blank_tab(self,_i):
+        self.tabFrame = Frame(self.usersFrame,bg=self.bgCanva)
+        self.tabFrame.pack(pady=10)
+        self.tabFrame.option_add("*font","leelawadee 15 bold")
+        self.tabFrame.option_add("*foreground","#bbbbbb")
+        b = Button(self.tabFrame,bd=0, justify=LEFT,bg=self.bgCanva,relief=FLAT,state=DISABLED)
+        if _i ==0:
+            b.config(text="Search results only include your filter MBTi & Tags visible to You.")
+        b.pack(ipady=55,pady=10,anchor=W)
+            
+    def goto_review_profile(self,_uidselect):
+        self.controller.uidSelect = _uidselect
+        print(self.controller.uidSelect)
+        self.controller.option_add('*foreground',"#000000")
+        self.controller.switch_frame(ProfileReviewPage)
+    def goto_my_profile(self):
+        print(self.controller.uid)
+        self.controller.option_add('*foreground',"#000000")
+        self.controller.switch_frame(ProfilePage)
         
-        def get_usertab_filter(self,_i):
-            print("Match!!")
-            print("get_userfilter")
-            ir = self.idxRandLst[_i]
-            pass
-        
-        def goto_review_profile(self,_uidselect):
-            self.controller.uidSelect = _uidselect
-            print(self.controller.uidSelect)
-            self.controller.option_add('*foreground',"#000000")
-            self.controller.switch_frame(ProfileReviewPage)
-            
-        def goto_my_profile(self):
-            print(self.controller.uid)
-            self.controller.option_add('*foreground',"#000000")
-            self.controller.switch_frame(ProfilePage)
-            
-            
-     
 
 class ProfileReviewPage(Frame):
     def __init__(self,controller):
