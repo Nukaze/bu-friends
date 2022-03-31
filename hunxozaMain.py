@@ -24,7 +24,7 @@ class BUFriends(Tk):
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
         self.uid = 3
-        self.uidSelect = 4
+        self.uidSelect = 7
         self.switch_frame(Administration)
 
     def create_connection(self):
@@ -59,6 +59,7 @@ class BUFriends(Tk):
             self.frame.destroy()
         self.frame = new_frame
         self.configure(bg = self.frame.bgColor)
+        self.frame.pack_propagate(False)
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=True)
 
     def get_image(self, _path, _width, _height):
@@ -109,7 +110,7 @@ class ScrollFrame():
 
     # This can now handle either windows or linux platforms
     def _on_mousewheel(self, event):
-        if self.scrollable == True :
+        if self.interior.winfo_reqheight() > self.root.winfo_reqheight():
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
@@ -124,7 +125,7 @@ class ProfileReviewPage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
-        Frame.config(self,bg=self.bgColor)
+        Frame.config(self,bg=self.bgColor,height=600)
         scroll = ScrollFrame(self,True)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1,self.controller.uidSelect)
@@ -321,7 +322,7 @@ class EditPage(Frame):
                     self.addWidget.bind('<Button-1>',lambda e,c=i: self.addtag_page(e))
     def end_geometry(self) :
             self.endFrame = Frame(self.root,bg=self.bgColor)
-            self.endFrame.pack(pady=25)
+            self.endFrame.pack(pady=20)
             Button(self.endFrame,image=self.imgList['button'],text="Save Change",bd=0,compound=CENTER,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,activeforeground='white',
             command=lambda : self.save_change()).pack(side=LEFT,padx=20)
@@ -881,6 +882,7 @@ class Administration(Frame):
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self,False,self.bgColor)
         self.root = scroll.interior
+        self.allReports = []
         self.imgList = {}
         imgPathList = [
             {'name':'logout','path':'./assets/icons/signOut.png','x':35,'y':35},
@@ -924,30 +926,62 @@ class Administration(Frame):
         self.BottomFrame.propagate(0)
         self.scroll = ScrollFrame(self.BottomFrame,True,'#282D39')
         self.container = self.scroll.interior
+        self.innerCanvas = Canvas(self.container, bg='#282D39',highlightthickness=0)
+        self.innerCanvas.pack(side=LEFT, fill=BOTH, expand=1)
         self.get_report()
 
     def get_report(self) :
-        for i in self.container.winfo_children() :
-            i.destroy()
+        self.allReports.clear()
         self.blacklistRadioBtn.config(fg='#B7B7B7')
         self.reportRadioBtn.config(fg='#7167A0')
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        sql = """SELECT Rid,Header FROM Reports WHERE Status=0"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql)
+            data = c.fetchall()
+            for i,report in enumerate(data) :
+                self.allReports.append({'rid':report['Rid'],'header':report['Header']})
+            for i,report in enumerate(self.allReports) :
+                sql = """
+                SELECT DisplayName FROM Users LEFT JOIN Reports 
+                ON Users.Uid=Reports.ReportedUid WHERE Rid=?;"""
+                c = self.controller.execute_sql(sql,[report['rid']])
+                data = c.fetchone()
+                self.allReports[i].update({'reportedName': data['displayName']})
+            print(self.allReports)
+        # for i in range(10) :
+        #     self.allReports.append(self.allReports[0])
         self.report_geometry()
     
     def get_blacklist(self) :
-        for i in self.container.winfo_children() :
-            i.destroy()
         self.reportRadioBtn.config(fg='#B7B7B7')
         self.blacklistRadioBtn.config(fg='#7167A0')
         self.blacklist_geometry()
 
     def report_geometry(self) :
-        for index in range(15):
-            item = Label(self.container,text=index,bg='#282D39',fg='#B7B7B7')
-            item.pack(side=TOP, fill=X, expand=TRUE)
+        for child in self.innerCanvas.winfo_children():
+            child.destroy()
+        self.scroll.canvas.xview_moveto(0)
+        self.scroll.canvas.yview_moveto(0)
+        y = 0
+        for i,report in enumerate(self.allReports) :
+            Label(self.innerCanvas,text=report['reportedName'],bg='#282D39',fg='#B7B7B7').pack(anchor=W,padx=20,pady=15)
+            self.innerCanvas.create_line(20, y, 780, y,fill='#868383')
+            y+=56
+        self.innerCanvas.create_line(20, y-1, 780, y-1,fill='#868383')
+
     def blacklist_geometry(self) :
+        for child in self.innerCanvas.winfo_children():
+            child.destroy()
+        self.scroll.canvas.xview_moveto(0)
+        self.scroll.canvas.yview_moveto(0)
+        y = 0
         for index in range(15):
-            item = Label(self.container,text= f"blacklist {index}",bg='#282D39',fg='#B7B7B7')
-            item.pack(side=TOP, fill=X, expand=TRUE)
+            Label(self.innerCanvas,text=f"Blacklist = {index}",bg='#282D39',fg='#B7B7B7').pack(anchor=W,padx=20,pady=15)
+            self.innerCanvas.create_line(20, y, 780, y,fill='#868383')
+            y+=56
+        self.innerCanvas.create_line(20, y-1, 780, y-1,fill='#868383')
 if __name__ == '__main__':
     app = BUFriends()
     app.mainloop()
