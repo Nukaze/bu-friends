@@ -427,6 +427,10 @@ class SignUp(Frame):
                     print("check alnum")
                     print(self.check_alnumpass(self.entryLst[1].get()))
                     self.register_error("Sign Up Password Again\n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters")
+                elif len(self.entryLst[3].get()) >32:
+                    self.register_error("Sign Up Display Name Again\n[ Required ] Display Name can't be longer than 32 characters")
+                    self.entryLst[3].focus_force()
+                    self.entryLst[3].select_range(0,END)
                 else:
                     self.regisSubmitDict['bumail']=self.entryLst[0].get()
                     self.regisSubmitDict['displayname']=self.entryLst[3].get()
@@ -1662,6 +1666,7 @@ class DeactivatePage(Frame):
         activebackground='#D0EEFF',compound=CENTER,fg='white',
         activeforeground='white',font='leelawadee 13 bold',
         command=self.deactivate).pack(pady=30)
+        
     def deactivate(self) :
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
