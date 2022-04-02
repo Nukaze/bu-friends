@@ -138,17 +138,17 @@ class BUFriends(Tk):
   
     
 class ScrollFrame():
-    def __init__(self,root,bgColor="#ffffff"):
+    def __init__(self,root,bgColor='white'):
         # creating
         self.root = root
         self.bgColor = bgColor
-        self.canvas = Canvas(self.root, bg=self.root.bgColor,highlightthickness=0)
+        self.canvas = Canvas(self.root, bg=self.bgColor,highlightthickness=0)
         self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
         # reset the view
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
         # create a frame inside the canvas which will be scrolled with it
-        self.interior = Frame(self.canvas,bg=self.root.bgColor)
+        self.interior = Frame(self.canvas,bg=self.bgColor)
         self.interior_id = self.canvas.create_window(0, 0, window=self.interior,anchor=NW)
         self.interior.bind('<Configure>', self._configure_interior)
         self.canvas.bind('<Configure>', self._configure_canvas)
@@ -169,15 +169,13 @@ class ScrollFrame():
         if self.interior.winfo_reqwidth() != self.root.winfo_width():
             # update the inner frame's width to fill the canvas
             self.canvas.itemconfigure(self.interior_id, width=self.root.winfo_width())
-
     # This can now handle either windows or linux platforms
     def _on_mousewheel(self, event):
-        #if self.scrollable == TRUE :
         if self.interior.winfo_reqheight() > self.root.winfo_reqheight():
-            self.canvas.yview_scroll(int(-1*(event.delta/100)), "units")
+            print(event.delta)
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
-            
     def _bind_to_mousewheel(self, event):
         self.root.bind_all("<MouseWheel>", self._on_mousewheel)
 
@@ -1886,8 +1884,8 @@ class InfoOnProfile() :
             activebackground=self.bgColor).pack(side=LEFT)
         else :
             Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,
+            command=lambda:self.controller.switch_frame(Matching),
             activebackground=self.bgColor).pack(side=LEFT)
-        Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,command=lambda:self.controller.switch_frame(Matching),activebackground=self.bgColor).pack(side=LEFT)
         Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
         Label(bottomFrame,image=self.profileImgLst[self.uid%6],bg=self.bgColor).pack()
