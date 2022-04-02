@@ -172,7 +172,7 @@ class ScrollFrame():
     # This can now handle either windows or linux platforms
     def _on_mousewheel(self, event):
         if self.interior.winfo_reqheight() > self.root.winfo_reqheight():
-            print(event.delta)
+            #print(event.delta)
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
