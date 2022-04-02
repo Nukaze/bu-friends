@@ -78,7 +78,6 @@ class BUFriends(Tk):
         else:
             self.switch_frame(SignIn)
             
-
     def switch_frame(self, frame_class):
         print("switching to {} \n==|with uid = {}".format(frame_class, self.uid))
         new_frame = frame_class(self)
@@ -130,10 +129,10 @@ class BUFriends(Tk):
   
     
 class ScrollFrame():
-    def __init__(self,root,scrollable):
+    def __init__(self,root):
         # creating
         self.root = root
-        self.scrollable = scrollable
+        #self.scrollable = scrollable
         self.scrollbar = Scrollbar(self.root, orient=VERTICAL,width=0)
         #self.scrollbar.pack(fill=Y, side=RIGHT, expand=0)
         self.canvas = Canvas(self.root, bg=self.root.bgColor,highlightthickness=0, yscrollcommand=self.scrollbar.set)
@@ -170,7 +169,8 @@ class ScrollFrame():
 
     # This can now handle either windows or linux platforms
     def _on_mousewheel(self, event):
-        if self.scrollable == TRUE :
+        #if self.scrollable == TRUE :
+        if self.interior.winfo_reqheight() > self.root.winfo_reqheight():
             self.canvas.yview_scroll(int(-1*(event.delta/100)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
@@ -188,7 +188,7 @@ class SignIn(Frame):
         self.bgColor,self.fg = "#B6E0F7","#cc07e6"
         Frame.config(self, bg=self.bgColor)
         self.pack()
-        self.root = ScrollFrame(self, False).interior
+        self.root = ScrollFrame(self).interior
         self.SignInContent(self.root, controllerFrame)
 
     class SignInContent:
@@ -332,7 +332,7 @@ class SignUp(Frame):
         self.pack()
         self.controller = controllerFrame
         self.controller.uid = 0
-        self.root = ScrollFrame(self,False).interior
+        self.root = ScrollFrame(self).interior
         self.SignUpContent(self.root, controllerFrame)
 
     class SignUpContent:
@@ -541,7 +541,7 @@ class Mbti(Frame):
         self.bgColor = "#155748"
         Frame.config(self, bg=self.bgColor)
         self.pack()
-        self.root = ScrollFrame(self, True).interior
+        self.root = ScrollFrame(self).interior
         self.MbtiContent(self.root, controllerFrame)
         
     class MbtiContent:
@@ -562,13 +562,9 @@ class Mbti(Frame):
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
             self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(EditPage), image=self.backImg, relief="flat",bd=0)
-            if self.controller.pvFrame == 0: self.back.config(command=lambda:self.controller.switch_frame(Matching))
-            self.back.place(x=20,y=10 ,anchor="nw")
-            """if from regis page:
+            if self.controller.pvFrame == 1:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
-            else:
-                self.back.config(commnad=lambda:self.controller.switch_frame(EditProfile))
-            """
+            self.back.place(x=20,y=10 ,anchor="nw")
             self.mbtiProgress = {'ie':[],
                                  'ns':[],
                                  'ft':[],
@@ -687,7 +683,7 @@ class MbtiSuccess(Frame):
         self.bgColor = "#d0eeff"
         Frame.config(self,bg=self.bgColor)
         self.pack(expand=1,fill=BOTH)
-        self.root = ScrollFrame(self, False).interior
+        self.root = ScrollFrame(self).interior
         self.controller = controllerFrame
         bg = "#d0eeff"
         self.frame = Frame(self.root, width=900, height=600)
@@ -709,8 +705,8 @@ class Matching(Frame):
         self.controller = controllerFrame
         with open(r'./database/sessions.txt','w')as ss:
             ss.write("{}".format(self.controller.uid))
-        self.root = ScrollFrame(self, True).interior
-        self.controller.pvFrame = 1
+        self.root = ScrollFrame(self).interior
+        self.controller.pvFrame = 0
         self.controller.title("BU Friends  |  Matching")
         print("checkuid =",self.controller.uid)
         self.bgCanva = "#FFFFFF"
@@ -1114,8 +1110,6 @@ class Matching(Frame):
     def get_users_tab(self,_i):
         bgRectangle = "#e6eefd"
         ir = self.idxRandLst[_i]
-        print("ir =",ir)
-        print("uuidLst pos ir =",self.controller.uuidLst[ir])
         self.tabFrame = Frame(self.usersFrame,bg=self.bgCanva)
         self.tabFrame.pack(pady=10)
         self.tabFrame.option_add("*font","leelawadee 15 bold")
@@ -1190,13 +1184,14 @@ class Matching(Frame):
         self.controller.switch_frame(ProfilePage)
         
 
+
 class ProfileReviewPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
         Frame.config(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,True)
+        scroll = ScrollFrame(self)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1,self.controller.uidSelect)
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uidSelect)
@@ -1207,7 +1202,7 @@ class ProfilePage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.config(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,True)
+        scroll = ScrollFrame(self)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,2,self.controller.uid)
         self.create_post_frame()
@@ -1251,7 +1246,7 @@ class EditPage(Frame):
         self.mainFrame = None
         self.tagData = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,True)
+        scroll = ScrollFrame(self)
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
@@ -1552,7 +1547,7 @@ class MyAccountPage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,False)
+        scroll = ScrollFrame(self)
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
@@ -1590,7 +1585,7 @@ class ChangePasswordPage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,False)
+        scroll = ScrollFrame(self)
         self.root = scroll.interior
         fontHead = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontHead)
@@ -1676,7 +1671,7 @@ class DeactivatePage(Frame):
         self.controller = controller
         self.data = ProfilePage(self.controller).profile
         Frame.configure(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,False)
+        scroll = ScrollFrame(self)
         self.root = scroll.interior
         fontHead = Font(family='leelawadee',size=20,weight='bold')
         self.fontBody = Font(family='leelawadee',size=15,weight='bold')
@@ -1753,7 +1748,7 @@ class DeactivatePage(Frame):
                     self.controller.uid = 0
                     with open(r'./database/sessions.txt','w')as ss:
                         ss.write("{}".format(self.controller.uid))
-                    messagebox.showinfo("BU Friends  |  Deactivate Account","Your Account Has Been Deactivated.\nHave a nice time and Good Bye...")
+                    messagebox.showinfo("BU Friends  |  Deactivate Account","Your Account Has Been Deactivated.\nHave a nice time and GOOD BYE ...")
                     self.controller.destroy()
                 else :
                     self.password.set('')
@@ -1965,7 +1960,7 @@ class Administration(Frame):
         self.bgColor = '#181B23'
         self.controller = controller
         Frame.config(self,bg=self.bgColor)
-        scroll = ScrollFrame(self,False,self.bgColor)
+        scroll = ScrollFrame(self,self.bgColor)
         self.root = scroll.interior
         self.imgList = {}
         imgPathList = [
