@@ -80,7 +80,6 @@ class BUFriends(Tk):
             sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
             dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
             conn.close()
-            #self.switch_frame(Mbti)
             self.switch_frame(Matching)
             messagebox.showinfo('BU Friends',"{}Welcome back!  {}{}".format(" "*4,dname," "*4))
             
@@ -94,6 +93,7 @@ class BUFriends(Tk):
             self.frame.destroy()
         self.frame = new_frame
         self.config(bg=self.frame.bgColor)
+        self.frame.pack_propagate(False)
         self.frame.pack(side=BOTTOM, fill=BOTH, expand=TRUE)
         
     def create_connection(self):
@@ -1165,10 +1165,10 @@ class Matching(Frame):
     def get_blank_tab(self,_i):
         self.tabFrame = Frame(self.usersFrame,bg=self.bgCanva)
         self.tabFrame.pack(pady=10)
-        self.tabFrame.option_add("*font","leelawadee 15 bold")
+        self.tabFrame.option_add("*font","leelawadee 14 bold")
         self.tabFrame.option_add("*foreground","#bbbbbb")
         b = Button(self.tabFrame,bd=0, justify=LEFT,bg=self.bgCanva,relief=FLAT,state=DISABLED)
-        if _i ==0:
+        if _i == 0:
             b.config(text="Search results only include your filter MBTi & Tags visible to You.")
         b.pack(ipady=55,pady=15,anchor=W)
             
@@ -1189,7 +1189,7 @@ class ProfileReviewPage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
-        Frame.config(self,bg=self.bgColor)
+        Frame.config(self,bg=self.bgColor,height=600)
         scroll = ScrollFrame(self)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1,self.controller.uidSelect)
@@ -1201,7 +1201,7 @@ class AdminReviewPage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         Frame.config(self,bg=self.bgColor,height=600)
-        scroll = ScrollFrame(self,True)
+        scroll = ScrollFrame(self)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,3,self.controller.uidSelect)
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uidSelect)
@@ -1397,7 +1397,7 @@ class EditPage(Frame):
                     self.addWidget.bind('<Button-1>',lambda e,c=i: self.addtag_page(e))
     def end_geometry(self) :
             self.endFrame = Frame(self.root,bg=self.bgColor)
-            self.endFrame.pack(pady=25)
+            self.endFrame.pack(pady=20)
             Button(self.endFrame,image=self.imgList['button'],text="Save Change",bd=0,compound=CENTER,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,activeforeground='white',
             command=lambda : self.save_change()).pack(side=LEFT,padx=20)
@@ -1732,6 +1732,9 @@ class DeactivatePage(Frame):
         activeforeground='white',font='leelawadee 13 bold',
         command=self.deactivate).pack(pady=30)
     def deactivate(self) :
+        if self.password.get() == "" :
+            messagebox.showwarning("Deactivate","Please enter your password")
+            return
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
         sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
@@ -1770,6 +1773,7 @@ class InfoOnProfile() :
         self.root = root
         self.bgColor = bgcolor
         self.controller=controller
+        self.controller.config(bg="pink")
         self.optionFrame = None
         self.parent = parent
         self.uid = uid
