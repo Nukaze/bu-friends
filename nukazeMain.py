@@ -1170,7 +1170,7 @@ class Matching(Frame):
         b = Button(self.tabFrame,bd=0, justify=LEFT,bg=self.bgCanva,relief=FLAT,state=DISABLED)
         if _i ==0:
             b.config(text="Search results only include your filter MBTi & Tags visible to You.")
-        b.pack(ipady=55,pady=10,anchor=W)
+        b.pack(ipady=55,pady=15,anchor=W)
             
     def goto_review_profile(self,_uidselect):
         self.controller.uidSelect = _uidselect
