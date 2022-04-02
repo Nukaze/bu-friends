@@ -59,7 +59,6 @@ class BUFriends(Tk):
                 print("Cannot Connecting to Database")
                 return
             sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
-            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
             lastUid = self.execute_sql(sqlLastUid).fetchone()[0]
             print(lastUid)
             if self.ssid > lastUid:
@@ -69,6 +68,16 @@ class BUFriends(Tk):
                 print(self.ssid)
                 self.switch_frame(SignIn)
                 return
+            sqlgetSessionType = """SELECT UserType FROM UsersTag WHERE Uid = ?;"""
+            sessionType = self.execute_sql(sqlgetSessionType, [self.ssid]).fetchone()[0]
+            print("ss type =",sessionType)
+            if sessionType == None:
+                pass
+            elif sessionType == "ADMIN":
+                self.uid = self.ssid
+                print("go admin")
+                self.switch_frame(Administration)
+            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
             dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
             conn.close()
             #self.switch_frame(Mbti)
@@ -129,15 +138,12 @@ class BUFriends(Tk):
   
     
 class ScrollFrame():
-    def __init__(self,root):
+    def __init__(self,root,bgColor="#ffffff"):
         # creating
         self.root = root
-        #self.scrollable = scrollable
-        self.scrollbar = Scrollbar(self.root, orient=VERTICAL,width=0)
-        #self.scrollbar.pack(fill=Y, side=RIGHT, expand=0)
-        self.canvas = Canvas(self.root, bg=self.root.bgColor,highlightthickness=0, yscrollcommand=self.scrollbar.set)
+        self.bgColor = bgColor
+        self.canvas = Canvas(self.root, bg=self.root.bgColor,highlightthickness=0)
         self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
-        self.scrollbar.config(command=self.canvas.yview)
         # reset the view
         self.canvas.xview_moveto(0)
         self.canvas.yview_moveto(0)
@@ -154,9 +160,6 @@ class ScrollFrame():
     def _configure_interior(self, event):
         # update the scrollbars to match the size of the inner frame
         size = (self.interior.winfo_reqwidth(), self.interior.winfo_reqheight())
-        '''
-            print(size)
-        '''
         self.canvas.config(scrollregion="0 0 %s %s" % size)
         if self.interior.winfo_reqwidth() != self.root.winfo_width():
             # update the canvas's width to fit the inner frame
@@ -1065,8 +1068,6 @@ class Matching(Frame):
                                                                     ?,?,?,?,?,?);"""
                 cur = self.controller.execute_sql(sqlRandTag, randLst)
                 infoRows = cur.fetchall()
-                print(self.controller.uid)
-                print(type(self.controller.uid))
                 for i, row in enumerate(infoRows):
                     if row['UserType'] is None:
                         pass
@@ -1194,6 +1195,17 @@ class ProfileReviewPage(Frame):
         scroll = ScrollFrame(self)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1,self.controller.uidSelect)
+        PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uidSelect)
+
+class AdminReviewPage(Frame):
+    def __init__(self,controller):
+        Frame.__init__(self,controller)
+        self.bgColor = 'white'
+        self.controller = controller
+        Frame.config(self,bg=self.bgColor,height=600)
+        scroll = ScrollFrame(self,True)
+        self.root = scroll.interior
+        self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,3,self.controller.uidSelect)
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uidSelect)
 
 class ProfilePage(Frame):
@@ -1813,7 +1825,11 @@ class InfoOnProfile() :
                         ss.write("{}".format(0))
                     self.controller.switch_frame(SignIn)
         bgColor = '#686DE0'
-        if self.parent == 2 :
+        if self.parent == 1 :
+            optionList = ["Report"]
+            imgOptionList = [None]
+            pageList = [None]
+        elif self.parent == 2 :
             optionList = ["Edit","My account","Log out"]
             imgOptionList = [
                 ('./assets/icons/edit.png',20,20),
@@ -1821,7 +1837,7 @@ class InfoOnProfile() :
                 ('./assets/icons/signOut.png',25,25)]
             pageList = [EditPage,MyAccountPage,None]
         else :
-            optionList = ["Report"]
+            optionList = [None]
             imgOptionList = [None]
             pageList = [None]
         self.imgOption = []
@@ -1864,6 +1880,13 @@ class InfoOnProfile() :
         for i,data in enumerate(profilePathLst):
             img = self.controller.get_image(data,180,180)
             self.profileImgLst.append(img)
+        if self.parent == 3 :
+            Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,
+            command=lambda:self.controller.switch_frame(Administration),
+            activebackground=self.bgColor).pack(side=LEFT)
+        else :
+            Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,
+            activebackground=self.bgColor).pack(side=LEFT)
         Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,command=lambda:self.controller.switch_frame(Matching),activebackground=self.bgColor).pack(side=LEFT)
         Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
@@ -1962,24 +1985,246 @@ class Administration(Frame):
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self,self.bgColor)
         self.root = scroll.interior
+        self.typeVar = IntVar()
+        self.typeVar.set(1)
+        self.allReports = []
+        self.allBlacklists = []
+        self.line = []
+        self.rememberRid = None
         self.imgList = {}
         imgPathList = [
-            {'name':'logout','path':'./assets/icons/signOut.png','x':35,'y':35}]
+            {'name':'logout','path':'./assets/icons/signOut.png','x':35,'y':35},
+            {'name':'blacklist','path':'./assets/icons/BlacklistlDefault.png','x':30,'y':30},
+            {'name':'blacklist2','path':'./assets/icons/BlacklistClicked.png','x':30,'y':30},
+            {'name':'report','path':'./assets/icons/MailDefault.png','x':30,'y':30},
+            {'name':'report2','path':'./assets/icons/MailClicked.png','x':30,'y':30}]
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
-        self.page_geometry()
+        if self.rememberRid is None :
+            self.page_geometry()
+        else :
+            self.page_geometry()
+            self.RequestReport(self,self.controller,self.rememberRid)
     def page_geometry(self) :
+        def call_function() :
+            if self.typeVar.get() == 1 :
+                self.get_report()
+            elif self.typeVar.get() == 2 :
+                self.get_blacklist()
+        def log_out() :
+            ms = messagebox.askquestion("log out","Are you sure you want to log out?")
+            if ms == "yes" :
+                self.controller.destroy()
         Button(self.root,image=self.imgList['logout'],bd=0,
-        bg=self.bgColor,activebackground=self.bgColor).pack(anchor=NE,pady=5)
-        self.mainFrame = Frame(self.root,bg='#282D39',width=800,height=500)
-        self.mainFrame.pack(pady=15)
+        bg=self.bgColor,activebackground=self.bgColor,command=lambda:log_out()).pack(anchor=NE,pady=10,padx=10)
+        fontTag = Font(family='leelawadee',size=13,weight='bold')
+        self.option_add('*font',fontTag)
+        self.mainFrame = Frame(self.root,bg='#282D39',width=800,height=60)
+        self.mainFrame.pack()
         self.mainFrame.propagate(0)
-        scroll = ScrollFrame(self.mainFrame,True,'#282D39')
-        self.container = scroll.interior
-        for index in range(100):
-            item = Label(self.container,text=index,bg='#282D39')
-            item.pack(side=TOP, fill=X, expand=TRUE)
+        self.reportRadioBtn = Radiobutton(self.mainFrame,text="New Report",bg='#282D39',
+        fg='#B7B7B7',indicatoron=0,bd=0,width=400,height=60,anchor=W,variable=self.typeVar,
+        value=1,selectcolor='#282D39',activeforeground='#7167A0',activebackground='#282D39',
+        image=self.imgList['report'],selectimage=self.imgList['report2'],
+        compound=LEFT,command=call_function,padx=20)
+        self.reportRadioBtn.pack(side=LEFT,anchor=NW)
+
+        self.blacklistRadioBtn = Radiobutton(self.mainFrame,text="Blacklist",bg='#282D39',
+        fg='#B7B7B7',indicatoron=0,bd=0,width=400,height=60,anchor=W,variable=self.typeVar,
+        value=2,selectcolor='#282D39',activeforeground='#7167A0',activebackground='#282D39',
+        image=self.imgList['blacklist'],selectimage=self.imgList['blacklist2'],
+        compound=LEFT,command=call_function,padx=20)
+        self.blacklistRadioBtn.pack(anchor=W)
+
+        self.BottomFrame = Frame(self.root,bg='#282D39',width=800,height=440)
+        self.BottomFrame.pack()
+        self.BottomFrame.propagate(0)
+        self.scroll = ScrollFrame(self.BottomFrame,True,'#282D39')
+        self.container = self.scroll.interior
+        self.innerCanvas = Canvas(self.container, bg='#282D39',highlightthickness=0)
+        self.innerCanvas.pack(side=LEFT, fill=BOTH, expand=1)
+        self.innerCanvas.create_line(20, 0, 780, 0,fill='#868383')
+        self.get_report()
+
+    def get_report(self) :
+        self.allReports.clear()
+        self.blacklistRadioBtn.config(fg='#B7B7B7')
+        self.reportRadioBtn.config(fg='#7167A0')
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        sql = """SELECT Rid,Header FROM Reports WHERE Status=0"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql)
+            data = c.fetchall()
+            for i,report in enumerate(data) :
+                self.allReports.append({'rid':report['Rid'],'header':report['Header']})
+            for i,report in enumerate(self.allReports) :
+                sql = """
+                SELECT DisplayName FROM Users LEFT JOIN Reports 
+                ON Users.Uid=Reports.ReportedUid WHERE Rid=?;"""
+                c = self.controller.execute_sql(sql,[report['rid']])
+                data = c.fetchone()
+                self.allReports[i].update({'reportedName': data['displayName']})
+        # for i in range(10) :
+        #     self.allReports.append(self.allReports[0])
+        self.report_geometry()
+    
+    def get_blacklist(self) :
+        self.allBlacklists.clear()
+        self.reportRadioBtn.config(fg='#B7B7B7')
+        self.blacklistRadioBtn.config(fg='#7167A0')
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        sql = """SELECT Uid,Amount FROM Blacklists WHERE Status=1"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql)
+            data = c.fetchall()
+            for i,blacklist in enumerate(data) :
+                self.allBlacklists.append({'uid':blacklist['Uid'],'amount':blacklist['Amount']})
+            for i,blacklist in enumerate(self.allBlacklists) :
+                sql = """
+                SELECT DisplayName FROM Users LEFT JOIN Blacklists 
+                ON Users.Uid=Blacklists.Uid WHERE Blacklists.Uid=?;"""
+                c = self.controller.execute_sql(sql,[blacklist['uid']])
+                data = c.fetchone()
+                self.allBlacklists[i].update({'name': data['displayName']})
+        self.blacklist_geometry()
+
+    def report_geometry(self) :
+        for i,line in enumerate(self.line) :
+            self.innerCanvas.delete(line)
+        for child in self.innerCanvas.winfo_children():
+            child.destroy()
+        self.scroll.canvas.xview_moveto(0)
+        self.scroll.canvas.yview_moveto(0)
+        y = 65
+        row_ = 0
+        def request_rid(requestRid) :
+            print("request_rid")
+            print(f"Rid is {requestRid}")
+            self.RequestReport(self,self.controller,requestRid)
+        for i,report in enumerate(self.allReports) :
+            Button(self.innerCanvas,text=report['reportedName'],bg='#282D39',fg='#B7B7B7',
+            bd=0,activebackground='#282D39',activeforeground='#B7B7B7',anchor=W,
+            width=15,height=2,command=lambda rid=report['rid'] : request_rid(rid)).grid(row=row_,column=0,sticky=W,pady=7,padx=20)
+            Label(self.innerCanvas,text=report['header'],bg='#282D39',fg='#B7B7B7',
+            font='leelawadee 13').grid(row=row_,column=1,sticky=W)
+            self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
+            y+=65
+            row_+=1
+        # self.innerCanvas.create_line(20, y, 780, y,fill='#868383')
+
+    def blacklist_geometry(self) :
+        for i,line in enumerate(self.line) :
+            self.innerCanvas.delete(line)
+        for child in self.innerCanvas.winfo_children():
+            child.destroy()
+        self.scroll.canvas.xview_moveto(0)
+        self.scroll.canvas.yview_moveto(0)
+        y = 65
+        row_ = 0
+        for i,blacklist in enumerate(self.allBlacklists) :
+            Button(self.innerCanvas,text=blacklist['name'],bg='#282D39',fg='#B7B7B7',
+            bd=0,activebackground='#282D39',activeforeground='#B7B7B7',anchor=W,
+            width=15,height=2).grid(row=row_,column=0,sticky=W,pady=7,padx=20)
+            msg = f"เคยโดยระงับบัญชีชั่วคราวทั้งหมด {blacklist['amount']} ครั้ง"
+            Label(self.innerCanvas,text=msg,bg='#282D39',fg='#B7B7B7',
+            font='leelawadee 13').grid(row=row_,column=1,sticky=W)
+            self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
+            y+=65
+            row_+=1
+        # self.innerCanvas.create_line(20, y-1, 780, y-1,fill='#868383')
+    class RequestReport:
+        def __init__(self, root, controllerFrame,requestRid):
+            print("RequestReport")
+            self.root = root
+            self.controller = controllerFrame
+            self.bgColor = '#282D39'
+            self.rid = requestRid
+            self.report = None
+            self.imgList = {}
+            imgPathList = [
+                {'name':'close','path':'./assets/icons/Close.png','x':30,'y':30}]
+            for i,data in enumerate(imgPathList) :
+                img = self.controller.get_image(data['path'],data['x'],data['y'])
+                self.imgList[data['name']] = img
+            self.get_request_report()
+            self.page_geometry()
+        def get_request_report(self) :
+            conn = self.controller.create_connection()
+            conn.row_factory = sqlite3.Row
+            sql = """SELECT * FROM Reports WHERE Rid=?"""
+            if conn is not None:
+                c = self.controller.execute_sql(sql,[self.rid])
+                data = c.fetchone()
+                self.report = {
+                    'reporter':data['ReporterUid'],'reported':data['ReportedUid'],
+                    'header':data['Header'],'detail':data['Detail']
+                }
+                sql = """SELECT displayName FROM Users WHERE Uid=?"""
+                c = self.controller.execute_sql(sql,[self.report['reporter']])
+                data = c.fetchone()
+                self.report.update({'reporterName':data['displayName']})
+
+                sql = """SELECT displayName FROM Users WHERE Uid=?"""
+                c = self.controller.execute_sql(sql,[self.report['reported']])
+                data = c.fetchone()
+                self.report.update({'reportedName':data['displayName']})
+
+            print(self.report)
+        def remember_rid(self):
+            self.root.rememberRid = self.rid
+            self.controller.uidSelect = self.report['reported']
+            self.controller.switch_frame(AdminReviewPage)
+        def page_geometry(self) :
+            mainFrame = Frame(self.controller,width=900,height=700,bg=self.bgColor)
+            mainFrame.place(x=0,y=0)
+            mainFrame.propagate(0)
+            topFrame = Frame(mainFrame,bg='#181B23')
+            topFrame.pack(fill=X)
+            Label(topFrame,text=f"Sent by @{self.report['reporterName']}",bg='#181B23',fg='#B7B7B7').pack(padx=20,pady=15,anchor=W,side=LEFT)
+            Button(topFrame,image=self.imgList['close'],bd=0,bg='#181B23',
+            activebackground='#181B23',command=lambda:mainFrame.destroy()).pack(side=RIGHT,padx=20)
+            canvas = Canvas(mainFrame, bg=self.bgColor,highlightthickness=0)
+            canvas.pack(side=LEFT, fill=BOTH, expand=1)
+            # canvas.rowconfigure((0,1,2),weight=1)
+            # canvas.columnconfigure(0,weight=1)
+            # canvas.columnconfigure(1,weight=7)
+            canvas.propagate(0)
+            frameInCanvas = Frame(canvas,bg=self.bgColor)
+            frameInCanvas.pack(fill=X,padx=20,pady=15)
+            Label(frameInCanvas,text="Report",bg=self.bgColor,fg='#B7B7B7').grid(sticky=W,row=0,column=0)
+            Button(frameInCanvas,text=f"@{self.report['reportedName']}",bg=self.bgColor,
+            fg='#99D575',bd=0,activebackground=self.bgColor,activeforeground='#99D575',
+            command=self.remember_rid).grid(sticky=W,row=0,column=1,padx=20)
+
+            # title = Text(canvas,relief=FLAT,bg=self.bgColor,fg='#B7B7B7',height=1)
+            # title.insert(INSERT,f"Report\t@{self.report['reportedName']}")
+            # title.tag_configure('heading',foreground='#99D575')
+            # title.tag_add('heading',1.7,END)
+            # title.config(state=DISABLED)
+            # title.pack(padx=20,pady=15,anchor=NW,fill=X)
+            canvas.create_line(0, 55, 900, 55,fill='#868383')
+            # Label(canvas,text=f"Subject\t{self.report['header']}",bg=self.bgColor,fg='#B7B7B7').pack(padx=20,pady=15,anchor=NW,side=LEFT)
+            frameInCanvas2 = Frame(canvas,bg=self.bgColor)
+            frameInCanvas2.pack(fill=X,padx=20,pady=10)
+            Label(frameInCanvas2,text="Subject",bg=self.bgColor,fg='#B7B7B7').grid(sticky=W,row=1,column=0)
+            Label(frameInCanvas2,text=f"{self.report['header']}",bg=self.bgColor,fg='white',
+            font='leelawadee 13').grid(sticky=W,row=1,column=1,padx=20)
+            # head = Text(canvas,relief=FLAT,bg=self.bgColor,fg='#B7B7B7',height=1)
+            # head.insert(INSERT,f"Subject\t{self.report['header']}")
+            # head.tag_configure('heading',font='leelawadee 13',foreground='white')
+            # head.tag_add('heading',1.7,END)
+            # head.config(state=DISABLED)
+            # head.pack(padx=20,pady=15,anchor=NW,fill=X)
+            canvas.create_line(0, 110, 900, 110,fill='#868383')
+            detail = Text(canvas,relief=FLAT,bg=self.bgColor,fg='white')
+            detail.insert(INSERT,self.report['detail'])
+            detail.tag_configure('heading',font='leelawadee 13')
+            detail.tag_add('heading',1.0,END)
+            detail.config(state=DISABLED)
+            detail.pack(padx=20,pady=15,anchor=W)           
 
 if __name__ == '__main__':
     print(BUFriends_Time())
