@@ -8,6 +8,8 @@ from tkinter import ttk,messagebox
 import hashlib
 import os, io
 
+from pip import main
+
 class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -657,6 +659,9 @@ class DeactivatePage(Frame):
         activeforeground='white',font='leelawadee 13 bold',
         command=self.deactivate).pack(pady=30)
     def deactivate(self) :
+        if self.password.get() == "" :
+            messagebox.showwarning("Deactivate","Please enter your password")
+            return
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
         sql = """SELECT PassHash,PassSalt FROM Users WHERE Uid=?"""
@@ -877,12 +882,14 @@ class Administration(Frame):
         Frame.__init__(self,controller)
         self.bgColor = '#181B23'
         self.controller = controller
-        self.typeVar = IntVar()
-        self.typeVar.set(1)
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self,False,self.bgColor)
         self.root = scroll.interior
+        self.typeVar = IntVar()
+        self.typeVar.set(1)
         self.allReports = []
+        self.allBlacklists = []
+        self.line = []
         self.imgList = {}
         imgPathList = [
             {'name':'logout','path':'./assets/icons/signOut.png','x':35,'y':35},
@@ -928,6 +935,7 @@ class Administration(Frame):
         self.container = self.scroll.interior
         self.innerCanvas = Canvas(self.container, bg='#282D39',highlightthickness=0)
         self.innerCanvas.pack(side=LEFT, fill=BOTH, expand=1)
+        self.innerCanvas.create_line(20, 0, 780, 0,fill='#868383')
         self.get_report()
 
     def get_report(self) :
@@ -949,39 +957,85 @@ class Administration(Frame):
                 c = self.controller.execute_sql(sql,[report['rid']])
                 data = c.fetchone()
                 self.allReports[i].update({'reportedName': data['displayName']})
-            print(self.allReports)
-        # for i in range(10) :
-        #     self.allReports.append(self.allReports[0])
+        for i in range(10) :
+            self.allReports.append(self.allReports[0])
+
         self.report_geometry()
     
     def get_blacklist(self) :
+        self.allBlacklists.clear()
         self.reportRadioBtn.config(fg='#B7B7B7')
         self.blacklistRadioBtn.config(fg='#7167A0')
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        sql = """SELECT Uid,Amount FROM Blacklists WHERE Status=1"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql)
+            data = c.fetchall()
+            for i,blacklist in enumerate(data) :
+                self.allBlacklists.append({'uid':blacklist['Uid'],'amount':blacklist['Amount']})
+            for i,blacklist in enumerate(self.allBlacklists) :
+                sql = """
+                SELECT DisplayName FROM Users LEFT JOIN Blacklists 
+                ON Users.Uid=Blacklists.Uid WHERE Blacklists.Uid=?;"""
+                c = self.controller.execute_sql(sql,[blacklist['uid']])
+                data = c.fetchone()
+                self.allBlacklists[i].update({'name': data['displayName']})
         self.blacklist_geometry()
 
     def report_geometry(self) :
+        for i,line in enumerate(self.line) :
+            self.innerCanvas.delete(line)
         for child in self.innerCanvas.winfo_children():
             child.destroy()
         self.scroll.canvas.xview_moveto(0)
         self.scroll.canvas.yview_moveto(0)
-        y = 0
+        y = 65
+        row_ = 0
+        def request_rid(requestRid) :
+            print(f"Rid is {requestRid}")
+            self.widget = self.RequestReport(self.root,self.controller,requestRid)
         for i,report in enumerate(self.allReports) :
-            Label(self.innerCanvas,text=report['reportedName'],bg='#282D39',fg='#B7B7B7').pack(anchor=W,padx=20,pady=15)
-            self.innerCanvas.create_line(20, y, 780, y,fill='#868383')
-            y+=56
-        self.innerCanvas.create_line(20, y-1, 780, y-1,fill='#868383')
+            Button(self.innerCanvas,text=report['reportedName'],bg='#282D39',fg='#B7B7B7',
+            bd=0,activebackground='#282D39',activeforeground='#B7B7B7',anchor=W,
+            width=15,height=2,command=lambda rid=report['rid'] : request_rid(rid)).grid(row=row_,column=0,sticky=W,pady=7,padx=20)
+            Label(self.innerCanvas,text=report['header'],bg='#282D39',fg='#B7B7B7',
+            font='leelawadee 13').grid(row=row_,column=1,sticky=W)
+            self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
+            y+=65
+            row_+=1
+        # self.innerCanvas.create_line(20, y, 780, y,fill='#868383')
 
     def blacklist_geometry(self) :
+        for i,line in enumerate(self.line) :
+            self.innerCanvas.delete(line)
         for child in self.innerCanvas.winfo_children():
             child.destroy()
         self.scroll.canvas.xview_moveto(0)
         self.scroll.canvas.yview_moveto(0)
-        y = 0
-        for index in range(15):
-            Label(self.innerCanvas,text=f"Blacklist = {index}",bg='#282D39',fg='#B7B7B7').pack(anchor=W,padx=20,pady=15)
-            self.innerCanvas.create_line(20, y, 780, y,fill='#868383')
-            y+=56
-        self.innerCanvas.create_line(20, y-1, 780, y-1,fill='#868383')
+        y = 65
+        row_ = 0
+        for i,blacklist in enumerate(self.allBlacklists) :
+            Button(self.innerCanvas,text=blacklist['name'],bg='#282D39',fg='#B7B7B7',
+            bd=0,activebackground='#282D39',activeforeground='#B7B7B7',anchor=W,
+            width=15,height=2).grid(row=row_,column=0,sticky=W,pady=7,padx=20)
+            msg = f"เคยโดยระงับบัญชีชั่วคราวทั้งหมด {blacklist['amount']} ครั้ง"
+            Label(self.innerCanvas,text=msg,bg='#282D39',fg='#B7B7B7',
+            font='leelawadee 13').grid(row=row_,column=1,sticky=W)
+            self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
+            y+=65
+            row_+=1
+        # self.innerCanvas.create_line(20, y-1, 780, y-1,fill='#868383')
+    class RequestReport:
+        def __init__(self, root, controllerFrame,requestRid):
+            self.root = root
+            self.controller = controllerFrame
+            self.rid = requestRid
+            self.page_geometry
+        def page_geometry(self) :
+            mainFrame = Frame(self.root,width=100,height=100)
+            mainFrame.pack(fill=BOTH,expand=True)
+
 if __name__ == '__main__':
     app = BUFriends()
     app.mainloop()
