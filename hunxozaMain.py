@@ -3,6 +3,7 @@ import sqlite3
 from sqlite3 import Error
 from tkinter import *
 from tkinter.font import Font
+from turtle import st
 from PIL import Image, ImageTk
 from tkinter import ttk,messagebox
 import hashlib
@@ -113,6 +114,7 @@ class ScrollFrame():
     # This can now handle either windows or linux platforms
     def _on_mousewheel(self, event):
         if self.interior.winfo_reqheight() > self.root.winfo_reqheight():
+            print(event.delta)
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
@@ -131,6 +133,17 @@ class ProfileReviewPage(Frame):
         scroll = ScrollFrame(self,True)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1,self.controller.uidSelect)
+        PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uidSelect)
+
+class AdminReviewPage(Frame):
+    def __init__(self,controller):
+        Frame.__init__(self,controller)
+        self.bgColor = 'white'
+        self.controller = controller
+        Frame.config(self,bg=self.bgColor,height=600)
+        scroll = ScrollFrame(self,True)
+        self.root = scroll.interior
+        self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,3,self.controller.uidSelect)
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uidSelect)
 
 class ProfilePage(Frame):
@@ -746,7 +759,11 @@ class InfoOnProfile() :
                 if ms == "yes" :
                     self.controller.destroy()
         bgColor = '#686DE0'
-        if self.parent == 2 :
+        if self.parent == 1 :
+            optionList = ["Report"]
+            imgOptionList = [None]
+            pageList = [None]
+        elif self.parent == 2 :
             optionList = ["Edit","My account","Log out"]
             imgOptionList = [
                 ('./assets/icons/edit.png',20,20),
@@ -754,7 +771,7 @@ class InfoOnProfile() :
                 ('./assets/icons/signOut.png',25,25)]
             pageList = [EditPage,MyAccountPage,None]
         else :
-            optionList = ["Report"]
+            optionList = [None]
             imgOptionList = [None]
             pageList = [None]
         self.imgOption = []
@@ -787,7 +804,13 @@ class InfoOnProfile() :
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data[0],data[1],data[2])
             self.imgList.append(img)
-        Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,activebackground=self.bgColor).pack(side=LEFT)
+        if self.parent == 3 :
+            Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,
+            command=lambda:self.controller.switch_frame(Administration),
+            activebackground=self.bgColor).pack(side=LEFT)
+        else :
+            Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,
+            activebackground=self.bgColor).pack(side=LEFT)
         Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
         Label(bottomFrame,image=self.imgList[2],bg=self.bgColor).pack()
@@ -890,6 +913,7 @@ class Administration(Frame):
         self.allReports = []
         self.allBlacklists = []
         self.line = []
+        self.rememberRid = None
         self.imgList = {}
         imgPathList = [
             {'name':'logout','path':'./assets/icons/signOut.png','x':35,'y':35},
@@ -900,15 +924,23 @@ class Administration(Frame):
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
-        self.page_geometry()
+        if self.rememberRid is None :
+            self.page_geometry()
+        else :
+            self.page_geometry()
+            self.RequestReport(self,self.controller,self.rememberRid)
     def page_geometry(self) :
         def call_function() :
             if self.typeVar.get() == 1 :
                 self.get_report()
             elif self.typeVar.get() == 2 :
                 self.get_blacklist()
+        def log_out() :
+            ms = messagebox.askquestion("log out","Are you sure you want to log out?")
+            if ms == "yes" :
+                self.controller.destroy()
         Button(self.root,image=self.imgList['logout'],bd=0,
-        bg=self.bgColor,activebackground=self.bgColor).pack(anchor=NE,pady=5)
+        bg=self.bgColor,activebackground=self.bgColor,command=lambda:log_out()).pack(anchor=NE,pady=10,padx=10)
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
         self.mainFrame = Frame(self.root,bg='#282D39',width=800,height=60)
@@ -957,9 +989,8 @@ class Administration(Frame):
                 c = self.controller.execute_sql(sql,[report['rid']])
                 data = c.fetchone()
                 self.allReports[i].update({'reportedName': data['displayName']})
-        for i in range(10) :
-            self.allReports.append(self.allReports[0])
-
+        # for i in range(10) :
+        #     self.allReports.append(self.allReports[0])
         self.report_geometry()
     
     def get_blacklist(self) :
@@ -993,8 +1024,9 @@ class Administration(Frame):
         y = 65
         row_ = 0
         def request_rid(requestRid) :
+            print("request_rid")
             print(f"Rid is {requestRid}")
-            self.widget = self.RequestReport(self.root,self.controller,requestRid)
+            self.RequestReport(self,self.controller,requestRid)
         for i,report in enumerate(self.allReports) :
             Button(self.innerCanvas,text=report['reportedName'],bg='#282D39',fg='#B7B7B7',
             bd=0,activebackground='#282D39',activeforeground='#B7B7B7',anchor=W,
@@ -1028,13 +1060,98 @@ class Administration(Frame):
         # self.innerCanvas.create_line(20, y-1, 780, y-1,fill='#868383')
     class RequestReport:
         def __init__(self, root, controllerFrame,requestRid):
+            print("RequestReport")
             self.root = root
             self.controller = controllerFrame
+            self.bgColor = '#282D39'
             self.rid = requestRid
-            self.page_geometry
+            self.report = None
+            self.imgList = {}
+            imgPathList = [
+                {'name':'close','path':'./assets/icons/Close.png','x':30,'y':30}]
+            for i,data in enumerate(imgPathList) :
+                img = self.controller.get_image(data['path'],data['x'],data['y'])
+                self.imgList[data['name']] = img
+            self.get_request_report()
+            self.page_geometry()
+        def get_request_report(self) :
+            conn = self.controller.create_connection()
+            conn.row_factory = sqlite3.Row
+            sql = """SELECT * FROM Reports WHERE Rid=?"""
+            if conn is not None:
+                c = self.controller.execute_sql(sql,[self.rid])
+                data = c.fetchone()
+                self.report = {
+                    'reporter':data['ReporterUid'],'reported':data['ReportedUid'],
+                    'header':data['Header'],'detail':data['Detail']
+                }
+                sql = """SELECT displayName FROM Users WHERE Uid=?"""
+                c = self.controller.execute_sql(sql,[self.report['reporter']])
+                data = c.fetchone()
+                self.report.update({'reporterName':data['displayName']})
+
+                sql = """SELECT displayName FROM Users WHERE Uid=?"""
+                c = self.controller.execute_sql(sql,[self.report['reported']])
+                data = c.fetchone()
+                self.report.update({'reportedName':data['displayName']})
+
+            print(self.report)
+        def remember_rid(self):
+            self.root.rememberRid = self.rid
+            self.controller.uidSelect = self.report['reported']
+            self.controller.switch_frame(AdminReviewPage)
         def page_geometry(self) :
-            mainFrame = Frame(self.root,width=100,height=100)
-            mainFrame.pack(fill=BOTH,expand=True)
+            mainFrame = Frame(self.controller,width=900,height=700,bg=self.bgColor)
+            mainFrame.place(x=0,y=0)
+            mainFrame.propagate(0)
+            topFrame = Frame(mainFrame,bg='#181B23')
+            topFrame.pack(fill=X)
+            Label(topFrame,text=f"Sent by @{self.report['reporterName']}",bg='#181B23',fg='#B7B7B7').pack(padx=20,pady=15,anchor=W,side=LEFT)
+            Button(topFrame,image=self.imgList['close'],bd=0,bg='#181B23',
+            activebackground='#181B23',command=lambda:mainFrame.destroy()).pack(side=RIGHT,padx=20)
+            canvas = Canvas(mainFrame, bg=self.bgColor,highlightthickness=0)
+            canvas.pack(side=LEFT, fill=BOTH, expand=1)
+            # canvas.rowconfigure((0,1,2),weight=1)
+            # canvas.columnconfigure(0,weight=1)
+            # canvas.columnconfigure(1,weight=7)
+            canvas.propagate(0)
+            frameInCanvas = Frame(canvas,bg=self.bgColor)
+            frameInCanvas.pack(fill=X,padx=20,pady=15)
+            Label(frameInCanvas,text="Report",bg=self.bgColor,fg='#B7B7B7').grid(sticky=W,row=0,column=0)
+            Button(frameInCanvas,text=f"@{self.report['reportedName']}",bg=self.bgColor,
+            fg='#99D575',bd=0,activebackground=self.bgColor,activeforeground='#99D575',
+            command=self.remember_rid).grid(sticky=W,row=0,column=1,padx=20)
+
+            # title = Text(canvas,relief=FLAT,bg=self.bgColor,fg='#B7B7B7',height=1)
+            # title.insert(INSERT,f"Report\t@{self.report['reportedName']}")
+            # title.tag_configure('heading',foreground='#99D575')
+            # title.tag_add('heading',1.7,END)
+            # title.config(state=DISABLED)
+            # title.pack(padx=20,pady=15,anchor=NW,fill=X)
+            canvas.create_line(0, 55, 900, 55,fill='#868383')
+            # Label(canvas,text=f"Subject\t{self.report['header']}",bg=self.bgColor,fg='#B7B7B7').pack(padx=20,pady=15,anchor=NW,side=LEFT)
+            frameInCanvas2 = Frame(canvas,bg=self.bgColor)
+            frameInCanvas2.pack(fill=X,padx=20,pady=10)
+            Label(frameInCanvas2,text="Subject",bg=self.bgColor,fg='#B7B7B7').grid(sticky=W,row=1,column=0)
+            Label(frameInCanvas2,text=f"{self.report['header']}",bg=self.bgColor,fg='white',
+            font='leelawadee 13').grid(sticky=W,row=1,column=1,padx=20)
+            # head = Text(canvas,relief=FLAT,bg=self.bgColor,fg='#B7B7B7',height=1)
+            # head.insert(INSERT,f"Subject\t{self.report['header']}")
+            # head.tag_configure('heading',font='leelawadee 13',foreground='white')
+            # head.tag_add('heading',1.7,END)
+            # head.config(state=DISABLED)
+            # head.pack(padx=20,pady=15,anchor=NW,fill=X)
+            canvas.create_line(0, 110, 900, 110,fill='#868383')
+            detail = Text(canvas,relief=FLAT,bg=self.bgColor,fg='white')
+            detail.insert(INSERT,self.report['detail'])
+            detail.tag_configure('heading',font='leelawadee 13')
+            detail.tag_add('heading',1.0,END)
+            detail.config(state=DISABLED)
+            detail.pack(padx=20,pady=15,anchor=W)           
+
+
+
+            
 
 if __name__ == '__main__':
     app = BUFriends()
