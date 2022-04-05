@@ -84,6 +84,7 @@ class BUFriends(Tk):
         conn = self.create_connection()
         if conn is not None:
             c = self.execute_sql(sql)
+            conn.close()
 class ScrollFrame():
     def __init__(self,root,scrollable,bgColor='white'):
         # creating
