@@ -73,13 +73,15 @@ class BUFriends(Tk):
                 return
             
             sqlgetUserExist = """SELECT * FROM Users WHERE Uid = ?;"""
-            userExist = self.execute_sql(sqlgetUserExist, [self.ssid])
+            userExisted = self.execute_sql(sqlgetUserExist, [self.ssid])
             try:
-                userExist.fetchone()[0]         #catch deactivate user
+                userExisted.fetchone()[0]         #catch deactivate user
             except TypeError as te:
                 print(te)
                 relogin_sessions()
                 return
+            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
+            dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
             sqlgetStatus = """SELECT Status, StartDate, EndDate FROM Blacklists WHERE Uid = ?;"""
             uStat = self.execute_sql(sqlgetStatus, [self.ssid])
             try:
@@ -87,8 +89,6 @@ class BUFriends(Tk):
                 userStatus = uStat.fetchone()        #catch banned user
             except TypeError as te:
                 print(te)
-            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
-            dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
             if userStatus is None:
                 pass 
             elif userStatus['Status'] == 1:
@@ -334,24 +334,28 @@ class SignIn(Frame):
             self.controller.switch_frame(SignUp)
         
         def login_query(self):
-            sqlQuery = """SELECT Uid, PassHash, PassSalt, DisplayName FROM Users WHERE Email = ?;"""
-            self.loginDict['usermail'] = (self.userName.get())
             conn = self.controller.create_connection()
             if conn is None:
                 print("DB Can't Connect!")
                 return
             else:
+                self.loginDict['usermail'] = (self.userName.get())
+                sqlPerma = """SELECT Email FROM PermanentBanned WHERE Email = ?;"""
+                permaBanned = self.controller.execute_sql(sqlPerma, [self.userName.get()]).fetchone()
+                if permaBanned is not None:
+                    messagebox.showerror("Sign-in Incomplete",f"Sorry [ {self.userName.get()} ] has been Permanently Banned.\nPlease Try Again with Another Account. ")
+                    return
+                sqlQuery = """SELECT Uid, PassHash, PassSalt, DisplayName FROM Users WHERE Email = ?;"""
                 q = self.controller.execute_sql(sqlQuery, [self.userName.get()])
                 rowExist = q.fetchall()
-                print("checkfetch = ",len(rowExist))
                 if rowExist == []:
-                    messagebox.showwarning('Sign-in Incomplete', "Sorry [ {} ] Doesn't Exist \nPlease Check BU-Mail Carefully and Try Again.".format(self.userName.get()))
-                    conn.close()
+                    messagebox.showwarning('Sign-in Incomplete', f"Sorry [ {self.userName.get()} ] Doesn't Exist \nPlease Check BU-Mail Carefully and Try Again.")
                     self.controller.switch_frame(SignIn)
+                    return
                 else:
                     self.row = rowExist[0]
-                    conn.close()
                     self.login_validation()
+                conn.close()
             
         def login_validation(self):
             logPasskey = self.controller.password_encryptioncheck(self.userPass.get(), self.row[2])
@@ -359,9 +363,30 @@ class SignIn(Frame):
             print(type(logPasskey), type(self.row[1]))
             self.loginDict['userpass'] = logPasskey
             if self.loginDict['userpass'] == self.row[1]:
-                messagebox.showinfo('Sign-In Complete!',"Welcome Back [ {} ] \nHave a great time in BU Friends.".format(self.row[3]))
                 self.controller.uid = self.row[0]
-                self.login_submit()
+                conn = self.controller.create_connection()
+                conn.row_factory = sqlite3.Row
+                if conn is None: 
+                    print("cannot Connecting Database")
+                    return 
+                sqlBlacklist = """SELECT * FROM Blacklists WHERE Uid = ?;"""
+                userBl = self.controller.execute_sql(sqlBlacklist, [self.controller.uid]).fetchone()
+                conn.close()
+                if userBl is None:
+                    messagebox.showinfo('Sign-In Complete!',"Welcome Back [ {} ] \nHave a great time in BU Friends.".format(self.row[3]))
+                    self.login_submit()
+                    return
+                elif userBl['Status'] == 1:
+                    print("blacklist =",*userBl)
+                    uStartDate = (datetime.strptime(userBl['StartDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
+                    uEndDate = (datetime.strptime(userBl['EndDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
+                    messagebox.showerror("BU Friends  |  ",
+                                            f"{self.loginDict['usermail']} has been Banned\nFrom BU Friends\nFrom [ {uStartDate} ] \nUntill [ {uEndDate} ]")
+                    return
+                else:
+                    messagebox.showinfo('Sign-In Complete!',"Welcome Back [ {} ] \nHave a great time in BU Friends.".format(self.row[3]))
+                    self.login_submit()
+                    return
             else:
                 messagebox.showwarning('Sign-in Incomplete', "Sorry Your Password Did not Match \nPlease Check Your Password Carefully and Try Again.")
                 self.userPass.focus_force()
@@ -373,7 +398,7 @@ class SignIn(Frame):
             if conn is None: 
                 print("cannot Connecting Database")
                 return 
-            sqlUsertype = """SELECT * FROM UsersTag WHERE Uid=?"""
+            sqlUsertype = """SELECT * FROM UsersTag WHERE Uid = ?;"""
             user = self.controller.execute_sql(sqlUsertype, [self.controller.uid]).fetchone()
             conn.close()
             print(*user)
