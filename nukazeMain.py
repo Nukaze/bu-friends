@@ -5,14 +5,13 @@ from tkinter import *
 from tkinter import ttk,messagebox
 from tkinter import font
 from tkinter.font import Font
+from datetime import datetime
 from PIL import Image, ImageTk
 from sqlite3 import Error
 import sqlite3
-import os
 import hashlib
-from datetime import datetime
-import time
 import random
+import os
 import assets.mbti.mbtiData as qz
 
 def BUFriends_Time():
@@ -26,12 +25,6 @@ class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.frame = None
-        self.uid = 0
-        self.uidSelect = 0
-        self.mbtiCode = None
-        self.pvFrame = 0
-        self.matchFilter = 0
-        self.uuidLst,self.uinfoLst, self.udnameLst = [],[],[]
         self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
@@ -43,6 +36,11 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
+        self.uid, self.uidSelect = 0,0
+        self.pvFrame, self.matchFilter = 0,0
+        self.mbtiCode = None
+        self.ridSelect, self.requestReport = None, None
+        self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
         self.update_blacklist()
         self.init_sessions()
     
@@ -789,10 +787,9 @@ class Matching(Frame):
             self.display_users()
         print("\nRe-Loop count (Found ADMIN or Your-Self) =",self.cntLoop)
         print("\nuuidLst user to show =",self.controller.uuidLst)
-        print("dname cnt=",len(self.controller.udnameLst))
-        print("dnamelst =",self.controller.udnameLst)
         for i,info in enumerate(self.controller.uinfoLst):
             print(*info,end=">=> ")
+            if i%4 ==0:print()
         
             
     def get_tagname(self):
@@ -827,7 +824,6 @@ class Matching(Frame):
         bg = "#ffffff"
         fg = "#555555"
         if self.filterFrame is not None and self.mbtiFrame is not None and self.tagsFrame is not None and self.endFrame:
-            print("filter destroy!!!")
             destroy_frame()
         else:
             wfilter = 720
@@ -899,7 +895,7 @@ class Matching(Frame):
             self.endBtn.pack(side=LEFT,expand=1,fill=Y,pady=15)
             imgBtn = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
             matchBtn = Button(self.endBtn,command=lambda:self.match_tags_commit(),text="Match!!",
-                                image=imgBtn,bg=bg,compound=CENTER,bd=0,activebackground=bg)
+                                image=imgBtn,fg="#ffffff",bg=bg,compound=CENTER,bd=0,activebackground=bg)
             matchBtn.image = imgBtn
             matchBtn.pack(side=RIGHT,padx=10)
             imgBtn2 = self.controller.get_image(r'./assets/buttons/buttonDice.png')
@@ -907,7 +903,7 @@ class Matching(Frame):
                 self.controller.matchFilter = 0
                 self.controller.switch_frame(Matching)
             randBtn = Button(self.endBtn, text=f"""{" "*6}Random!""", command=lambda: random_filter(),
-                                image=imgBtn2,font="leelawadee 12 bold",bg=bg,compound=CENTER,bd=0,activebackground=bg)
+                                image=imgBtn2,font="leelawadee 12 bold",fg="#ffffff",bg=bg,compound=CENTER,bd=0,activebackground=bg)
             randBtn.image = imgBtn2
             randBtn.pack(side=RIGHT,padx=10)
             def close_leave(e):
@@ -1005,12 +1001,11 @@ class Matching(Frame):
             print(self.matchAllTags)
             self.matchTagsLst,self.matchMbtiLst = None, None
             try:
+                #remap list -> str
                 if any(isinstance(tag, str) for tag in self.matchAllTags):
-                    print("any alpha\n")
                     self.matchMbtiLst = [tag for tag in self.matchAllTags if isinstance(tag, str)]
                     print(self.matchMbtiLst)
                 if any(isinstance(tag, int) for tag in self.matchAllTags):
-                    print("any digit\n")
                     self.matchTagsLst = [tag for tag in self.matchAllTags if isinstance(tag, int)]
                     self.matchTagsLst = ", ".join(map(str,self.matchTagsLst))
                     print(self.matchTagsLst)
@@ -1054,14 +1049,10 @@ class Matching(Frame):
             if self.uuidFilter == []:
                 messagebox.showinfo("BU Friends  |  Matching","Currently no one matches your tags required.\nTry to changing the tags again. \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
             else:
-                print("raw uid filter",self.uuidFilter)
-                print(len(self.uuidFilter))
                 self.controller.uuidLst.clear()
-                print("uuidlst before get uuid filter",self.controller.uuidLst)
                 if len(self.uuidFilter) > 12:
                     print("uuid filter more than 12 uuid")
                     randLst = random.sample(range(len(self.uuidFilter)),12)
-                    print(randLst)
                     for i,indexdata in enumerate(randLst):
                         self.controller.uuidLst.append(self.uuidFilter[indexdata])
                     self.uuidFilter = self.controller.uuidLst
@@ -1069,7 +1060,7 @@ class Matching(Frame):
                     print("uuidfilter <= 12")
                     self.controller.uuidLst = self.uuidFilter
                 else:
-                    print("not match pass condition")
+                    print("not match any pass condition")
                     pass
                 messagebox.showinfo("BU Friends  |  Matching",f"Matched!!!\n{[[*data] for data in curr]}")
                 print("final uuidlst",self.controller.uuidLst)
@@ -1090,20 +1081,15 @@ class Matching(Frame):
             if self.controller.matchFilter == 1:
                 self.controller.uinfoLst.clear()
                 self.controller.udnameLst.clear()
-                print("pass uuidLst filter = ",self.controller.uuidLst)
-                print("pass uuidFilter = ",self.uuidFilter)
                 qmark = self.gen_qmark(len(self.controller.uuidLst))
                 sqlGetTag = f"""SELECT * FROM UsersTag WHERE Uid IN ({qmark});"""
                 sqlGetDisplayName = f"""SELECT DisplayName FROM Users WHERE Uid IN ({qmark})"""
-                print(sqlGetTag)
                 infoRows = self.controller.execute_sql(sqlGetTag, self.controller.uuidLst).fetchall()
                 dnameRows = self.controller.execute_sql(sqlGetDisplayName, self.controller.uuidLst).fetchall()
                 for i,info in enumerate(infoRows):
                     self.controller.uinfoLst.append(info)
                 for dname in dnameRows:
                     self.controller.udnameLst.append(dname['DisplayName'])
-                print("user info filter =",self.controller.uinfoLst)
-                print("user dname filter =",self.controller.udnameLst)
                 self.conn.close()
                 self.controller.switch_frame(Matching)
                 pass
@@ -1146,13 +1132,10 @@ class Matching(Frame):
                 
     def display_users(self):
         self.userTabBtnImg = self.controller.get_image(r'./assets/images/rectangle.png',820,180)
-        print("range len uuidlst",range(len(self.controller.uuidLst)))
-        print("len uuidlst =",(len(self.controller.uuidLst)))
         self.idxRandLst = random.sample(range(len(self.controller.uuidLst)), len(self.controller.uuidLst))
         print("index of uuidlst",self.controller.uuidLst)
         print("Display random index of uuidlst",self.idxRandLst)
         self.get_tagname()
-        print(self.tagnameLst)
         print("now show usertab id =",self.controller.uuidLst)
         print("udnamelst =",self.controller.udnameLst)
         for i in range(len(self.controller.uuidLst)):
@@ -1237,8 +1220,19 @@ class Matching(Frame):
         print(self.controller.uid)
         self.controller.option_add('*foreground',"#000000")
         self.controller.switch_frame(ProfilePage)
-        
 
+class ReportUser(Frame):
+    def __init__(self, controllerFrame):
+        Frame.__init__(self,controllerFrame)
+        self.bgColor = "#333333"
+        Frame.config(self, bg=self.bgColor)
+        self.pack()
+        self.root = ScrollFrame(self).interior
+        self.reportFrame = Frame(self.root, width=500, height=300,bg="pink")
+        self.reportFrame.place(x=100, y=100)
+    def report_geometry(self):
+        pass
+        
 
 class ProfileReviewPage(Frame):
     def __init__(self,controller):
@@ -1684,7 +1678,7 @@ class ChangePasswordPage(Frame):
                 entry.focus_force()
             entry.pack(padx=140,pady=20,anchor=W,fill=X)
             canvas.create_line(140, y, 760, y,fill='#868383')
-            y+=96
+            y+=94
         Button(canvas,text="Update Password",image=self.imgList['button'],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
         command=self.password_validation).pack(pady=30)
@@ -1828,7 +1822,6 @@ class InfoOnProfile() :
         self.root = root
         self.bgColor = bgcolor
         self.controller=controller
-        self.controller.config(bg="pink")
         self.optionFrame = None
         self.parent = parent
         self.uid = uid
@@ -1869,7 +1862,78 @@ class InfoOnProfile() :
         else:
             print("Error! cannot create the database connection.")
         conn.close()
-
+        
+    def request_delete(self) :
+        sql = """INSERT INTO PermanentBanned(Email) SELECT Email FROM Users WHERE Users.Uid = ?"""
+        sqlDelete = []
+        sqlDelete.append("""DELETE FROM Blacklists WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Postings WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Reports WHERE ReporterUid=?""")
+        sqlDelete.append("""DELETE FROM Reports WHERE ReportedUid=?""")
+        sqlDelete.append("""DELETE FROM UsersTag WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Users WHERE Uid=?""")
+        conn = self.controller.create_connection()
+        if conn is not None:
+            c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+            for i,data in enumerate(sqlDelete):
+                c = self.controller.execute_sql(data,[self.controller.requestReport['reported']])
+            conn.close()
+            messagebox.showinfo("delete","delete successfully")
+            self.controller.requestReport = None
+            self.controller.ridSelect = None
+            self.controller.switch_frame(Administration)
+            
+    def request_blacklist(self) :
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        print(self.controller.requestReport)
+        sql = """SELECT * FROM Blacklists WHERE Uid=?"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+            data = c.fetchone()
+            if data is None :
+                sql = """INSERT INTO Blacklists (Uid,Email) SELECT Uid,Email FROM Users WHERE Users.Uid = ?"""
+                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                sql = """UPDATE Blacklists SET EndDate = datetime(StartDate, '+7 days') WHERE Uid = ?"""
+                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                sql = """UPDATE Reports SET Status = 1 WHERE ReportedUid = ?"""
+                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                affected_rows = c.rowcount
+                if affected_rows > 0 :
+                    messagebox.showinfo("Blacklist","Suspending Successfully")
+                    self.controller.requestReport = None
+                    self.controller.ridSelect = None
+                    self.controller.switch_frame(Administration)
+            else :
+                sql = """SELECT Status,Amount FROM Blacklists WHERE Uid=?"""
+                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                data = c.fetchone()
+                if data['Amount'] >= 3 :
+                    ms = messagebox.askquestion("Blacklist","บัญชีโดนระงับครบ 3 ครั้ง หากดำเนินการต่อจะเป็นการลบบัญชีนี้")
+                    if ms == "yes" :
+                        self.request_delete()
+                        return
+                    else: 
+                        return
+                if data['Status'] == 1 :
+                    messagebox.showwarning("Blacklist","""
+                    This account is already suspended.\n
+                    ***Policies***\n
+                    -รอจนหมดเวลาระงับบัญชี\n
+                    -หากรุนแรงให้ลบบัญชีนี้""")
+                else :
+                    sql = """UPDATE Blacklists SET Amount=Amount+1, Status=1, StartDate=datetime('now'), EndDate=datetime('now','+7 days') WHERE Uid = ?"""
+                    c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                    sql = """UPDATE Reports SET Status = 1 WHERE ReportedUid = ?"""
+                    c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                    affected_rows = c.rowcount
+                    if affected_rows > 0 :
+                        self.controller.requestReport = None
+                        self.controller.ridSelect = None
+                        self.controller.switch_frame(Administration)
+                # update data
+            conn.close()
+            
     def option_click(self) :
         def next_page(index) :
             if pageList[index] is not None :
@@ -1880,6 +1944,15 @@ class InfoOnProfile() :
                     self.controller.uid = 0
                     self.controller.set_sessions()
                     self.controller.switch_frame(SignIn)
+            elif self.parent == 3 :
+                if index == 0 :
+                    ms = messagebox.askquestion("blacklist","Are you sure you want to suspend this account?")
+                    if ms == "yes" :
+                        self.request_blacklist()
+                else:
+                    ms = messagebox.askquestion("delete","Are you sure you want to dalete this account?")
+                    if ms == "yes" :
+                        self.request_delete()
         bgColor = '#686DE0'
         if self.parent == 1 :
             optionList = ["Report"]
@@ -1893,9 +1966,11 @@ class InfoOnProfile() :
                 ('./assets/icons/signOut.png',25,25)]
             pageList = [EditPage,MyAccountPage,None]
         else :
-            optionList = [None]
-            imgOptionList = [None]
-            pageList = [None]
+            optionList = ["Blacklist","Delete account"]
+            imgOptionList = [
+                ('./assets/icons/blacklist.png',25,25),
+                ('./assets/icons/delete.png',25,25)]
+            pageList = [None,None]
         self.imgOption = []
         for i in range(len(optionList)) :
             if imgOptionList[i] is not None :
@@ -2046,7 +2121,6 @@ class Administration(Frame):
         self.allReports = []
         self.allBlacklists = []
         self.line = []
-        self.rememberRid = None
         self.imgList = {}
         imgPathList = [
             {'name':'logout','path':'./assets/icons/signOut.png','x':35,'y':35},
@@ -2057,11 +2131,11 @@ class Administration(Frame):
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
-        if self.rememberRid is None :
+        if self.controller.ridSelect is None :
             self.page_geometry()
         else :
             self.page_geometry()
-            self.RequestReport(self,self.controller,self.rememberRid)
+            self.RequestReport(self,self.controller,self.controller.ridSelect)
     def page_geometry(self) :
         def call_function() :
             if self.typeVar.get() == 1 :
@@ -2071,7 +2145,8 @@ class Administration(Frame):
         def log_out() :
             ms = messagebox.askquestion("log out","Are you sure you want to log out?")
             if ms == "yes" :
-                self.controller.destroy()
+                self.controller.set_sessions()
+                self.controller.switch_frame(SignIn)
         Button(self.root,image=self.imgList['logout'],bd=0,
         bg=self.bgColor,activebackground=self.bgColor,command=lambda:log_out()).pack(anchor=NE,pady=10,padx=10)
         fontTag = Font(family='leelawadee',size=13,weight='bold')
@@ -2102,7 +2177,6 @@ class Administration(Frame):
         self.innerCanvas.pack(side=LEFT, fill=BOTH, expand=1)
         self.innerCanvas.create_line(20, 0, 780, 0,fill='#868383')
         self.get_report()
-
     def get_report(self) :
         self.allReports.clear()
         self.blacklistRadioBtn.config(fg='#B7B7B7')
@@ -2122,8 +2196,6 @@ class Administration(Frame):
                 c = self.controller.execute_sql(sql,[report['rid']])
                 data = c.fetchone()
                 self.allReports[i].update({'reportedName': data['displayName']})
-        # for i in range(10) :
-        #     self.allReports.append(self.allReports[0])
         self.report_geometry()
     
     def get_blacklist(self) :
@@ -2169,7 +2241,6 @@ class Administration(Frame):
             self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
             y+=65
             row_+=1
-        # self.innerCanvas.create_line(20, y, 780, y,fill='#868383')
 
     def blacklist_geometry(self) :
         for i,line in enumerate(self.line) :
@@ -2190,7 +2261,6 @@ class Administration(Frame):
             self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
             y+=65
             row_+=1
-        # self.innerCanvas.create_line(20, y-1, 780, y-1,fill='#868383')
     class RequestReport:
         def __init__(self, root, controllerFrame,requestRid):
             print("RequestReport")
@@ -2201,7 +2271,8 @@ class Administration(Frame):
             self.report = None
             self.imgList = {}
             imgPathList = [
-                {'name':'close','path':'./assets/icons/Close.png','x':30,'y':30}]
+                {'name':'close','path':'./assets/icons/Close.png','x':30,'y':30},
+                {'name':'button','path':'./assets/buttons/buttonGreyrz.png','x':120,'y':45}]
             for i,data in enumerate(imgPathList) :
                 img = self.controller.get_image(data['path'],data['x'],data['y'])
                 self.imgList[data['name']] = img
@@ -2230,7 +2301,9 @@ class Administration(Frame):
 
             print(self.report)
         def remember_rid(self):
-            self.root.rememberRid = self.rid
+            self.controller.ridSelect = self.rid
+            self.controller.requestReport = self.report
+            print("self.root.ridSelect",self.controller.ridSelect)
             self.controller.uidSelect = self.report['reported']
             self.controller.switch_frame(AdminReviewPage)
         def page_geometry(self) :
@@ -2244,9 +2317,6 @@ class Administration(Frame):
             activebackground='#181B23',command=lambda:mainFrame.destroy()).pack(side=RIGHT,padx=20)
             canvas = Canvas(mainFrame, bg=self.bgColor,highlightthickness=0)
             canvas.pack(side=LEFT, fill=BOTH, expand=1)
-            # canvas.rowconfigure((0,1,2),weight=1)
-            # canvas.columnconfigure(0,weight=1)
-            # canvas.columnconfigure(1,weight=7)
             canvas.propagate(0)
             frameInCanvas = Frame(canvas,bg=self.bgColor)
             frameInCanvas.pack(fill=X,padx=20,pady=15)
@@ -2254,33 +2324,32 @@ class Administration(Frame):
             Button(frameInCanvas,text=f"@{self.report['reportedName']}",bg=self.bgColor,
             fg='#99D575',bd=0,activebackground=self.bgColor,activeforeground='#99D575',
             command=self.remember_rid).grid(sticky=W,row=0,column=1,padx=20)
-
-            # title = Text(canvas,relief=FLAT,bg=self.bgColor,fg='#B7B7B7',height=1)
-            # title.insert(INSERT,f"Report\t@{self.report['reportedName']}")
-            # title.tag_configure('heading',foreground='#99D575')
-            # title.tag_add('heading',1.7,END)
-            # title.config(state=DISABLED)
-            # title.pack(padx=20,pady=15,anchor=NW,fill=X)
             canvas.create_line(0, 55, 900, 55,fill='#868383')
-            # Label(canvas,text=f"Subject\t{self.report['header']}",bg=self.bgColor,fg='#B7B7B7').pack(padx=20,pady=15,anchor=NW,side=LEFT)
             frameInCanvas2 = Frame(canvas,bg=self.bgColor)
             frameInCanvas2.pack(fill=X,padx=20,pady=10)
             Label(frameInCanvas2,text="Subject",bg=self.bgColor,fg='#B7B7B7').grid(sticky=W,row=1,column=0)
             Label(frameInCanvas2,text=f"{self.report['header']}",bg=self.bgColor,fg='white',
             font='leelawadee 13').grid(sticky=W,row=1,column=1,padx=20)
-            # head = Text(canvas,relief=FLAT,bg=self.bgColor,fg='#B7B7B7',height=1)
-            # head.insert(INSERT,f"Subject\t{self.report['header']}")
-            # head.tag_configure('heading',font='leelawadee 13',foreground='white')
-            # head.tag_add('heading',1.7,END)
-            # head.config(state=DISABLED)
-            # head.pack(padx=20,pady=15,anchor=NW,fill=X)
             canvas.create_line(0, 110, 900, 110,fill='#868383')
-            detail = Text(canvas,relief=FLAT,bg=self.bgColor,fg='white')
+            detail = Text(canvas,relief=FLAT,height=15,bg=self.bgColor,fg='white')
             detail.insert(INSERT,self.report['detail'])
             detail.tag_configure('heading',font='leelawadee 13')
             detail.tag_add('heading',1.0,END)
             detail.config(state=DISABLED)
-            detail.pack(padx=20,pady=15,anchor=W)           
+            detail.pack(padx=20,pady=15,anchor=W)     
+            Button(canvas,text="Reject",image=self.imgList['button'],bd=0
+            ,bg=self.bgColor,activebackground=self.bgColor,compound=CENTER,
+            command=self.reject_report).pack(pady=10)
+        def reject_report(self) :
+            conn = self.controller.create_connection()
+            sql = """UPDATE Reports SET Status=1 WHERE Rid=?"""
+            if conn is not None:
+                c = self.controller.execute_sql(sql,[self.rid])
+                affected_rows = c.rowcount
+                if affected_rows > 0 :
+                    self.controller.requestReport = None
+                    self.controller.ridSelect = None
+                    self.controller.switch_frame(Administration)
 
 if __name__ == '__main__':
     print(BUFriends_Time())
