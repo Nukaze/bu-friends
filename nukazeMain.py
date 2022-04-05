@@ -43,6 +43,9 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
+        self.init_sessions()
+    
+    def init_sessions(self):
         with open(r'./database/sessions.txt','r')as ss:
             try:
                 self.ssid = int(ss.read())
@@ -82,10 +85,10 @@ class BUFriends(Tk):
             conn.close()
             self.switch_frame(Matching)
             messagebox.showinfo('BU Friends',"{}Welcome back!  {}{}".format(" "*4,dname," "*4))
-            
         else:
             self.switch_frame(SignIn)
-            
+                
+
     def switch_frame(self, frame_class):
         print("switching to {} \n==|with uid = {}".format(frame_class, self.uid))
         new_frame = frame_class(self)
