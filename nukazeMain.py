@@ -10,7 +10,7 @@ from sqlite3 import Error
 import sqlite3
 import os
 import hashlib
-from datetime import *
+from datetime import datetime
 import time
 import random
 import assets.mbti.mbtiData as qz
@@ -81,23 +81,30 @@ class BUFriends(Tk):
                 print(te)
                 relogin_sessions()
                 return
-            sqlgetStatus = """SELECT Status FROM Blacklists WHERE Uid = ?;"""
+            sqlgetStatus = """SELECT Status, StartDate, EndDate FROM Blacklists WHERE Uid = ?;"""
             uStat = self.execute_sql(sqlgetStatus, [self.ssid])
             try:
-                userStatus = uStat.fetchone()[0]        #catch banned user
+                uStat.row_factory = sqlite3.Row
+                userStatus = uStat.fetchone()        #catch banned user
             except TypeError as te:
                 print(te)
-            print("status =",userStatus)
-            if userStatus == 1:
-                if messagebox.showerror("BU Friends  |  ","You has been Banned From BU Friends {} day"):
+            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
+            dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
+            if userStatus is None:
+                pass 
+            elif userStatus['Status'] == 1:
+                
+                print("blacklist =",*userStatus)
+                uStartDate = (datetime.strptime(userStatus['StartDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
+                uEndDate = (datetime.strptime(userStatus['EndDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
+                if messagebox.showerror("BU Friends  |  ",
+                                        f"{dname} you has been Banned From BU Friends\nFrom [ {uStartDate} ] \nUntill [ {uEndDate} ]"):
                     relogin_sessions()
                 return
             
             sqlgetSessionType = """SELECT UserType FROM UsersTag WHERE Uid = ?;"""
             sessionType = self.execute_sql(sqlgetSessionType, [self.ssid]).fetchone()[0]
             print("ss type =",sessionType)
-            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
-            dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
             conn.close()
             if sessionType == None:
                 pass
@@ -1022,7 +1029,6 @@ class Matching(Frame):
                                             UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
                                             ) uniA ;"""
             print(sqlMatch)
-            #messagebox.showinfo("BU Friends  | Matching",f"You selected All tags is {self.matchAllTags}\nYou selected tags is {self.matchTagsLst}\nYou selected Mbti is {self.matchMbtiLst}")
             curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
             for data in curr:
                 self.uuidFilter.append(data['Uid'])
