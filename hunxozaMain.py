@@ -30,6 +30,7 @@ class BUFriends(Tk):
         self.uidSelect = 7
         self.ridSelect = None
         self.requestReport = None
+        self.update_blacklist()
         self.switch_frame(Administration)
 
     def create_connection(self):
@@ -76,6 +77,13 @@ class BUFriends(Tk):
             stdencode = 'utf-8'
             passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
             return passkey
+    def update_blacklist(self) :
+        sql = """
+        UPDATE Blacklists SET Status=0, StartDate=NULL, EndDate=NULL 
+        WHERE EndDate <= datetime('now')"""
+        conn = self.create_connection()
+        if conn is not None:
+            c = self.execute_sql(sql)
 class ScrollFrame():
     def __init__(self,root,scrollable,bgColor='white'):
         # creating
