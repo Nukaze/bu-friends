@@ -1,15 +1,11 @@
-from operator import le
 import sqlite3
 from sqlite3 import Error
 from tkinter import *
 from tkinter.font import Font
-from turtle import st
 from PIL import Image, ImageTk
 from tkinter import ttk,messagebox
 import hashlib
-import os, io
-
-from pip import main
+import os
 
 class BUFriends(Tk):
     def __init__(self):
@@ -1075,8 +1071,6 @@ class Administration(Frame):
                 c = self.controller.execute_sql(sql,[report['rid']])
                 data = c.fetchone()
                 self.allReports[i].update({'reportedName': data['displayName']})
-        # for i in range(10) :
-        #     self.allReports.append(self.allReports[0])
         self.report_geometry()
     
     def get_blacklist(self) :
@@ -1122,7 +1116,6 @@ class Administration(Frame):
             self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
             y+=65
             row_+=1
-        # self.innerCanvas.create_line(20, y, 780, y,fill='#868383')
 
     def blacklist_geometry(self) :
         for i,line in enumerate(self.line) :
@@ -1143,7 +1136,6 @@ class Administration(Frame):
             self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
             y+=65
             row_+=1
-        # self.innerCanvas.create_line(20, y-1, 780, y-1,fill='#868383')
     class RequestReport:
         def __init__(self, root, controllerFrame,requestRid):
             print("RequestReport")
@@ -1200,9 +1192,6 @@ class Administration(Frame):
             activebackground='#181B23',command=lambda:mainFrame.destroy()).pack(side=RIGHT,padx=20)
             canvas = Canvas(mainFrame, bg=self.bgColor,highlightthickness=0)
             canvas.pack(side=LEFT, fill=BOTH, expand=1)
-            # canvas.rowconfigure((0,1,2),weight=1)
-            # canvas.columnconfigure(0,weight=1)
-            # canvas.columnconfigure(1,weight=7)
             canvas.propagate(0)
             frameInCanvas = Frame(canvas,bg=self.bgColor)
             frameInCanvas.pack(fill=X,padx=20,pady=15)
@@ -1210,26 +1199,12 @@ class Administration(Frame):
             Button(frameInCanvas,text=f"@{self.report['reportedName']}",bg=self.bgColor,
             fg='#99D575',bd=0,activebackground=self.bgColor,activeforeground='#99D575',
             command=self.remember_rid).grid(sticky=W,row=0,column=1,padx=20)
-
-            # title = Text(canvas,relief=FLAT,bg=self.bgColor,fg='#B7B7B7',height=1)
-            # title.insert(INSERT,f"Report\t@{self.report['reportedName']}")
-            # title.tag_configure('heading',foreground='#99D575')
-            # title.tag_add('heading',1.7,END)
-            # title.config(state=DISABLED)
-            # title.pack(padx=20,pady=15,anchor=NW,fill=X)
             canvas.create_line(0, 55, 900, 55,fill='#868383')
-            # Label(canvas,text=f"Subject\t{self.report['header']}",bg=self.bgColor,fg='#B7B7B7').pack(padx=20,pady=15,anchor=NW,side=LEFT)
             frameInCanvas2 = Frame(canvas,bg=self.bgColor)
             frameInCanvas2.pack(fill=X,padx=20,pady=10)
             Label(frameInCanvas2,text="Subject",bg=self.bgColor,fg='#B7B7B7').grid(sticky=W,row=1,column=0)
             Label(frameInCanvas2,text=f"{self.report['header']}",bg=self.bgColor,fg='white',
             font='leelawadee 13').grid(sticky=W,row=1,column=1,padx=20)
-            # head = Text(canvas,relief=FLAT,bg=self.bgColor,fg='#B7B7B7',height=1)
-            # head.insert(INSERT,f"Subject\t{self.report['header']}")
-            # head.tag_configure('heading',font='leelawadee 13',foreground='white')
-            # head.tag_add('heading',1.7,END)
-            # head.config(state=DISABLED)
-            # head.pack(padx=20,pady=15,anchor=NW,fill=X)
             canvas.create_line(0, 110, 900, 110,fill='#868383')
             detail = Text(canvas,relief=FLAT,height=15,bg=self.bgColor,fg='white')
             detail.insert(INSERT,self.report['detail'])
@@ -1250,11 +1225,6 @@ class Administration(Frame):
                     self.controller.requestReport = None
                     self.controller.ridSelect = None
                     self.controller.switch_frame(Administration)
-
-
-
-            
-
 if __name__ == '__main__':
     app = BUFriends()
     app.mainloop()
