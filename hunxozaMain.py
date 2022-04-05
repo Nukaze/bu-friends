@@ -30,7 +30,8 @@ class BUFriends(Tk):
         self.uidSelect = 7
         self.ridSelect = None
         self.requestReport = None
-        self.switch_frame(Administration)
+        self.update_blacklist()
+        self.switch_frame(ChangePasswordPage)
 
     def create_connection(self):
         try:
@@ -76,6 +77,14 @@ class BUFriends(Tk):
             stdencode = 'utf-8'
             passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
             return passkey
+    def update_blacklist(self) :
+        sql = """
+        UPDATE Blacklists SET Status=0, StartDate=NULL, EndDate=NULL 
+        WHERE EndDate <= datetime('now')"""
+        conn = self.create_connection()
+        if conn is not None:
+            c = self.execute_sql(sql)
+            conn.close()
 class ScrollFrame():
     def __init__(self,root,scrollable,bgColor='white'):
         # creating
@@ -568,7 +577,7 @@ class ChangePasswordPage(Frame):
                 entry.focus_force()
             entry.pack(padx=140,pady=20,anchor=W,fill=X)
             canvas.create_line(140, y, 760, y,fill='#868383')
-            y+=96
+            y+=94
         Button(canvas,text="Update Password",image=self.imgList['button'],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
         command=self.password_validation).pack(pady=30)
