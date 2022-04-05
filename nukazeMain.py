@@ -105,7 +105,9 @@ class BUFriends(Tk):
             print("ss type =",sessionType)
             conn.close()
             if sessionType == None:
-                pass
+                self.switch_frame(Matching)
+                messagebox.showinfo('BU Friends  |  Matching ',"{}Welcome back! [ {} ]{}".format(" "*5,dname," "*5))
+                return
             elif sessionType == "ADMIN":
                 self.uid = self.ssid
                 print("go admin")
@@ -467,7 +469,7 @@ class SignUp(Frame):
             def zone_buttons():
                 self.imgBtn = self.controller.get_image(r'./assets/buttons/signup_newrz.png')
                 self.imgBtn2 = self.controller.get_image(r'./assets/buttons/back_newrz.png')
-                self.signupBtn = Button(root, text="Sign Up", command=self.signup_reqvalidation, image=self.imgBtn,fg="#ffffff"
+                self.signupBtn = Button(root, text="Sign Up", command=lambda: self.signup_reqvalidation(), image=self.imgBtn,fg="#ffffff"
                                    ,bg="#ffffff",bd=-10,compound="center",activebackground="#ffffff")
                 self.backBtn = Button(root, text="Cancel", command=lambda:self.controller.switch_frame(SignIn), image=self.imgBtn2
                                     ,bg="#ffffff", foreground="white",bd=-10,compound="center",activebackground="#ffffff")
@@ -481,16 +483,18 @@ class SignUp(Frame):
             entry.insert(0,self.regisInfoLst[_index])
             return entry
         
-        def register_error(self,errorFormat="Unknow error, Please Contact Moderater"):
+        def register_error(self, errorFormat="Error, Please Contact Moderater", fatal=None):
             print("[SignUp Validator Reject]")
-            messagebox.showinfo('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
+            if fatal is not None:
+                messagebox.showerror('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
+            else:
+                messagebox.showwarning('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
 
                     
         def signup_reqvalidation(self):
             print("check entry var")
             try:
                 for i,data in enumerate(self.entryLst):
-                    print(data.get())
                     if data.get() == "" or data.get().isspace() or " " in self.entryLst[0].get():
                         self.register_error("Sign Up Form Information do not Blank or Space")
                         self.entryLst[i].focus_force()
@@ -511,7 +515,6 @@ class SignUp(Frame):
                     self.register_error(
                         "Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters\nYour Password Have {} Characters".format(len(self.entryLst[1].get())))
                 elif not self.check_alnumpass(self.entryLst[1].get()):
-                    print("check alnum")
                     print(self.check_alnumpass(self.entryLst[1].get()))
                     self.register_error("Sign Up Password Again\n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters")
                     return
@@ -527,16 +530,28 @@ class SignUp(Frame):
                     print(self.regisSubmitDict)
                     def database_validator(self):
                         conn = self.controller.create_connection()
-                        if conn is None: print("DB Can't Create Connection in db validator.");return
+                        if conn is None: 
+                            print("DB Can't Create Connection in db validator.")
+                            return
                         else:
                             try:
                                 print("query bumail..")   
-                                sqlquery = """SELECT * FROM Users WHERE Email=?;"""
                                 bumail = self.regisSubmitDict['bumail'] 
+                                sqlPerma = """SELECT * FROM PermanentBanned WHERE Email = ?;"""
+                                userPermaBanned = None
+                                try:
+                                    userPermaBanned = self.controller.execute_sql(sqlPerma, [bumail]).fetchone()[0]
+                                except TypeError as te: pass
+                                if userPermaBanned is not None:
+                                    self.register_error(f"Sorry [ {bumail} ] has been Permanently Banned.",fatal=1)
+                                    return
+                                sqlquery = """SELECT * FROM Users WHERE Email = ?;"""
                                 cur = self.controller.execute_sql(sqlquery, [bumail])
                                 rowbumail = cur.fetchall()
                                 print("rowbumail = ",rowbumail)
-                                if rowbumail != []: self.register_error("Sorry This [ {} ] Already Existed".format(self.regisSubmitDict['bumail']))
+                                if rowbumail != []: 
+                                    self.register_error(f"Sorry This [ {bumail} ] Already Existed")
+                                    return
                                 else: self.password_encryption();conn.close()
                             except sqlite3.Error as e :print("catch!!! {}".format(e))
                     database_validator(self)
