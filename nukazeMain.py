@@ -1027,41 +1027,39 @@ class Matching(Frame):
             for user in blacklist:
                 userBlacklst.append(user['Uid'])
             print(userBlacklst)
-            def match_sql_commit():
-                if self.matchMbtiLst:
-                    limitRangeMbti = len(self.matchMbtiLst)
-                    qMbtiSet = self.gen_qmark(limitRangeMbti)
-                    if self.matchTagsLst:
-                        sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
-                                                    UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
-                                                    UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
-                                                    UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
-                                                    ) uniA WHERE uniA.UserType in ({qMbtiSet});"""
-                    else:
-                        sqlMatch = f"""SELECT * FROM UsersTag WHERE userType in ({qMbtiSet});"""
-                else:
+            if self.matchMbtiLst:
+                limitRangeMbti = len(self.matchMbtiLst)
+                qMbtiSet = self.gen_qmark(limitRangeMbti)
+                if self.matchTagsLst:
                     sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
                                                 UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
                                                 UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
                                                 UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
-                                                ) uniA;"""
-                return sqlMatch
-            sqlMatch = match_sql_commit()
+                                                )uniA WHERE uniA.UserType in ({qMbtiSet}) 
+                                                AND (uniA.Uid in (SELECT Users.Uid FROM Users 
+                                                LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
+                                                OR uniA.Uid not in (SELECT Uid FROM Blacklists));"""
+                else:
+                    sqlMatch = f"""SELECT uniA.* FROM (SELECT * FROM UsersTag WHERE userType in ({qMbtiSet})
+                                                )uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users 
+                                                LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
+                                                OR uniA.Uid not in (SELECT Uid FROM Blacklists));"""
+            else:
+                sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
+                                            UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
+                                            UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
+                                            UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
+                                            ) uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users 
+                                            LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
+                                            OR uniA.Uid not in (SELECT Uid FROM Blacklists));"""
+
             print(sqlMatch)
-            def catch_match_blacklist(_rawMatchUid):
-                print("check black")
-                while any(True for x in userBlacklst if x in _rawMatchUid):
-                    self.reset_list_data()
-                    print("black true")
-                    sqlMatch = match_sql_commit()
-                    return
             curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
             for data in curr:
                 self.uuidFilter.append(data['Uid'])
             if self.uuidFilter == []:
                 messagebox.showinfo("BU Friends  |  Matching","Currently no one matches your tags required.\nTry to changing the tags again. \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
             else:
-                catch_match_blacklist(self.uuidFilter)
                 print("raw uid filter",self.uuidFilter)
                 print(len(self.uuidFilter))
                 self.controller.uuidLst.clear()
