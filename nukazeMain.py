@@ -1021,9 +1021,6 @@ class Matching(Frame):
             if conn is None:
                 print('Cant connect DB')
                 return
-            userBlacklst = []
-            sqlBlacklist = """SELECT Uid FROM Blacklists"""
-            blacklist = self.controller.execute_sql(sqlBlacklist).fetchall()
             for user in blacklist:
                 userBlacklst.append(user['Uid'])
             print(userBlacklst)
