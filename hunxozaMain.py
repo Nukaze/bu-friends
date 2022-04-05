@@ -31,7 +31,7 @@ class BUFriends(Tk):
         self.ridSelect = None
         self.requestReport = None
         self.update_blacklist()
-        self.switch_frame(Administration)
+        self.switch_frame(ChangePasswordPage)
 
     def create_connection(self):
         try:
@@ -577,7 +577,7 @@ class ChangePasswordPage(Frame):
                 entry.focus_force()
             entry.pack(padx=140,pady=20,anchor=W,fill=X)
             canvas.create_line(140, y, 760, y,fill='#868383')
-            y+=96
+            y+=94
         Button(canvas,text="Update Password",image=self.imgList['button'],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
         command=self.password_validation).pack(pady=30)
