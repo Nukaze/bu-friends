@@ -750,8 +750,24 @@ class InfoOnProfile() :
             print("Error! cannot create the database connection.")
         conn.close()
     def request_delete(self) :
-        print("delete")
-
+        sql = """INSERT INTO PermanentBanned(Email) SELECT Email FROM Users WHERE Users.Uid = ?"""
+        sqlDelete = []
+        sqlDelete.append("""DELETE FROM Blacklists WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Postings WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Reports WHERE ReporterUid=?""")
+        sqlDelete.append("""DELETE FROM Reports WHERE ReportedUid=?""")
+        sqlDelete.append("""DELETE FROM UsersTag WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Users WHERE Uid=?""")
+        conn = self.controller.create_connection()
+        if conn is not None:
+            c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+            for i,data in enumerate(sqlDelete):
+                c = self.controller.execute_sql(data,[self.controller.requestReport['reported']])
+            conn.close()
+            messagebox.showinfo("delete","delete successfully")
+            self.controller.requestReport = None
+            self.controller.ridSelect = None
+            self.controller.switch_frame(Administration)
     def request_blacklist(self) :
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
@@ -781,7 +797,7 @@ class InfoOnProfile() :
                     ms = messagebox.askquestion("Blacklist","บัญชีโดนระงับครบ 3 ครั้ง หากดำเนินการต่อจะเป็นการลบบัญชีนี้")
                     if ms == "yes" :
                         self.request_delete()
-                        # ลบบัญชี
+                        return
                     else: 
                         return
                 if data['Status'] == 1 :
@@ -1129,7 +1145,8 @@ class Administration(Frame):
             self.report = None
             self.imgList = {}
             imgPathList = [
-                {'name':'close','path':'./assets/icons/Close.png','x':30,'y':30}]
+                {'name':'close','path':'./assets/icons/Close.png','x':30,'y':30},
+                {'name':'button','path':'./assets/buttons/buttonGreyrz.png','x':120,'y':45}]
             for i,data in enumerate(imgPathList) :
                 img = self.controller.get_image(data['path'],data['x'],data['y'])
                 self.imgList[data['name']] = img
@@ -1205,12 +1222,25 @@ class Administration(Frame):
             # head.config(state=DISABLED)
             # head.pack(padx=20,pady=15,anchor=NW,fill=X)
             canvas.create_line(0, 110, 900, 110,fill='#868383')
-            detail = Text(canvas,relief=FLAT,bg=self.bgColor,fg='white')
+            detail = Text(canvas,relief=FLAT,height=15,bg=self.bgColor,fg='white')
             detail.insert(INSERT,self.report['detail'])
             detail.tag_configure('heading',font='leelawadee 13')
             detail.tag_add('heading',1.0,END)
             detail.config(state=DISABLED)
-            detail.pack(padx=20,pady=15,anchor=W)           
+            detail.pack(padx=20,pady=15,anchor=W)     
+            Button(canvas,text="Reject",image=self.imgList['button'],bd=0
+            ,bg=self.bgColor,activebackground=self.bgColor,compound=CENTER,
+            command=self.reject_report).pack(pady=10)
+        def reject_report(self) :
+            conn = self.controller.create_connection()
+            sql = """UPDATE Reports SET Status=1 WHERE Rid=?"""
+            if conn is not None:
+                c = self.controller.execute_sql(sql,[self.rid])
+                affected_rows = c.rowcount
+                if affected_rows > 0 :
+                    self.controller.requestReport = None
+                    self.controller.ridSelect = None
+                    self.controller.switch_frame(Administration)
 
 
 
