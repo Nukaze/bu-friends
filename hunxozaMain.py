@@ -28,6 +28,8 @@ class BUFriends(Tk):
         self.option_add('*font',self.fontBody)
         self.uid = 3
         self.uidSelect = 7
+        self.ridSelect = None
+        self.requestReport = None
         self.switch_frame(Administration)
 
     def create_connection(self):
@@ -114,7 +116,6 @@ class ScrollFrame():
     # This can now handle either windows or linux platforms
     def _on_mousewheel(self, event):
         if self.interior.winfo_reqheight() > self.root.winfo_reqheight():
-            print(event.delta)
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
@@ -218,7 +219,6 @@ class EditPage(Frame):
             {'name':'entry2','path':'./assets/entrys/entry3.png','x':440,'y':80},
             {'name':'box','path':'./assets/buttons/rectangleBlue.png','x':200,'y':60},
             {'name':'selectBox','path':'./assets/buttons/rectangleDarkBlue.png','x':200,'y':60}]
-
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img 
@@ -749,7 +749,59 @@ class InfoOnProfile() :
         else:
             print("Error! cannot create the database connection.")
         conn.close()
+    def request_delete(self) :
+        print("delete")
 
+    def request_blacklist(self) :
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        print(self.controller.requestReport)
+        sql = """SELECT * FROM Blacklists WHERE Uid=?"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+            data = c.fetchone()
+            if data is None :
+                sql = """INSERT INTO Blacklists (Uid,Email) SELECT Uid,Email FROM Users WHERE Users.Uid = ?"""
+                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                sql = """UPDATE Blacklists SET EndDate = datetime(StartDate, '+7 days') WHERE Uid = ?"""
+                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                sql = """UPDATE Reports SET Status = 1 WHERE ReportedUid = ?"""
+                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                affected_rows = c.rowcount
+                if affected_rows > 0 :
+                    messagebox.showinfo("Blacklist","Suspending Successfully")
+                    self.controller.requestReport = None
+                    self.controller.ridSelect = None
+                    self.controller.switch_frame(Administration)
+            else :
+                sql = """SELECT Status,Amount FROM Blacklists WHERE Uid=?"""
+                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                data = c.fetchone()
+                if data['Amount'] >= 3 :
+                    ms = messagebox.askquestion("Blacklist","บัญชีโดนระงับครบ 3 ครั้ง หากดำเนินการต่อจะเป็นการลบบัญชีนี้")
+                    if ms == "yes" :
+                        self.request_delete()
+                        # ลบบัญชี
+                    else: 
+                        return
+                if data['Status'] == 1 :
+                    messagebox.showwarning("Blacklist","""
+                    This account is already suspended.\n
+                    ***Policies***\n
+                    -รอจนหมดเวลาระงับบัญชี\n
+                    -หากรุนแรงให้ลบบัญชีนี้""")
+                else :
+                    sql = """UPDATE Blacklists SET Amount=Amount+1, Status=1, StartDate=datetime('now'), EndDate=datetime('now','+7 days') WHERE Uid = ?"""
+                    c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                    sql = """UPDATE Reports SET Status = 1 WHERE ReportedUid = ?"""
+                    c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                    affected_rows = c.rowcount
+                    if affected_rows > 0 :
+                        self.controller.requestReport = None
+                        self.controller.ridSelect = None
+                        self.controller.switch_frame(Administration)
+                # update data
+            conn.close()
     def option_click(self) :
         def next_page(index) :
             if pageList[index] is not None :
@@ -758,6 +810,15 @@ class InfoOnProfile() :
                 ms = messagebox.askquestion("log out","Are you sure you want to log out?")
                 if ms == "yes" :
                     self.controller.destroy()
+            elif self.parent == 3 :
+                if index == 0 :
+                    ms = messagebox.askquestion("blacklist","Are you sure you want to suspend this account?")
+                    if ms == "yes" :
+                        self.request_blacklist()
+                else:
+                    ms = messagebox.askquestion("delete","Are you sure you want to dalete this account?")
+                    if ms == "yes" :
+                        self.request_delete()
         bgColor = '#686DE0'
         if self.parent == 1 :
             optionList = ["Report"]
@@ -771,9 +832,11 @@ class InfoOnProfile() :
                 ('./assets/icons/signOut.png',25,25)]
             pageList = [EditPage,MyAccountPage,None]
         else :
-            optionList = [None]
-            imgOptionList = [None]
-            pageList = [None]
+            optionList = ["Blacklist","Delete account"]
+            imgOptionList = [
+                ('./assets/icons/blacklist.png',25,25),
+                ('./assets/icons/delete.png',25,25)]
+            pageList = [None,None]
         self.imgOption = []
         for i in range(len(optionList)) :
             if imgOptionList[i] is not None :
@@ -913,7 +976,6 @@ class Administration(Frame):
         self.allReports = []
         self.allBlacklists = []
         self.line = []
-        self.rememberRid = None
         self.imgList = {}
         imgPathList = [
             {'name':'logout','path':'./assets/icons/signOut.png','x':35,'y':35},
@@ -924,11 +986,11 @@ class Administration(Frame):
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
-        if self.rememberRid is None :
+        if self.controller.ridSelect is None :
             self.page_geometry()
         else :
             self.page_geometry()
-            self.RequestReport(self,self.controller,self.rememberRid)
+            self.RequestReport(self,self.controller,self.controller.ridSelect)
     def page_geometry(self) :
         def call_function() :
             if self.typeVar.get() == 1 :
@@ -969,7 +1031,6 @@ class Administration(Frame):
         self.innerCanvas.pack(side=LEFT, fill=BOTH, expand=1)
         self.innerCanvas.create_line(20, 0, 780, 0,fill='#868383')
         self.get_report()
-
     def get_report(self) :
         self.allReports.clear()
         self.blacklistRadioBtn.config(fg='#B7B7B7')
@@ -1097,7 +1158,9 @@ class Administration(Frame):
 
             print(self.report)
         def remember_rid(self):
-            self.root.rememberRid = self.rid
+            self.controller.ridSelect = self.rid
+            self.controller.requestReport = self.report
+            print("self.root.ridSelect",self.controller.ridSelect)
             self.controller.uidSelect = self.report['reported']
             self.controller.switch_frame(AdminReviewPage)
         def page_geometry(self) :
