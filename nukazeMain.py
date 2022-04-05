@@ -46,13 +46,16 @@ class BUFriends(Tk):
         self.init_sessions()
     
     def init_sessions(self):
+        def relogin_sessions():
+            self.uid,self.ssid = 0,0
+            self.set_sessions()
+            self.switch_frame(SignIn)
         with open(r'./database/sessions.txt','r')as ss:
             try:
                 self.ssid = int(ss.read())
             except ValueError as ve:
                 self.uid,self.ssid = 0,0
-                with open(r'./database/sessions.txt','w')as ss:
-                    ss.write("{}".format(0))
+                self.set_sessions()
                 self.switch_frame(SignIn)
                 return
         if self.ssid != 0:
@@ -66,29 +69,54 @@ class BUFriends(Tk):
             print(lastUid)
             if self.ssid > lastUid:
                 self.uid,self.ssid = 0,0
-                with open(r'./database/sessions.txt','w')as ss:
-                    ss.write("{}".format(0))
-                print(self.ssid)
+                self.set_sessions()
                 self.switch_frame(SignIn)
                 return
+            
+            sqlgetUserExist = """SELECT * FROM Users WHERE Uid = ?;"""
+            userExist = self.execute_sql(sqlgetUserExist, [self.ssid])
+            try:
+                userExist.fetchone()[0]         #catch deactivate user
+            except TypeError as te:
+                print(te)
+                relogin_sessions()
+                return
+            sqlgetStatus = """SELECT Status FROM Blacklists WHERE Uid = ?;"""
+            uStat = self.execute_sql(sqlgetStatus, [self.ssid])
+            try:
+                userStatus = uStat.fetchone()[0]        #catch banned user
+            except TypeError as te:
+                print(te)
+            print("status =",userStatus)
+            if userStatus == 1:
+                if messagebox.showerror("BU Friends  |  ","You has been Banned From BU Friends {} day"):
+                    relogin_sessions()
+                return
+            
             sqlgetSessionType = """SELECT UserType FROM UsersTag WHERE Uid = ?;"""
             sessionType = self.execute_sql(sqlgetSessionType, [self.ssid]).fetchone()[0]
             print("ss type =",sessionType)
+            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
+            dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
+            conn.close()
             if sessionType == None:
                 pass
             elif sessionType == "ADMIN":
                 self.uid = self.ssid
                 print("go admin")
                 self.switch_frame(Administration)
-            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
-            dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
-            conn.close()
-            self.switch_frame(Matching)
-            messagebox.showinfo('BU Friends',"{}Welcome back!  {}{}".format(" "*4,dname," "*4))
+                messagebox.showinfo('BU Friends  |  Administration',"{}Welcome back Admin! [ {} ]{}".format(" "*5,dname," "*5))
+                return
+            else:
+                self.switch_frame(Matching)
+                messagebox.showinfo('BU Friends  |  Matching ',"{}Welcome back! [ {} ]{}".format(" "*5,dname," "*5))
         else:
             self.switch_frame(SignIn)
                 
-
+    def set_sessions(self, _session=0):
+        with open(r'./database/sessions.txt','w')as ss:
+            ss.write("{}".format(_session))
+    
     def switch_frame(self, frame_class):
         print("switching to {} \n==|with uid = {}".format(frame_class, self.uid))
         new_frame = frame_class(self)
@@ -707,8 +735,7 @@ class Matching(Frame):
         Frame.config(self,bg=self.bgColor)
         self.pack(expand=1,fill=BOTH)
         self.controller = controllerFrame
-        with open(r'./database/sessions.txt','w')as ss:
-            ss.write("{}".format(self.controller.uid))
+        self.controller.set_sessions(self.controller.uid)
         self.root = ScrollFrame(self).interior
         self.controller.pvFrame = 0
         self.controller.title("BU Friends  |  Matching")
@@ -1762,8 +1789,7 @@ class DeactivatePage(Frame):
                         c = self.controller.execute_sql(data,[self.controller.uid])
                     print("deactivate account")
                     self.controller.uid = 0
-                    with open(r'./database/sessions.txt','w')as ss:
-                        ss.write("{}".format(self.controller.uid))
+                    self.controller.set_sessions()
                     messagebox.showinfo("BU Friends  |  Deactivate Account","Your Account Has Been Deactivated.\nHave a nice time and GOOD BYE ...")
                     self.controller.destroy()
                 else :
@@ -1826,8 +1852,7 @@ class InfoOnProfile() :
                 ms = messagebox.askquestion("log out","Are you sure you want to log out?")
                 if ms == "yes" :
                     self.controller.uid = 0
-                    with open(r'./database/sessions.txt','w')as ss:
-                        ss.write("{}".format(0))
+                    self.controller.set_sessions()
                     self.controller.switch_frame(SignIn)
         bgColor = '#686DE0'
         if self.parent == 1 :
@@ -2045,7 +2070,7 @@ class Administration(Frame):
         self.BottomFrame = Frame(self.root,bg='#282D39',width=800,height=440)
         self.BottomFrame.pack()
         self.BottomFrame.propagate(0)
-        self.scroll = ScrollFrame(self.BottomFrame,True,'#282D39')
+        self.scroll = ScrollFrame(self.BottomFrame,'#282D39')
         self.container = self.scroll.interior
         self.innerCanvas = Canvas(self.container, bg='#282D39',highlightthickness=0)
         self.innerCanvas.pack(side=LEFT, fill=BOTH, expand=1)
