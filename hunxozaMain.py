@@ -750,8 +750,24 @@ class InfoOnProfile() :
             print("Error! cannot create the database connection.")
         conn.close()
     def request_delete(self) :
-        print("delete")
-
+        sql = """INSERT INTO PermanentBanned(Email) SELECT Email FROM Users WHERE Users.Uid = ?"""
+        sqlDelete = []
+        sqlDelete.append("""DELETE FROM Blacklists WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Postings WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Reports WHERE ReporterUid=?""")
+        sqlDelete.append("""DELETE FROM Reports WHERE ReportedUid=?""")
+        sqlDelete.append("""DELETE FROM UsersTag WHERE Uid=?""")
+        sqlDelete.append("""DELETE FROM Users WHERE Uid=?""")
+        conn = self.controller.create_connection()
+        if conn is not None:
+            c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+            for i,data in enumerate(sqlDelete):
+                c = self.controller.execute_sql(data,[self.controller.requestReport['reported']])
+            conn.close()
+            messagebox.showinfo("delete","delete successfully")
+            self.controller.requestReport = None
+            self.controller.ridSelect = None
+            self.controller.switch_frame(Administration)
     def request_blacklist(self) :
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
@@ -781,7 +797,7 @@ class InfoOnProfile() :
                     ms = messagebox.askquestion("Blacklist","บัญชีโดนระงับครบ 3 ครั้ง หากดำเนินการต่อจะเป็นการลบบัญชีนี้")
                     if ms == "yes" :
                         self.request_delete()
-                        # ลบบัญชี
+                        return
                     else: 
                         return
                 if data['Status'] == 1 :
