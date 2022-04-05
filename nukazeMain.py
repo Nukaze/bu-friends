@@ -1021,9 +1021,6 @@ class Matching(Frame):
             if conn is None:
                 print('Cant connect DB')
                 return
-            for user in blacklist:
-                userBlacklst.append(user['Uid'])
-            print(userBlacklst)
             if self.matchMbtiLst:
                 limitRangeMbti = len(self.matchMbtiLst)
                 qMbtiSet = self.gen_qmark(limitRangeMbti)
