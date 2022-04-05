@@ -341,15 +341,16 @@ class SignIn(Frame):
                 print("DB Can't Connect!")
                 return
             else:
-                #q = conn.cursor().execute(sqlQuery, [self.userName.get()])
                 q = self.controller.execute_sql(sqlQuery, [self.userName.get()])
                 rowExist = q.fetchall()
                 print("checkfetch = ",len(rowExist))
                 if rowExist == []:
                     messagebox.showwarning('Sign-in Incomplete', "Sorry [ {} ] Doesn't Exist \nPlease Check BU-Mail Carefully and Try Again.".format(self.userName.get()))
+                    conn.close()
                     self.controller.switch_frame(SignIn)
                 else:
                     self.row = rowExist[0]
+                    conn.close()
                     self.login_validation()
             
         def login_validation(self):
@@ -367,7 +368,21 @@ class SignIn(Frame):
                 self.userPass.select_range(0,END)
         
         def login_submit(self):
-            self.controller.switch_frame(Matching)
+            conn = self.controller.create_connection()
+            conn.row_factory = sqlite3.Row
+            if conn is None: 
+                print("cannot Connecting Database")
+                return 
+            sqlUsertype = """SELECT * FROM UsersTag WHERE Uid=?"""
+            user = self.controller.execute_sql(sqlUsertype, [self.controller.uid]).fetchone()
+            conn.close()
+            print(*user)
+            if user['UserType'] is None:
+                self.controller.switch_frame(Matching)
+            elif user['UserType'] == "ADMIN":
+                self.controller.switch_frame(Administration)
+            else:
+                self.controller.switch_frame(Matching)
         
             
 class SignUp(Frame):
