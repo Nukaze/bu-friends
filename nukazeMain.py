@@ -10,7 +10,7 @@ from sqlite3 import Error
 import sqlite3
 import os
 import hashlib
-from datetime import *
+from datetime import datetime
 import time
 import random
 import assets.mbti.mbtiData as qz
@@ -43,6 +43,7 @@ class BUFriends(Tk):
         self.fontHeading = Font(family="leelawadee",size=36,weight="bold")
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
+        self.update_blacklist()
         self.init_sessions()
     
     def init_sessions(self):
@@ -81,23 +82,29 @@ class BUFriends(Tk):
                 print(te)
                 relogin_sessions()
                 return
-            sqlgetStatus = """SELECT Status FROM Blacklists WHERE Uid = ?;"""
+            sqlgetStatus = """SELECT Status, StartDate, EndDate FROM Blacklists WHERE Uid = ?;"""
             uStat = self.execute_sql(sqlgetStatus, [self.ssid])
             try:
-                userStatus = uStat.fetchone()[0]        #catch banned user
+                uStat.row_factory = sqlite3.Row
+                userStatus = uStat.fetchone()        #catch banned user
             except TypeError as te:
                 print(te)
-            print("status =",userStatus)
-            if userStatus == 1:
-                if messagebox.showerror("BU Friends  |  ","You has been Banned From BU Friends {} day"):
+            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
+            dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
+            if userStatus is None:
+                pass 
+            elif userStatus['Status'] == 1:
+                print("blacklist =",*userStatus)
+                uStartDate = (datetime.strptime(userStatus['StartDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
+                uEndDate = (datetime.strptime(userStatus['EndDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
+                if messagebox.showerror("BU Friends  |  ",
+                                        f"{dname} you has been Banned From BU Friends\nFrom [ {uStartDate} ] \nUntill [ {uEndDate} ]"):
                     relogin_sessions()
                 return
             
             sqlgetSessionType = """SELECT UserType FROM UsersTag WHERE Uid = ?;"""
             sessionType = self.execute_sql(sqlgetSessionType, [self.ssid]).fetchone()[0]
             print("ss type =",sessionType)
-            sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
-            dname = self.execute_sql(sqlgetDname, [self.ssid]).fetchone()[0]
             conn.close()
             if sessionType == None:
                 pass
@@ -117,6 +124,15 @@ class BUFriends(Tk):
         with open(r'./database/sessions.txt','w')as ss:
             ss.write("{}".format(_session))
     
+    def update_blacklist(self) :
+        sql = """
+        UPDATE Blacklists SET Status=0, StartDate=NULL, EndDate=NULL 
+        WHERE EndDate <= datetime('now')"""
+        conn = self.create_connection()
+        if conn is not None:
+            c = self.execute_sql(sql)
+            conn.close()
+            
     def switch_frame(self, frame_class):
         print("switching to {} \n==|with uid = {}".format(frame_class, self.uid))
         new_frame = frame_class(self)
@@ -974,8 +990,9 @@ class Matching(Frame):
         pass
     
     def match_tags_commit(self):
-        self.filterFrame.destroy()
-        self.filterFrame = None
+        if self.filterFrame is not None:
+            self.filterFrame.destroy()
+            self.filterFrame = None
         if self.matchAllTags == []:
             messagebox.showinfo("BU Friends  |  Matching","You didn't select any Tags.\nPlease Try again.")
             return
@@ -1004,31 +1021,47 @@ class Matching(Frame):
             if conn is None:
                 print('Cant connect DB')
                 return
-            if self.matchMbtiLst:
-                limitRangeMbti = len(self.matchMbtiLst)
-                qMbtiSet = self.gen_qmark(limitRangeMbti)
-                if self.matchTagsLst:
+            userBlacklst = []
+            sqlBlacklist = """SELECT Uid FROM Blacklists"""
+            blacklist = self.controller.execute_sql(sqlBlacklist).fetchall()
+            for user in blacklist:
+                userBlacklst.append(user['Uid'])
+            print(userBlacklst)
+            def match_sql_commit():
+                if self.matchMbtiLst:
+                    limitRangeMbti = len(self.matchMbtiLst)
+                    qMbtiSet = self.gen_qmark(limitRangeMbti)
+                    if self.matchTagsLst:
+                        sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
+                                                    UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
+                                                    UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
+                                                    UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
+                                                    ) uniA WHERE uniA.UserType in ({qMbtiSet});"""
+                    else:
+                        sqlMatch = f"""SELECT * FROM UsersTag WHERE userType in ({qMbtiSet});"""
+                else:
                     sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
                                                 UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
                                                 UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
                                                 UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
-                                                ) uniA WHERE uniA.UserType in ({qMbtiSet});"""
-                else:
-                    sqlMatch = f"""SELECT * FROM UsersTag WHERE userType in ({qMbtiSet});"""
-            else:
-                sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
-                                            UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
-                                            UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
-                                            UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
-                                            ) uniA ;"""
+                                                ) uniA;"""
+                return sqlMatch
+            sqlMatch = match_sql_commit()
             print(sqlMatch)
-            #messagebox.showinfo("BU Friends  | Matching",f"You selected All tags is {self.matchAllTags}\nYou selected tags is {self.matchTagsLst}\nYou selected Mbti is {self.matchMbtiLst}")
+            def catch_match_blacklist(_rawMatchUid):
+                print("check black")
+                while any(True for x in userBlacklst if x in _rawMatchUid):
+                    self.reset_list_data()
+                    print("black true")
+                    sqlMatch = match_sql_commit()
+                    return
             curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
             for data in curr:
                 self.uuidFilter.append(data['Uid'])
             if self.uuidFilter == []:
                 messagebox.showinfo("BU Friends  |  Matching","Currently no one matches your tags required.\nTry to changing the tags again. \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
             else:
+                catch_match_blacklist(self.uuidFilter)
                 print("raw uid filter",self.uuidFilter)
                 print(len(self.uuidFilter))
                 self.controller.uuidLst.clear()
@@ -1051,11 +1084,12 @@ class Matching(Frame):
                 self.controller.matchFilter = 1
                 self.request_users_infomation()
             
+    def reset_list_data(self):
+        self.controller.uuidLst.clear()
+        self.controller.uinfoLst.clear()
+        self.controller.udnameLst.clear()
+        
     def request_users_infomation(self):
-        def reset_list_data():
-            self.controller.uuidLst.clear()
-            self.controller.uinfoLst.clear()
-            self.controller.udnameLst.clear()
         self.conn = self.controller.create_connection()
         self.conn.row_factory = sqlite3.Row
         if self.conn is None:
@@ -1082,14 +1116,14 @@ class Matching(Frame):
                 self.controller.switch_frame(Matching)
                 pass
             else:
-                reset_list_data()
+                self.reset_list_data()
                 sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
                 cur = self.controller.execute_sql(sqlLastUid)
                 userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
                 randLst = []
                 randLst = random.sample(range(1,userCount),12)
                 while self.controller.uid in randLst:
-                    reset_list_data()
+                    self.reset_list_data()
                     randLst = random.sample(range(1,userCount),12)
                 print(randLst)
                 sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
@@ -1102,7 +1136,7 @@ class Matching(Frame):
                     elif "ADMIN" in row['UserType']:
                         self.cntLoop +=1
                         print("check admin")
-                        reset_list_data()
+                        self.reset_list_data()
                         randLst.clear()
                         self.conn.close()
                         self.request_users_infomation()
