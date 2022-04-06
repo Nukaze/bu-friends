@@ -1276,17 +1276,6 @@ class Matching(Frame):
         self.controller.option_add('*foreground',"#000000")
         self.controller.switch_frame(ProfilePage)
 
-class ReportUser(Frame):
-    def __init__(self, controllerFrame):
-        Frame.__init__(self,controllerFrame)
-        self.bgColor = "#333333"
-        Frame.config(self, bg=self.bgColor)
-        self.pack()
-        self.root = ScrollFrame(self).interior
-        self.reportFrame = Frame(self.root, width=500, height=300,bg="pink")
-        self.reportFrame.place(x=100, y=100)
-    def report_geometry(self):
-        pass
         
 
 class ProfileReviewPage(Frame):
@@ -1446,8 +1435,7 @@ class EditPage(Frame):
         self.bioEntry.insert(END,self.bioStr)     
         self.bioEntry.pack(expand=1)
         self.tag_geometry()
-        self.end_geometry()
-        
+        self.end_geometry()   
     def tag_geometry(self) :
         self.addWidget = None
         self.mbtiTag = None
@@ -1813,12 +1801,12 @@ class DeactivatePage(Frame):
         command=lambda:self.controller.switch_frame(MyAccountPage)).pack(anchor=NW)
         Label(canvas,text="Deactivate Account",
         bg=self.bgColor,anchor=N).pack(anchor=NW,padx=115,ipady=10)
-        topFrame = Frame(canvas,bg=self.bgColor)
-        topFrame.pack(anchor=W,padx=115,pady=15)
-        Label(topFrame,image=self.imgList['profile'],
+        self.topFrame = Frame(canvas,bg=self.bgColor)
+        self.topFrame.pack(anchor=W,padx=115,pady=15)
+        Label(self.topFrame,image=self.imgList['profile'],
         bg=self.bgColor).pack(side=LEFT)
-        Label(topFrame,text=self.data.name,bg=self.bgColor).pack(pady=5,anchor=W,padx=20)
-        Label(topFrame,text=self.data.email,font=self.fontBody,bg=self.bgColor,
+        Label(self.topFrame,text=self.data.name,bg=self.bgColor).pack(pady=5,anchor=W,padx=20)
+        Label(self.topFrame,text=self.data.email,font=self.fontBody,bg=self.bgColor,
         fg='#868383').pack(anchor=W,padx=20)
         canvas.create_line(140, 225, 760, 225,fill='#868383')
         box = Label(canvas,image=self.imgList['box'],bg=self.bgColor)
@@ -1989,10 +1977,47 @@ class InfoOnProfile() :
                         self.controller.switch_frame(Administration)
                 # update data
             conn.close()
+    
+    class ReportUser:
+        def __init__(self, root, controllerFrame, optionFrame, oldframe):
+            self.bgColor = "#333333"
+            self.root = root
+            self.controller = controllerFrame
+            self.optionFrame = optionFrame
+            self.optionFrame.destroy()
+            self.optionFrame = None
+            self.disable_allframe(oldframe)
+            w,h = 700, 400
+            x = (self.controller.width//2) - (w//2)
+            y = (self.controller.height//2) - (h//2)
+            print(w,h,x,y)
+            self.reportFrame = LabelFrame(self.root, width=w, height=h,bg="#fafafa",bd=3,relief=SOLID)
+            self.reportFrame.propagate(0)
+            self.reportFrame.place(x=x, y=y)
+            headFrame = Frame(self.reportFrame, height=100, bg="#cccccc")
+            headFrame.pack(side=TOP)
+            Button(headFrame, text="close", command=lambda:self.report_closeto(oldframe), width=10, bd=0).pack(side=BOTTOM)
+        
+        def report_closeto(self, frame):
+            for i in range(len(frame)):
+                for child in frame[i].winfo_children():
+                    child.config(state=NORMAL)
+            self.reportFrame.destroy()
+        def disable_allframe(self, frame):
+            for i in range(len(frame)):
+                for child in frame[i].winfo_children():
+                    child.config(state=DISABLED)
             
+        def report_geometry(self):
+            pass 
+        
     def option_click(self) :
         def next_page(index) :
             if pageList[index] is not None :
+                print(self.controller.uidSelect)
+                if pageList[index] == self.ReportUser:
+                    self.ReportUser(self.root, self.controller, self.optionFrame, [self.topFrame])
+                    return
                 self.controller.switch_frame(pageList[index])
             elif self.parent == 2 and index == 2 :
                 ms = messagebox.askquestion("log out","Are you sure you want to log out?")
@@ -2013,7 +2038,7 @@ class InfoOnProfile() :
         if self.parent == 1 :
             optionList = ["Report"]
             imgOptionList = [None]
-            pageList = [None]
+            pageList = [self.ReportUser]
         elif self.parent == 2 :
             optionList = ["Edit","My account","Log out"]
             imgOptionList = [
@@ -2046,7 +2071,7 @@ class InfoOnProfile() :
             self.optionFrame = None
 
     def profile_frame(self) :
-        topFrame = Frame(self.root,bg=self.bgColor)
+        self.topFrame = Frame(self.root,bg=self.bgColor)
         bottomFrame = Frame(self.root,bg=self.bgColor)
         imgPathList = ( ('./assets/icons/goback.png',50,50),
                         ('./assets/icons/hamberger.png',25,25),
@@ -2068,15 +2093,16 @@ class InfoOnProfile() :
             img = self.controller.get_image(data,180,180)
             self.profileImgLst.append(img)
         if self.parent == 3 :
-            Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,
+            Button(self.topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,
             command=lambda:self.controller.switch_frame(Administration),
             activebackground=self.bgColor).pack(side=LEFT)
         else :
-            Button(topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,
+            Button(self.topFrame,image=self.imgList[0],bd=0,bg=self.bgColor,
             command=lambda:self.controller.switch_frame(Matching),
             activebackground=self.bgColor).pack(side=LEFT)
-        Button(topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
-        activebackground=self.bgColor,command=lambda:self.option_click()).pack(side=RIGHT,padx=20)
+        self.optionBtn = Button(self.topFrame,image=self.imgList[1],bd=0,bg=self.bgColor,
+        activebackground=self.bgColor,command=lambda:self.option_click())
+        self.optionBtn.pack(side=RIGHT,padx=20)
         Label(bottomFrame,image=self.profileImgLst[self.uid%6],bg=self.bgColor).pack()
         Label(bottomFrame,text=self.name,font="leelawadee 22 bold",bg=self.bgColor).pack(pady=15)
         if self.bio is not None :
@@ -2087,7 +2113,7 @@ class InfoOnProfile() :
             line = float(bioWidget.index(END)) - 1
             bioWidget.config(height=line,state=DISABLED)
             bioWidget.pack()
-        topFrame.pack(fill=X)
+        self.topFrame.pack(fill=X)
         bottomFrame.pack(fill=X,pady=20)
 
     def tag_frame(self) :
@@ -2224,10 +2250,10 @@ class Administration(Frame):
         compound=LEFT,command=call_function,padx=20)
         self.blacklistRadioBtn.pack(anchor=W)
 
-        self.BottomFrame = Frame(self.root,bg='#282D39',width=800,height=440)
-        self.BottomFrame.pack()
-        self.BottomFrame.propagate(0)
-        self.scroll = ScrollFrame(self.BottomFrame,'#282D39')
+        bottomFrame = Frame(self.root,bg='#282D39',width=800,height=440)
+        bottomFrame.pack()
+        bottomFrame.propagate(0)
+        self.scroll = ScrollFrame(bottomFrame,'#282D39')
         self.container = self.scroll.interior
         self.innerCanvas = Canvas(self.container, bg='#282D39',highlightthickness=0)
         self.innerCanvas.pack(side=LEFT, fill=BOTH, expand=1)
@@ -2366,10 +2392,10 @@ class Administration(Frame):
             mainFrame = Frame(self.controller,width=900,height=700,bg=self.bgColor)
             mainFrame.place(x=0,y=0)
             mainFrame.propagate(0)
-            topFrame = Frame(mainFrame,bg='#181B23')
-            topFrame.pack(fill=X)
-            Label(topFrame,text=f"Sent by @{self.report['reporterName']}",bg='#181B23',fg='#B7B7B7').pack(padx=20,pady=15,anchor=W,side=LEFT)
-            Button(topFrame,image=self.imgList['close'],bd=0,bg='#181B23',
+            self.topFrame = Frame(mainFrame,bg='#181B23')
+            self.topFrame.pack(fill=X)
+            Label(self.topFrame,text=f"Sent by @{self.report['reporterName']}",bg='#181B23',fg='#B7B7B7').pack(padx=20,pady=15,anchor=W,side=LEFT)
+            Button(self.topFrame,image=self.imgList['close'],bd=0,bg='#181B23',
             activebackground='#181B23',command=lambda:mainFrame.destroy()).pack(side=RIGHT,padx=20)
             canvas = Canvas(mainFrame, bg=self.bgColor,highlightthickness=0)
             canvas.pack(side=LEFT, fill=BOTH, expand=1)
