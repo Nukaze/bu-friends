@@ -218,7 +218,7 @@ class ScrollFrame():
             self.canvas.itemconfigure(self.interior_id, width=self.root.winfo_width())
     # This can now handle either windows or linux platforms
     def _on_mousewheel(self, event):
-        if self.interior.winfo_reqheight() > self.root.winfo_reqheight():
+        if self.interior.winfo_reqheight() > 600:
             """print(event.delta)"""
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
@@ -1360,7 +1360,8 @@ class EditPage(Frame):
         self.searchEntryBox = None
         self.mainFrame = None
         self.tagData = ProfilePage(self.controller).profile
-        Frame.configure(self,bg=self.bgColor)
+        #Frame.configure(self,bg=self.bgColor)
+        Frame.configure(self,bg="pink")
         scroll = ScrollFrame(self)
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
@@ -1510,7 +1511,7 @@ class EditPage(Frame):
             Button(self.endFrame,image=self.imgList['cancel'],text="Cancel",bd=0,
             bg=self.bgColor,fg='white',activebackground=self.bgColor,compound=CENTER,
             activeforeground='white',command=lambda:self.controller.switch_frame(ProfilePage)).pack(side=LEFT)
-    
+
     def delete_tag(self,event,index) :
         self.tagData.tagList.pop(index)
         if self.addWidget is not None :
