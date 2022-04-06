@@ -1,6 +1,3 @@
-'''
-    Nukaze BU Friends
-'''
 from tkinter import *
 from tkinter import ttk,messagebox
 from tkinter import font
@@ -2521,6 +2518,4 @@ class Administration(Frame):
                     self.controller.switch_frame(Administration)
 
 if __name__ == '__main__':
-    print(BUFriends_Time())
     BUFriends().mainloop()
-    
