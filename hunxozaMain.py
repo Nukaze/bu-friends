@@ -120,7 +120,7 @@ class ScrollFrame():
 
     # This can now handle either windows or linux platforms
     def _on_mousewheel(self, event):
-        if self.interior.winfo_reqheight() > self.root.winfo_reqheight():
+        if self.interior.winfo_reqheight() > 600:
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
@@ -511,7 +511,7 @@ class MyAccountPage(Frame):
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
             {'name':'pwd','path':'./assets/buttons/my_account.png','x':660,'y':55},
             {'name':'delete','path':'./assets/buttons/deactivate.png','x':660,'y':55},
-            {'name':'background','path':'./assets/images/myaccount.png','x':800,'y':338}]
+            {'name':'background','path':'./assets/images/myaccount.png','x':800,'y':332}]
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
@@ -533,7 +533,7 @@ class MyAccountPage(Frame):
         ,bg=self.bgColor,activebackground=self.bgColor,compound=CENTER,
         command=lambda:self.controller.switch_frame(DeactivatePage)).pack(pady=5)
 
-        Label(self.root,image=self.imgList['background'],bg=self.bgColor).pack(pady=20)
+        Label(self.root,image=self.imgList['background'],bg=self.bgColor,anchor=S,bd=0).pack(ipady=10)
 class ChangePasswordPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
