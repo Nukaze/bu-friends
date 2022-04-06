@@ -11,13 +11,6 @@ import random
 import os
 import assets.mbti.mbtiData as qz
 
-def BUFriends_Time():
-    timeFull = datetime.now()
-    timeNow = timeFull.strftime("%d-%b-%Y",) + " " + timeFull.strftime("( %H:%M:%S )")
-    #print("[{}]\n[{}]".format(timeFull,timeNow))
-    return timeNow
-
-
 class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
