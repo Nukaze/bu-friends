@@ -1697,7 +1697,7 @@ class ChangePasswordPage(Frame):
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
-            {'name':'button','path':'./assets/buttons/buttonPurplerz.png','x':200,'y':65}]
+            {'name':'button','path':'./assets/buttons/buttonRaw.png','x':277,'y':76}]
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
@@ -1717,7 +1717,7 @@ class ChangePasswordPage(Frame):
         for i,data in enumerate(textList) :
             Label(canvas,text=data,bg=self.bgColor,fg='#868383',
             anchor=N).pack(padx=140,anchor=NW,ipady=3)
-            entry = Entry(canvas,font="leelawadee 13",bd=0,fg='#868383',textvariable=self.pwdList[i])
+            entry = Entry(canvas,font="leelawadee 13",bd=0,fg='#868383',textvariable=self.pwdList[i], show="*")
             if i == 0 :
                 entry.focus_force()
             entry.pack(padx=140,pady=20,anchor=W,fill=X)
