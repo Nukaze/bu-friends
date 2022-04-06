@@ -1988,9 +1988,9 @@ class InfoOnProfile() :
             self.optionFrame.destroy()
             self.optionFrame = None
             self.disable_allframe(oldframe)
-            self.w,self.h = 700, 450
+            self.w,self.h = 700, 410
             self.x = (self.controller.width//2) - (self.w//2)
-            self.y = (self.controller.height//2) - (self.h//2)
+            self.y = (self.controller.height//2-10) - (self.h//2)
             print(self.w,self.h,self.x,self.y)
             self.reportFrame = Frame(self.root, width=self.w, height=self.h,bg="#eeeeee",bd=1,relief=SOLID)
             self.reportFrame.propagate(0)
@@ -2017,26 +2017,34 @@ class InfoOnProfile() :
             mainFrame.option_add('*font',self.controller.fontBody)
             canvas = Canvas(mainFrame, bg=bg,highlightthickness=0,height=self.h)
             canvas.pack(fill=BOTH)
-            canvas.create_line(10,50,690,50, fill="#bbbbbb")
-            canvas.create_line(10,100,690,100, fill="#bbbbbb")
+            canvas.create_line(10,50,self.w-10,50, fill="#bbbbbb")
+            canvas.create_line(10,100,self.w-10,100, fill="#bbbbbb")
             userReportedFrame = Frame(canvas,width=self.w, height=50,bg=bg, bd=0)
             canvas.create_window(20,10,anchor=NW,window=userReportedFrame)
             Label(userReportedFrame, text="Report", font=fontHead,fg=fgHead).pack(side=LEFT)
-            userReported = self.get_user_reported()
-            Label(userReportedFrame, text=f"@{userReported['DisplayName']}",font=fontHead,fg="#B20600").pack(side=LEFT,padx=20)
+            self.userReported = self.get_udname_reported()
+            Label(userReportedFrame, text=f"@{self.userReported['DisplayName']}",font=fontHead,fg="#B20600").pack(side=LEFT,padx=20)
             subjectFrame = Frame(canvas,width=self.w, height=50,bg=bg, bd=0)
             Label(subjectFrame, text="Subject", font=fontHead,fg=fgHead).pack(side=LEFT)
-            subjectLst = ["Violence", "Hate Speech or Harassment", "Nudity or Sexual content", "Fake Account", "False Information or Scams", "Intellectual Property"]
-            sjCombo = ttk.Combobox(subjectFrame, values=subjectLst, width=48)
-            sjCombo.set(subjectLst[0])
-            sjCombo.pack(side=LEFT,padx=20)
+            subjectReportLst = ["Violence", "Hate Speech or Harassment",
+                                "Nudity or Sexual content","Fake Account",
+                                "False Information or Scams", "Intellectual Property"]
+            self.sjCombo = ttk.Combobox(subjectFrame, values=subjectReportLst, width=49,state="readonly")
+            self.sjCombo.set(subjectReportLst[0])
+            self.sjCombo.pack(side=LEFT,padx=20)
             canvas.create_window(20,60,anchor=NW,window=subjectFrame)
-            dFrame = LabelFrame(canvas, bg=bg, width=650, height=200, text="Details",font=fontHead, fg=fgHead)
-            dFrame.propagate(0)
-            canvas.create_window(16,110,anchor=NW,window=dFrame)
-            canvas.create_line(0,110,self.w, 110, fill="#fafafa")
-            detailReport = Text(dFrame,bg="#fafafa")
-            detailReport.pack(expand=1,fill=BOTH)
+            dFrame = Frame(canvas, bg=bg, width=650)
+            canvas.create_window(20,110,anchor=NW,window=dFrame)
+            Label(dFrame, text="Details",font=fontHead, fg=fgHead).pack(anchor=W)
+            self.detailReport = Text(dFrame,bg="#fafafa",height=5,width=59,relief=SOLID)
+            self.detailReport.pack(side=TOP,pady=5)
+            self.detailReport.bind('<KeyPress>',lambda e: self.update_textlimit(e))
+            self.detailReport.bind('<KeyPress>',lambda e: self.update_textlimit(e))
+            btnImg = self.controller.get_image(r'./assets/buttons/buttonRaw.png',240,66)
+            self.sendReport = Button(canvas, command=lambda:self.report_commit(),text="Send Report!",image=btnImg,
+                                     font=fontHead,fg=bg,bd=0,activebackground=bg,compound=CENTER)
+            self.sendReport.image = btnImg
+            canvas.create_window((self.w//2)-120,280,anchor=NW, window=self.sendReport)
             pass
         
         def report_closeto(self, frame):
@@ -2049,7 +2057,7 @@ class InfoOnProfile() :
                 for child in frame[i].winfo_children():
                     child.config(state=DISABLED)
             
-        def get_user_reported(self):
+        def get_udname_reported(self):
             print(self.controller.uidSelect)
             conn = self.controller.create_connection()
             if conn is None:
@@ -2060,7 +2068,35 @@ class InfoOnProfile() :
             userReported = self.controller.execute_sql(sqlwho, [self.controller.uidSelect]).fetchone()
             conn.close()
             return userReported
-            pass 
+           
+        def update_textlimit(self,e):
+            txtdata = self.detailReport.get(1.0,"end-1c")
+            print("txtdatalen = ",len(txtdata))
+            limit = 256
+            if len(txtdata) > limit:
+                overlimit = (len(txtdata)-limit)+5
+                messagebox.showwarning("BU Friends  |  Report-User",f"Detail Infomations Must Have less than {limit} characters")
+                self.detailReport.delete(f"end-{overlimit}c",END)
+                return
+            
+        def report_commit(self):
+            conn = self.controller.create_connection()
+            if conn is None:
+                print("Connection Failed")
+                return
+            sqlReport = """INSERT INTO Reports (ReporterUid, ReportedUid, Header, Detail) VALUES(?,?,?,?);"""
+            reportDataLst = [self.controller.uid, self.controller.uidSelect, self.sjCombo.get(), self.detailReport.get(1.0,"end-1c")]
+            print(reportDataLst)
+            report = self.controller.execute_sql(sqlReport, reportDataLst)
+            conn.commit()
+            comitted = report.rowcount
+            if comitted > 0:
+                messagebox.showinfo("BU Friends  |  Report-User",f"[ {self.userReported['DisplayName']} ] has been Reported.\nThank for Information.")
+                self.report_closeto(self.oldFrame)
+                return
+            else:
+                messagebox.showwarning("BU Friends  |  Report-User","Cannot Report This time Please try again.")
+                return
         
     def option_click(self) :
         def next_page(index) :
