@@ -1332,7 +1332,7 @@ class ProfilePage(Frame):
         fontTag = Font(family='leelawadee',size=13)
         frame.option_add('*font',fontTag)
         Label(frame,text="Create Post",font="leelawadee 20 bold",bg=self.bgColor).pack(anchor=W,padx=25,pady=5)
-        self.post = Text(frame,width=90,height=4,relief=SUNKEN)
+        self.post = Text(frame,width=90,height=4,relief=GROOVE,bd=2)
         self.post.pack()
         Button(frame,text="Post",font='leelawadee 13 bold',fg='white',
         activeforeground='white',image=self.img3,compound=CENTER,bd=0,
