@@ -1117,7 +1117,7 @@ class Matching(Frame):
                 else:
                     print("not match any pass condition")
                     pass
-                messagebox.showinfo("BU Friends  |  Matching",f"Matched!!!\n{[[*data] for data in curr]}")
+                messagebox.showinfo("BU Friends  |  Matching",f"""{" "*18}Matched!!!{" "*18}""")
                 print("final uuidlst",self.controller.uuidLst)
                 self.controller.matchFilter = 1
                 self.request_users_infomation()
