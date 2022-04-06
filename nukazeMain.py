@@ -1983,20 +1983,61 @@ class InfoOnProfile() :
             self.bgColor = "#333333"
             self.root = root
             self.controller = controllerFrame
+            self.oldFrame = oldframe
             self.optionFrame = optionFrame
             self.optionFrame.destroy()
             self.optionFrame = None
             self.disable_allframe(oldframe)
-            w,h = 700, 400
-            x = (self.controller.width//2) - (w//2)
-            y = (self.controller.height//2) - (h//2)
-            print(w,h,x,y)
-            self.reportFrame = LabelFrame(self.root, width=w, height=h,bg="#fafafa",bd=3,relief=SOLID)
+            self.w,self.h = 700, 450
+            self.x = (self.controller.width//2) - (self.w//2)
+            self.y = (self.controller.height//2) - (self.h//2)
+            print(self.w,self.h,self.x,self.y)
+            self.reportFrame = Frame(self.root, width=self.w, height=self.h,bg="#eeeeee",bd=1,relief=SOLID)
             self.reportFrame.propagate(0)
-            self.reportFrame.place(x=x, y=y)
-            headFrame = Frame(self.reportFrame, height=100, bg="#cccccc")
-            headFrame.pack(side=TOP)
-            Button(headFrame, text="close", command=lambda:self.report_closeto(oldframe), width=10, bd=0).pack(side=BOTTOM)
+            self.reportFrame.place(x=self.x, y=self.y)
+            self.top_geometry()
+            self.content_geometry()
+            
+        def top_geometry(self):
+            bg = "#bbbbbb"
+            hFrame = Frame(self.reportFrame, height=50, bg=bg, bd=0,relief=SOLID)
+            hFrame.propagate(0)
+            hFrame.pack(side=TOP,fill=X,pady=0)
+            Label(hFrame, text="Report User", fg="#555555",font="leelawadee 16 bold",bg=bg).pack(side=LEFT,padx=18,pady=10)
+            closeImg = self.controller.get_image(r'./assets/icons/Close.png')
+            closeBtn = Button(hFrame, image=closeImg, command=lambda:self.report_closeto(self.oldFrame), width=100, bd=0, bg=bg,activebackground=bg)
+            closeBtn.image = closeImg
+            closeBtn.pack(side=RIGHT)
+
+        def content_geometry(self):
+            bg, fgHead,fg = "#eeeeee", "#555555","#222222"
+            fontHead = "leelawadee 14 bold"
+            mainFrame = Frame(self.reportFrame,height=self.h ,bg=bg, bd=0)
+            mainFrame.pack(fill=BOTH)
+            mainFrame.option_add('*font',self.controller.fontBody)
+            canvas = Canvas(mainFrame, bg=bg,highlightthickness=0,height=self.h)
+            canvas.pack(fill=BOTH)
+            canvas.create_line(10,50,690,50, fill="#bbbbbb")
+            canvas.create_line(10,100,690,100, fill="#bbbbbb")
+            userReportedFrame = Frame(canvas,width=self.w, height=50,bg=bg, bd=0)
+            canvas.create_window(20,10,anchor=NW,window=userReportedFrame)
+            Label(userReportedFrame, text="Report", font=fontHead,fg=fgHead).pack(side=LEFT)
+            userReported = self.get_user_reported()
+            Label(userReportedFrame, text=f"@{userReported['DisplayName']}",font=fontHead,fg="#B20600").pack(side=LEFT,padx=20)
+            subjectFrame = Frame(canvas,width=self.w, height=50,bg=bg, bd=0)
+            Label(subjectFrame, text="Subject", font=fontHead,fg=fgHead).pack(side=LEFT)
+            subjectLst = ["Violence", "Hate Speech or Harassment", "Nudity or Sexual content", "Fake Account", "False Information or Scams", "Intellectual Property"]
+            sjCombo = ttk.Combobox(subjectFrame, values=subjectLst, width=48)
+            sjCombo.set(subjectLst[0])
+            sjCombo.pack(side=LEFT,padx=20)
+            canvas.create_window(20,60,anchor=NW,window=subjectFrame)
+            dFrame = LabelFrame(canvas, bg=bg, width=650, height=200, text="Details",font=fontHead, fg=fgHead)
+            dFrame.propagate(0)
+            canvas.create_window(16,110,anchor=NW,window=dFrame)
+            canvas.create_line(0,110,self.w, 110, fill="#fafafa")
+            detailReport = Text(dFrame,bg="#fafafa")
+            detailReport.pack(expand=1,fill=BOTH)
+            pass
         
         def report_closeto(self, frame):
             for i in range(len(frame)):
@@ -2008,7 +2049,17 @@ class InfoOnProfile() :
                 for child in frame[i].winfo_children():
                     child.config(state=DISABLED)
             
-        def report_geometry(self):
+        def get_user_reported(self):
+            print(self.controller.uidSelect)
+            conn = self.controller.create_connection()
+            if conn is None:
+                print("No connection")
+                return
+            conn.row_factory = sqlite3.Row
+            sqlwho = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
+            userReported = self.controller.execute_sql(sqlwho, [self.controller.uidSelect]).fetchone()
+            conn.close()
+            return userReported
             pass 
         
     def option_click(self) :
