@@ -383,7 +383,7 @@ class SignIn(Frame):
                     self.login_submit()
                     return
             else:
-                messagebox.showwarning('BU Friends  |  Incomplete', "Incorrect Password!\nPlease try again")
+                messagebox.showwarning('BU Friends  |  Incomplete', "Incorrect Password! Please try again.")
                 self.userPass.focus_force()
                 self.userPass.select_range(0,END)
         
@@ -447,13 +447,16 @@ class SignUp(Frame):
                     def clear_event(index):
                         if index == 1 or index == 2:
                             self.entryLst[index].config(show="*")
-                        self.entryLst[index].delete(0,END)
+                        if self.entryLst[index].get() == self.regisInfoLst[index]:
+                            self.entryLst[index].delete(0,END)
                         self.entryLst[index].config(fg=self.fg)
                     def key_event(index):
                         if index == 1 or index == 2:
                             self.entryLst[index].config(show="*")
                         self.entryLst[index].config(fg=self.fg)
                     def entry_binding(index):
+                        self.entryLst[0].focus_force()
+                        self.entryLst[0].select_range(0,END)
                         self.entryLst[index].bind('<Button-1>',lambda e, index=index:clear_event(index))
                         self.entryLst[index].bind('<Key>', lambda e, index=index:key_event(index))
                     for i in range(len(self.entryLst)):
@@ -482,8 +485,7 @@ class SignUp(Frame):
                 messagebox.showerror('BU Friends  |  Incomplete', '{}\nPlease sign up form again'.format(errorFormat))
             else:
                 messagebox.showwarning('BU Friends  |  Incomplete', '{}\nPlease sign up form again'.format(errorFormat))
-
-                    
+               
         def signup_reqvalidation(self):
             print("check entry var")
             try:
@@ -1528,6 +1530,7 @@ class EditPage(Frame):
         for i,data in enumerate(self.tagData.tagList) :
             print(data)
             self.select_tag(data,1)
+        self.searchEntry.bind('<Return>', lambda e : self.search_event())
     def search_event(self) :
         searchList = []
         self.mainFrame.destroy()
