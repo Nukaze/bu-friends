@@ -15,7 +15,6 @@ class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.frame = None
-        self.timeNow = BUFriends_Time()
         self.width, self.height = 900, 600
         self.x = ((self.winfo_screenwidth()//2) - (self.width // 2))
         self.y = ((self.winfo_screenheight()//2-50) - (self.height // 2))
