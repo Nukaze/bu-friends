@@ -237,9 +237,7 @@ class SignIn(Frame):
             print("uidcheck", self.controller.uid)
             self.root = root
             self.loginDict = {"usermail":"",
-                              "userpass":""
-                              }
-            #BannerCanva
+                              "userpass":""}
             def zone_canvas():
                 self.canvasFrame = Canvas(root, width=400, height=600, bd=0,highlightthickness=0)
                 self.canvasFrame.pack(side=LEFT,expand=1,fill="both")
@@ -273,17 +271,23 @@ class SignIn(Frame):
                 def binding_events():
                     def clear_event(index):    
                         if index == 1:
-                            self.userEntryLst[index][0].config(show="*")
-                        self.userEntryLst[index][0].delete(0,END)
+                            if self.userEntryLst[index][0].get() == self.userEntryLst[index][1]:
+                                pass
+                            else:
+                                self.userEntryLst[index][0].config(show="*")
                         self.userEntryLst[index][0].config(fg=self.fg)
+                        if self.userEntryLst[index][0].get() == self.userEntryLst[index][1]:
+                            self.userEntryLst[index][0].delete(0,END)
                     def key_event(index):
                         if index == 1:
                             self.userEntryLst[index][0].config(show="*")
                         self.userEntryLst[index][0].config(fg=self.fg)
                     def access_event(index):
                         if index == 1:
-                            self.login_query()
+                            self.login_request()
                     def entry_binding(index):
+                        self.userName.focus_force()
+                        self.userName.select_range(0,END)
                         self.userEntryLst[index][0].insert(0,self.userEntryLst[index][1])
                         self.userEntryLst[index][0].config(fg=self.fgHolder)
                         self.userEntryLst[index][0].bind('<Button-1>',lambda e,index=index: clear_event(index))
@@ -295,7 +299,7 @@ class SignIn(Frame):
             def zone_buttons():
                 self.frameBtn = Frame(self.mainFrame, bg=self.bg)
                 self.imgBtn = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
-                self.loginBtn = Button(self.frameBtn, text="Sign-In", command=self.login_query
+                self.loginBtn = Button(self.frameBtn, text="Sign-In", command=self.login_request
                                        , image=self.imgBtn, fg="#ffffff", bg=self.bg,activebackground=self.bg
                                        , activeforeground="white",bd=0,compound="center",font="leelawadee 16 bold")
                 self.loginBtn.pack(side=TOP,pady=10,ipady=0,padx=3,expand=1)
@@ -324,7 +328,7 @@ class SignIn(Frame):
         def goto_signup(self,e):
             self.controller.switch_frame(SignUp)
         
-        def login_query(self):
+        def login_request(self):
             conn = self.controller.create_connection()
             if conn is None:
                 print("DB Can't Connect!")
