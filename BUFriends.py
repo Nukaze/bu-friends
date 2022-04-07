@@ -1272,7 +1272,7 @@ class ProfileReviewPage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
-        Frame.config(self,bg=self.bgColor,height=600)
+        Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1,self.controller.uidSelect)
@@ -1283,7 +1283,7 @@ class AdminReviewPage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
-        Frame.config(self,bg=self.bgColor,height=600)
+        Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self)
         self.root = scroll.interior
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,3,self.controller.uidSelect)
