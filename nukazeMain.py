@@ -2487,7 +2487,8 @@ class Administration(Frame):
             mainFrame.propagate(0)
             self.topFrame = Frame(mainFrame,bg='#181B23')
             self.topFrame.pack(fill=X)
-            Label(self.topFrame,text=f"Sent by @{self.report['reporterName']}",bg='#181B23',fg='#B7B7B7').pack(padx=20,pady=15,anchor=W,side=LEFT)
+            Label(self.topFrame,text=f"Sent by",bg='#181B23',fg='#B7B7B7').pack(padx=18,pady=15,anchor=W,side=LEFT)
+            Label(self.topFrame,text=f"@{self.report['reporterName']}",bg='#181B23',fg='#A7f875').pack(padx=0,pady=15,anchor=W,side=LEFT)
             Button(self.topFrame,image=self.imgList['close'],bd=0,bg='#181B23',
             activebackground='#181B23',command=lambda:mainFrame.destroy()).pack(side=RIGHT,padx=20)
             canvas = Canvas(mainFrame, bg=self.bgColor,highlightthickness=0)
