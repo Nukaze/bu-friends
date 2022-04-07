@@ -282,7 +282,7 @@ class SignIn(Frame):
                         self.userEntryLst[index][0].config(fg=self.fg)
                     def access_event(index):
                         if index == 1:
-                            self.login_req()
+                            self.login_query()
                     def entry_binding(index):
                         self.userEntryLst[index][0].insert(0,self.userEntryLst[index][1])
                         self.userEntryLst[index][0].config(fg=self.fgHolder)
@@ -1708,6 +1708,7 @@ class ChangePasswordPage(Frame):
         Button(canvas,text="Update Password",image=self.imgList['button'],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
         command=self.password_validation).pack(pady=30)
+        self.pwdEntryList[2].bind('<Return>',lambda e : self.password_validation())
 
     def password_validation(self) :
         self.pwds = []
@@ -1811,6 +1812,7 @@ class DeactivatePage(Frame):
         activebackground='#D0EEFF',compound=CENTER,fg='white',
         activeforeground='white',font='leelawadee 13 bold',
         command=self.deactivate).pack(pady=30)
+        self.password.bind('<Return>',lambda e : self.deactivate())
     def deactivate(self) :
         print(self.password.get())
         if self.password.get() == "" :
