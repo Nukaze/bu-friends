@@ -1524,6 +1524,7 @@ class EditPage(Frame):
         for i,data in enumerate(self.tagData.tagList) :
             print(data)
             self.select_tag(data,1)
+        self.searchEntry.bind('<Return>', lambda e : self.search_event())
     def search_event(self) :
         searchList = []
         self.mainFrame.destroy()
