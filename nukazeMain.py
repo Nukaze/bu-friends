@@ -3,6 +3,7 @@ from tkinter import ttk,messagebox
 from tkinter import font
 from tkinter.font import Font
 from datetime import datetime
+from dateutil import tz
 from PIL import Image, ImageTk
 from sqlite3 import Error
 import sqlite3
@@ -10,6 +11,7 @@ import hashlib
 import random
 import os
 import assets.mbti.mbtiData as qz
+
 
 class BUFriends(Tk):
     def __init__(self):
@@ -76,14 +78,13 @@ class BUFriends(Tk):
             try:
                 uStat.row_factory = sqlite3.Row
                 userStatus = uStat.fetchone()        #catch banned user
-            except TypeError as te:
-                print(te)
+            except TypeError as te: print(te)
             if userStatus is None:
                 pass 
             elif userStatus['Status'] == 1:
                 print("blacklist =",*userStatus)
-                uStartDate = (datetime.strptime(userStatus['StartDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
-                uEndDate = (datetime.strptime(userStatus['EndDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
+                uStartDate = self.timezone_converter(userStatus['StartDate'], _strftime=1)
+                uEndDate = self.timezone_converter(userStatus['EndDate'], _strftime=1)
                 if messagebox.showerror("BU Friends  |  Banned",
                                         f"{dname} has been banned from BU Friends\nFrom [ {uStartDate} ] \nUntill [ {uEndDate} ]"):
                     relogin_sessions()
@@ -115,13 +116,12 @@ class BUFriends(Tk):
     
     def update_blacklist(self) :
         sql = """
-        UPDATE Blacklists SET Status=0, StartDate=NULL, EndDate=NULL 
-        WHERE EndDate <= datetime('now')"""
+        UPDATE Blacklists SET Status=0, StartDate=NULL, EndDate=NULL WHERE EndDate <= datetime("now");"""
         conn = self.create_connection()
         if conn is not None:
             c = self.execute_sql(sql)
             conn.close()
-            
+
     def switch_frame(self, frame_class):
         print("switching to {} \n==|with uid = {}".format(frame_class, self.uid))
         new_frame = frame_class(self)
@@ -172,6 +172,17 @@ class BUFriends(Tk):
         passkey = hashlib.pbkdf2_hmac(stdhash, _password.encode(stdencode), _salt, 161803)
         return passkey
   
+    def timezone_converter(self, _timeRawStr, _localzone="Asia/Bangkok", _strftime=None):
+        print("time raw str =",_timeRawStr)
+        print("time raw str type =",_timeRawStr)
+        timeData = datetime.strptime(_timeRawStr, "%Y-%m-%d %H:%M:%S")
+        tzFromUtc = tz.gettz("UTC")
+        tzToLocal = tz.gettz(_localzone)
+        timeData = timeData.replace(tzinfo=tzFromUtc)
+        timeConvertedObj = timeData.astimezone(tzToLocal)
+        if _strftime is not None:
+            timeConvertedObj = timeConvertedObj.strftime("%d-%B-%Y %H:%M")
+        return timeConvertedObj
     
 class ScrollFrame():
     def __init__(self,root,bgColor='white'):
@@ -329,6 +340,7 @@ class SignIn(Frame):
             self.controller.switch_frame(SignUp)
         
         def login_request(self):
+            self.controller.update_blacklist()
             conn = self.controller.create_connection()
             if conn is None:
                 print("DB Can't Connect!")
@@ -338,14 +350,15 @@ class SignIn(Frame):
                 sqlPerma = """SELECT Email FROM PermanentBanned WHERE Email = ?;"""
                 permaBanned = self.controller.execute_sql(sqlPerma, [self.userName.get()]).fetchone()
                 if permaBanned is not None:
-                    messagebox.showerror("BU Friends  |  Banned",f"[ {self.userName.get()} ] has been permanently banned")
+                    messagebox.showerror("BU Friends  |  Banned",f"[ {self.userName.get()} ] has been Permanently Banned")
                     return
                 sqlQuery = """SELECT Uid, PassHash, PassSalt, DisplayName FROM Users WHERE Email = ?;"""
                 q = self.controller.execute_sql(sqlQuery, [self.userName.get()])
                 rowExist = q.fetchall()
                 if rowExist == []:
                     messagebox.showwarning('BU Friends  |  Incomplete', f"[ {self.userName.get()} ] does not exist \nPlease check bu-mail carefully and try again")
-                    self.controller.switch_frame(SignIn)
+                    self.userName.focus_force()
+                    self.userName.select_range(0,END)
                     return
                 else:
                     self.row = rowExist[0]
@@ -365,16 +378,16 @@ class SignIn(Frame):
                     print("cannot Connecting Database")
                     return 
                 sqlBlacklist = """SELECT * FROM Blacklists WHERE Uid = ?;"""
-                userBl = self.controller.execute_sql(sqlBlacklist, [self.controller.uid]).fetchone()
+                userBlacklist = self.controller.execute_sql(sqlBlacklist, [self.controller.uid]).fetchone()
                 conn.close()
-                if userBl is None:
+                if userBlacklist is None:
                     messagebox.showinfo('BU Friends  |  Welcome',"Welcome Back [ {} ] \nHave a great time in BU Friends.".format(self.row[3]))
                     self.login_submit()
                     return
-                elif userBl['Status'] == 1:
-                    print("blacklist =",*userBl)
-                    uStartDate = (datetime.strptime(userBl['StartDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
-                    uEndDate = (datetime.strptime(userBl['EndDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
+                elif userBlacklist['Status'] == 1:
+                    print("blacklist =",*userBlacklist)
+                    uStartDate = self.controller.timezone_converter(userBlacklist['StartDate'], _strftime=1)
+                    uEndDate = self.controller.timezone_converter(userBlacklist['EndDate'], _strftime=1)
                     messagebox.showerror("BU Friends  |  Banned",
                                             f"{self.loginDict['usermail']} has been banned from BU Friends\nFrom [ {uStartDate} ] \nUntill [ {uEndDate} ]")
                     return
@@ -1390,7 +1403,7 @@ class EditPage(Frame):
         ,bg=self.bgColor,activebackground=self.bgColor,
         command=lambda:self.controller.switch_frame(ProfilePage))
         self.backBtn.pack(anchor=NW)
-        self.headText = Label(self.root,text="Edit Profit",font='leelawadee 20 bold',
+        self.headText = Label(self.root,text="Edit Profile",font='leelawadee 20 bold',
         bg=self.bgColor,anchor=N)
         self.headText.pack(anchor=NW,padx=115,ipady=10)
     def main_geometry(self) :
@@ -1407,7 +1420,7 @@ class EditPage(Frame):
         if self.mainFrame is not None :
             self.mainFrame.destroy()
         self.backBtn.config(command=lambda:self.controller.switch_frame(ProfilePage))
-        self.headText.config(text="Edit Profit")
+        self.headText.config(text="Edit Profile")
         headList = ("Username","Bio","MBTI","Interest")
         self.mainFrame = Frame(self.root,bg=self.bgColor)
         self.mainFrame.pack(anchor=W,padx=115)
@@ -1933,7 +1946,7 @@ class InfoOnProfile() :
             c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
             data = c.fetchone()
             if data is None :
-                sql = """INSERT INTO Blacklists (Uid,Email) SELECT Uid,Email FROM Users WHERE Users.Uid = ?"""
+                sql = """INSERT INTO Blacklists (Uid) SELECT Uid FROM Users WHERE Users.Uid = ?"""
                 c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
                 sql = """UPDATE Blacklists SET EndDate = datetime(StartDate, '+7 days') WHERE Uid = ?"""
                 c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
@@ -1957,11 +1970,7 @@ class InfoOnProfile() :
                     else: 
                         return
                 if data['Status'] == 1 :
-                    messagebox.showwarning("BU Friends  |  Incomplete","""
-                    This account has already banned\n
-                    ***Policies***\n
-                    [minor offense] Reject the report\n
-                    [major offense] Deactivate this account""")
+                    messagebox.showwarning("BU Friends  |  Incomplete","""This account has already banned\n***Policies***\n[minor offense] Reject the report\n[major offense] Deactivate this account""")
                 else :
                     sql = """UPDATE Blacklists SET Amount=Amount+1, Status=1, StartDate=datetime('now'), EndDate=datetime('now','+7 days') WHERE Uid = ?"""
                     c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
@@ -2124,7 +2133,7 @@ class InfoOnProfile() :
             imgOptionList = [None]
             pageList = [self.ReportUser]
         elif self.parent == 2 :
-            optionList = ["Edit","My account","Log out"]
+            optionList = ["Edit Profile","My account","Log out"]
             imgOptionList = [
                 ('./assets/icons/edit.png',20,20),
                 ('./assets/icons/userWhite.png',25,25),
@@ -2488,7 +2497,7 @@ class Administration(Frame):
             frameInCanvas.pack(fill=X,padx=20,pady=15)
             Label(frameInCanvas,text="Report",bg=self.bgColor,fg='#B7B7B7').grid(sticky=W,row=0,column=0)
             Button(frameInCanvas,text=f"@{self.report['reportedName']}",bg=self.bgColor,
-            fg='#99D575',bd=0,activebackground=self.bgColor,activeforeground='#99D575',
+            fg='#ff4646',bd=0,activebackground=self.bgColor,activeforeground='salmon',
             command=self.remember_rid).grid(sticky=W,row=0,column=1,padx=20)
             canvas.create_line(0, 55, 900, 55,fill='#868383')
             frameInCanvas2 = Frame(canvas,bg=self.bgColor)
