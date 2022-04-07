@@ -84,8 +84,8 @@ class BUFriends(Tk):
                 print("blacklist =",*userStatus)
                 uStartDate = (datetime.strptime(userStatus['StartDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
                 uEndDate = (datetime.strptime(userStatus['EndDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
-                if messagebox.showerror("BU Friends  |  ",
-                                        f"{dname} you has been Banned From BU Friends\nFrom [ {uStartDate} ] \nUntill [ {uEndDate} ]"):
+                if messagebox.showerror("BU Friends  |  Banned",
+                                        f"{dname} has been banned from BU Friends\nFrom [ {uStartDate} ] \nUntill [ {uEndDate} ]"):
                     relogin_sessions()
                 return
             
@@ -95,17 +95,17 @@ class BUFriends(Tk):
             conn.close()
             if sessionType == None:
                 self.switch_frame(Matching)
-                messagebox.showinfo('BU Friends  |  Matching ',"{}Welcome back! [ {} ]{}".format(" "*5,dname," "*5))
+                messagebox.showinfo('BU Friends  |  Welcome ',"{}Welcome back! [ {} ]{}".format(" "*5,dname," "*5))
                 return
             elif sessionType == "ADMIN":
                 self.uid = self.ssid
                 print("go admin")
                 self.switch_frame(Administration)
-                messagebox.showinfo('BU Friends  |  Administration',"{}Welcome back Admin! [ {} ]{}".format(" "*5,dname," "*5))
+                messagebox.showinfo('BU Friends  |  Welcome',"{}Welcome back Admin! [ {} ]{}".format(" "*5,dname," "*5))
                 return
             else:
                 self.switch_frame(Matching)
-                messagebox.showinfo('BU Friends  |  Matching ',"{}Welcome back! [ {} ]{}".format(" "*5,dname," "*5))
+                messagebox.showinfo('BU Friends  |  Welcome ',"{}Welcome back! [ {} ]{}".format(" "*5,dname," "*5))
         else:
             self.switch_frame(SignIn)
                 
@@ -334,13 +334,13 @@ class SignIn(Frame):
                 sqlPerma = """SELECT Email FROM PermanentBanned WHERE Email = ?;"""
                 permaBanned = self.controller.execute_sql(sqlPerma, [self.userName.get()]).fetchone()
                 if permaBanned is not None:
-                    messagebox.showerror("Sign-in Incomplete",f"Sorry [ {self.userName.get()} ] has been Permanently Banned.\nPlease Try Again with Another Account. ")
+                    messagebox.showerror("BU Friends  |  Banned",f"[ {self.userName.get()} ] has been permanently banned")
                     return
                 sqlQuery = """SELECT Uid, PassHash, PassSalt, DisplayName FROM Users WHERE Email = ?;"""
                 q = self.controller.execute_sql(sqlQuery, [self.userName.get()])
                 rowExist = q.fetchall()
                 if rowExist == []:
-                    messagebox.showwarning('Sign-in Incomplete', f"Sorry [ {self.userName.get()} ] Doesn't Exist \nPlease Check BU-Mail Carefully and Try Again.")
+                    messagebox.showwarning('BU Friends  |  Incomplete', f"[ {self.userName.get()} ] does not exist \nPlease check bu-mail carefully and try again")
                     self.controller.switch_frame(SignIn)
                     return
                 else:
@@ -364,22 +364,22 @@ class SignIn(Frame):
                 userBl = self.controller.execute_sql(sqlBlacklist, [self.controller.uid]).fetchone()
                 conn.close()
                 if userBl is None:
-                    messagebox.showinfo('Sign-In Complete!',"Welcome Back [ {} ] \nHave a great time in BU Friends.".format(self.row[3]))
+                    messagebox.showinfo('BU Friends  |  Welcome',"Welcome Back [ {} ] \nHave a great time in BU Friends.".format(self.row[3]))
                     self.login_submit()
                     return
                 elif userBl['Status'] == 1:
                     print("blacklist =",*userBl)
                     uStartDate = (datetime.strptime(userBl['StartDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
                     uEndDate = (datetime.strptime(userBl['EndDate'], "%Y-%m-%d %H:%M:%S")).strftime("%d-%B-%Y %H:%M")
-                    messagebox.showerror("BU Friends  |  ",
-                                            f"{self.loginDict['usermail']} has been Banned\nFrom BU Friends\nFrom [ {uStartDate} ] \nUntill [ {uEndDate} ]")
+                    messagebox.showerror("BU Friends  |  Banned",
+                                            f"{self.loginDict['usermail']} has been banned from BU Friends\nFrom [ {uStartDate} ] \nUntill [ {uEndDate} ]")
                     return
                 else:
-                    messagebox.showinfo('Sign-In Complete!',"Welcome Back [ {} ] \nHave a great time in BU Friends.".format(self.row[3]))
+                    messagebox.showinfo('BU Friends  |  Welcome',"Welcome Back [ {} ] \nHave a great time in BU Friends".format(self.row[3]))
                     self.login_submit()
                     return
             else:
-                messagebox.showwarning('Sign-in Incomplete', "Sorry Your Password Did not Match \nPlease Check Your Password Carefully and Try Again.")
+                messagebox.showwarning('BU Friends  |  Incomplete', "Incorrect Password!\nPlease try again")
                 self.userPass.focus_force()
                 self.userPass.select_range(0,END)
         
@@ -472,12 +472,12 @@ class SignUp(Frame):
             entry.insert(0,self.regisInfoLst[_index])
             return entry
         
-        def register_error(self, errorFormat="Error, Please Contact Moderater", fatal=None):
+        def register_error(self, errorFormat="Error, Please contact moderater", fatal=None):
             print("[SignUp Validator Reject]")
             if fatal is not None:
-                messagebox.showerror('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
+                messagebox.showerror('BU Friends  |  Incomplete', '{}\nPlease sign up form again'.format(errorFormat))
             else:
-                messagebox.showwarning('Sign Up Incomplete', '{}\nPlease Sign Up Form Again'.format(errorFormat))
+                messagebox.showwarning('BU Friends  |  Incomplete', '{}\nPlease sign up form again'.format(errorFormat))
 
                     
         def signup_reqvalidation(self):
@@ -485,30 +485,30 @@ class SignUp(Frame):
             try:
                 for i,data in enumerate(self.entryLst):
                     if data.get() == "" or data.get().isspace() or " " in self.entryLst[0].get():
-                        self.register_error("Sign Up Form Information do not Blank or Space")
+                        self.register_error("Information cannot be empty")
                         self.entryLst[i].focus_force()
                         self.entryLst[i].select_range(0,END)
                         break
                 if "@bumail.net" not in self.entryLst[0].get():
-                    self.register_error("BU Friends Exclusive for Bangkok University\nStudent Mail  [ bumail.net ]  only")
+                    self.register_error("BU Friends exclusive for Bangkok University\nUse student mail  [ bumail.net ]  only")
                     self.entryLst[0].focus_force()
                     self.entryLst[0].select_range(0,END)
                     return
                 elif self.entryLst[1].get() != self.entryLst[2].get():
-                    self.register_error("Sign Up Password do not Matching")
+                    self.register_error("Password do not matching")
                     self.entryLst[1].focus_force()
                     self.entryLst[1].select_range(0,END)
                     self.entryLst[2].delete(0,END)
                     return
                 elif not len(self.entryLst[1].get()) > 7:
                     self.register_error(
-                        "Sign Up Password Again\n[ Required ] At Least 8 Characters \n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters\nYour Password Have {} Characters".format(len(self.entryLst[1].get())))
+                        "Invalid password!\n[ Required ] At Least 8 Characters \n[ Required ] A mix of letters and number\n[ Optional ] Special Characters\nYour password have {} characters".format(len(self.entryLst[1].get())))
                 elif not self.check_alnumpass(self.entryLst[1].get()):
                     print(self.check_alnumpass(self.entryLst[1].get()))
-                    self.register_error("Sign Up Password Again\n[ Required ] Alphabet and Number Password\n[ Optional ] Special Characters")
+                    self.register_error("Invalid password!\n[ Required ] A mix of letters and number\n[ Optional ] Special Characters")
                     return
                 elif len(self.entryLst[3].get()) >32:
-                    self.register_error("Sign Up Display Name Again\n[ Required ] Display Name can't be longer than 32 characters")
+                    self.register_error("Display name cannot be longer than 32 characters")
                     self.entryLst[3].focus_force()
                     self.entryLst[3].select_range(0,END)
                     return
@@ -532,14 +532,14 @@ class SignUp(Frame):
                                     userPermaBanned = self.controller.execute_sql(sqlPerma, [bumail]).fetchone()[0]
                                 except TypeError as te: pass
                                 if userPermaBanned is not None:
-                                    self.register_error(f"Sorry [ {bumail} ] has been Permanently Banned.",fatal=1)
+                                    self.register_error(f"[ {bumail} ] has been Permanently Banned",fatal=1)
                                     return
                                 sqlquery = """SELECT * FROM Users WHERE Email = ?;"""
                                 cur = self.controller.execute_sql(sqlquery, [bumail])
                                 rowbumail = cur.fetchall()
                                 print("rowbumail = ",rowbumail)
                                 if rowbumail != []: 
-                                    self.register_error(f"Sorry This [ {bumail} ] Already Existed")
+                                    self.register_error(f"[ {bumail} ] has already existed")
                                     return
                                 else: self.password_encryption();conn.close()
                             except sqlite3.Error as e :print("catch!!! {}".format(e))
@@ -582,7 +582,7 @@ class SignUp(Frame):
             conn = self.controller.create_connection()
             if conn is None:
                 print("DB can't connect in signup commit.")
-                messagebox.showerror("Database Problem","Can't SignUp ")
+                messagebox.showerror("BU Friends  |  Error","Can't access BU Friends\nPlease try again later")
             else:
                 try:
                     self.controller.execute_sql(sqlRegis, userinfoValues)
@@ -592,8 +592,8 @@ class SignUp(Frame):
                     print(getUid)
                     self.controller.uid = getUid[0]
                     print("user id = [ {} ]".format(self.controller.uid))
-                    messagebox.showinfo('Sign Up Successfully'
-                                        ,"Welcome to BU Friends [ {} ] \nHave a Great Time in BU Friends".format(self.regisSubmitDict['displayname']))
+                    messagebox.showinfo('BU Friends  |  Successful'
+                                        ,"Welcome to BU Friends [ {} ] \nHave a great time in BU Friends".format(self.regisSubmitDict['displayname']))
                     conn.close()
                     self.signup_complete()
                 except Error as e :print("catch!!! {}".format(e))
@@ -732,7 +732,7 @@ class Mbti(Frame):
             try:
                 if len(self.mindLst) != 7 or len(self.energyLst) != 7 or len(self.natureLst) != 7 or len(self.tacticLst) != 7:
                     self.reset_values()
-                    messagebox.showwarning("MBTi Quiz Incomplete","Sorry Please Answer MBTi Quiz Completely.")
+                    messagebox.showwarning("BU Friends  |  Incomplete","Please answer MBTi Quiz completely")
                     print("please answer quiz complete")
                 else:
                     if sum(self.mindLst) > 3:self.mbtiCodeLst.append("E")
@@ -997,7 +997,7 @@ class Matching(Frame):
                             select['widget'].config(image=unselectMbtiImg,compound=CENTER,fg="#555555")
                             select['widget'].image = unselectMbtiImg
                             select['status'] = 0    
-                            messagebox.showwarning("BU Friends  |  Matching",f"You can select Tag at most {limitTag} Tags")
+                            messagebox.showwarning("BU Friends  |  Warning",f"You can select tag at most {limitTag} tags")
                     elif select['status'] == 1:
                         if select['userType'] in self.matchAllTags:
                             self.matchAllTags.remove(select['userType'])
@@ -1018,7 +1018,7 @@ class Matching(Frame):
                             select['widget'].config(image=self.userTagImg,compound=CENTER,fg="#555555")
                             select['widget'].image = self.userTagImg
                             select['status'] = 0    
-                            messagebox.showwarning("BU Friends  |  Matching",f"You can select Tag at most {limitTag} Tags")
+                            messagebox.showwarning("BU Friends  |  Warning",f"You can select tag at most {limitTag} tags")
                             
                     elif select['status'] == 1:
                         if select['tid'] in self.matchAllTags:
@@ -1034,7 +1034,7 @@ class Matching(Frame):
             self.filterFrame.destroy()
             self.filterFrame = None
         if self.matchAllTags == []:
-            messagebox.showinfo("BU Friends  |  Matching","You didn't select any Tags.\nPlease Try again.")
+            messagebox.showinfo("BU Friends  |  Warning","You did not select any tags\nPlease try again")
             return
         else:
             self.controller.matchFilter = 1
@@ -1091,7 +1091,7 @@ class Matching(Frame):
             for data in curr:
                 self.uuidFilter.append(data['Uid'])
             if self.uuidFilter == []:
-                messagebox.showinfo("BU Friends  |  Matching","Currently no one matches your tags required.\nTry to changing the tags again. \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
+                messagebox.showinfo("BU Friends  |  Notification","Currently no one matches your tags required\nTry to changing the tags again \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
             else:
                 self.controller.uuidLst.clear()
                 if len(self.uuidFilter) > 12:
@@ -1106,7 +1106,7 @@ class Matching(Frame):
                 else:
                     print("not match any pass condition")
                     pass
-                messagebox.showinfo("BU Friends  |  Matching",f"""{" "*18}Matched!!!{" "*18}""")
+                messagebox.showinfo("BU Friends  |  Notification",f"""{" "*18}Matched!!!{" "*18}""")
                 print("final uuidlst",self.controller.uuidLst)
                 self.controller.matchFilter = 1
                 self.request_users_infomation()
@@ -1303,9 +1303,9 @@ class ProfilePage(Frame):
     def post_event(self):
         txt = self.post.get(1.0,END)
         if txt.isspace() :
-            messagebox.showwarning("Posting","Your post cannot be empty.")
+            messagebox.showwarning("BU Friends  |  Warning","Your post cannot be empty")
         elif len(txt) >300 :
-            messagebox.showwarning("Posting","Your post cannot be longer than 300 characters.")
+            messagebox.showwarning("BU Friends  |  Warning","Your post cannot be longer than 300 characters")
         else :
             conn = self.controller.create_connection()
             sql = """INSERT INTO Postings(Detail,Uid) VALUES (?,?)""".format(txt,self.controller.uid)
@@ -1500,13 +1500,7 @@ class EditPage(Frame):
             self.tagWidgetList[i].destroy()
         self.tag_geometry()
 
-    def searchTag(self,event) : 
-        if self.search.get() == "Search" : 
-            self.search.set("")
-
     def addtag_page(self,event) :
-        self.search = StringVar()
-        self.search.set("Search")
         self.bioStr = self.bioEntry.get(1.0,'end-1c')
         print(len(self.bioStr))
         self.mainFrame.destroy()
@@ -1516,11 +1510,11 @@ class EditPage(Frame):
         self.searchEntryBox = Label(self.root,image=self.imgList['longentry'],bg=self.bgColor)
         self.searchEntryBox.pack(pady=10)
         self.searchEntryBox.propagate(0)
-        searchEntry = Entry(self.searchEntryBox,bd=0,font='leelawadee 16',fg='#868383',width=62,textvariable=self.search)
-        searchEntry.pack(expand=1,anchor=W,padx=10,side=LEFT)
-        searchEntry.focus_force()
-        searchEntry.select_range(0,END)
-        searchEntry.bind('<Button-1>',lambda e :self.searchTag(e))
+        self.searchEntry = Entry(self.searchEntryBox,bd=0,font='leelawadee 16',fg='#868383',width=62)
+        self.searchEntry.pack(expand=1,anchor=W,padx=10,side=LEFT)
+        self.searchEntry.insert(END,"Search")
+        self.searchEntry.focus_force()
+        self.searchEntry.select_range(0,END)
         Button(self.searchEntryBox,image=self.imgList['search'],bg=self.bgColor,bd=0,
         activebackground=self.bgColor,command=lambda : self.search_event()).pack(anchor=E,expand=1,padx=10,side=LEFT)
         self.mainFrame = Frame(self.root,bg=self.bgColor)
@@ -1536,7 +1530,7 @@ class EditPage(Frame):
         self.mainFrame = Frame(self.root,bg=self.bgColor)
         self.mainFrame.pack()
         for i,data in enumerate(self.allTags) :
-            if self.search.get().lower() in data['tagName'].lower():
+            if self.searchEntry.get().lower() in data['tagName'].lower():
                 searchList.append({'tagName':data['tagName']})
         print(searchList)
         self.show_tags(searchList)
@@ -1567,7 +1561,7 @@ class EditPage(Frame):
                             self.tagData.tagList.append(data['name'])
                     else :
                         if check is not None :
-                            messagebox.showwarning("Add Interest","You can select 4 attentions.")
+                            messagebox.showwarning("BU Friends  |  Warning","You can select tag at most 4 tags")
                             data['widget'].config(image=self.imgList['box'],compound=CENTER)
                 elif data['status'] == 1:
                     data['widget'].config(image=self.imgList['box'],compound=CENTER)
@@ -1606,13 +1600,13 @@ class EditPage(Frame):
         if self.bioStr.isspace() :
             self.bioStr = None
         if self.nameStr.get() == "" or self.nameStr.get().isspace():
-            messagebox.showwarning("Save change","Your name cannot be empty.")
+            messagebox.showwarning("BU Friends  |  Warning","Your name cannot be empty")
             return
         if len(self.nameStr.get()) > 32 :
-            messagebox.showwarning("Save change","Your name cannot be longer than 32 characters.")
+            messagebox.showwarning("BU Friends  |  Warning","Your display name cannot be longer than 32 characters")
             return
         if len(self.bioStr) > 100 :
-            messagebox.showwarning("Save change","Your bio cannot be longer than 100 characters.")
+            messagebox.showwarning("BU Friends  |  Warning","Your bio cannot be longer than 100 characters")
             return
         values = [None for i in range(5)]
         values[0] = self.tagData.tagList[0]
@@ -1632,7 +1626,7 @@ class EditPage(Frame):
             sql = """UPDATE Userstag SET UserType=?,Tid1=?,Tid2=?,Tid3=?,Tid4=? WHERE Uid=?"""
             c = self.controller.execute_sql(sql,[values[0],values[1],values[2],values[3],values[4],self.controller.uid])
             conn.close()
-            messagebox.showinfo("Edit Profile","Profile has been successfully edited.")
+            messagebox.showinfo("BU Friends  |  Successful","Profile has been successfully edited")
             self.controller.switch_frame(ProfilePage)
 class MyAccountPage(Frame):
     def __init__(self,controller):
@@ -1682,7 +1676,7 @@ class ChangePasswordPage(Frame):
         self.root = scroll.interior
         fontHead = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontHead)
-        self.pwdList = [StringVar(),StringVar(),StringVar()]
+        self.pwdEntryList = []
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
@@ -1706,20 +1700,19 @@ class ChangePasswordPage(Frame):
         for i,data in enumerate(textList) :
             Label(canvas,text=data,bg=self.bgColor,fg='#868383',
             anchor=N).pack(padx=140,anchor=NW,ipady=3)
-            entry = Entry(canvas,font="leelawadee 13",bd=0,fg='#868383',textvariable=self.pwdList[i], show="*")
-            if i == 0 :
-                entry.focus_force()
-            entry.pack(padx=140,pady=20,anchor=W,fill=X)
+            self.pwdEntryList.append(Entry(canvas,font="leelawadee 13",bd=0,fg='#868383', show="*"))
+            self.pwdEntryList[i].pack(padx=140,pady=20,anchor=W,fill=X)
             canvas.create_line(140, y, 760, y,fill='#868383')
             y+=94
+        self.pwdEntryList[0].focus_force()
         Button(canvas,text="Update Password",image=self.imgList['button'],bd=0,bg=self.bgColor,
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
         command=self.password_validation).pack(pady=30)
 
     def password_validation(self) :
         self.pwds = []
-        for i in range(len(self.pwdList)) :
-            self.pwds.append(self.pwdList[i].get())
+        for i in range(len(self.pwdEntryList)) :
+            self.pwds.append(self.pwdEntryList[i].get())
         if len(self.pwds[0]) > 0 :
             print("have data")
             if len(self.pwds[1]) > 7 and any(c.isdigit() == True for c in self.pwds[1]) and any(c.isalpha() == True for c in self.pwds[1]):
@@ -1728,11 +1721,16 @@ class ChangePasswordPage(Frame):
                     print("match password")
                     self.change_password()
                 else :
-                    messagebox.showerror("Change password","Password do not Matching")
+                    messagebox.showerror("BU Friends  |  Incomplete","Password do not matching")
+                    self.pwdEntryList[2].focus_force()
+                    self.pwdEntryList[2].select_range(0,END)
             else :
-                messagebox.showerror("Change password","Invalid password!!!\n[ Required ] At Least 8 Characters \n[ Required ] A mixture of letters and numbers")
+                messagebox.showerror("BU Friends  |  Incomplete","Invalid password!!!\n[ Required ] At least 8 characters \n[ Required ] A mix of letters and number")
+                self.pwdEntryList[1].focus_force()
+                self.pwdEntryList[1].select_range(0,END)
         else:
-            messagebox.showerror("Change password","Please enter current password")
+            messagebox.showerror("BU Friends  |  Warning","Please enter current password")
+            self.pwdEntryList[0].focus_force()
     
     def change_password(self) :
         conn = self.controller.create_connection()
@@ -1751,11 +1749,12 @@ class ChangePasswordPage(Frame):
                 sql2 = """UPDATE Users SET PassHash = ?,PassSalt = ? WHERE uid = ?"""
                 c2 = self.controller.execute_sql(sql2, (newpass,newSalt,self.controller.uid))
                 conn.close()
-                messagebox.showinfo("Change password","Password has been successfully changed.")
+                messagebox.showinfo("BU Friends  |  Successful","Password has been successfully changed")
                 self.controller.switch_frame(MyAccountPage)
             else :
-                messagebox.showerror("Change password","Incorrect current password!!!")
-
+                messagebox.showerror("BU Friends  |  Incomplete","Incorrect current password!")
+                self.pwdEntryList[0].focus_force()
+                self.pwdEntryList[0].select_range(0,END)
 
 class DeactivatePage(Frame):
     def __init__(self,controller):
@@ -1769,7 +1768,6 @@ class DeactivatePage(Frame):
         fontHead = Font(family='leelawadee',size=20,weight='bold')
         self.fontBody = Font(family='leelawadee',size=15,weight='bold')
         self.option_add('*font',fontHead)
-        self.password = StringVar()
         self.imgList = {}
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
@@ -1806,17 +1804,18 @@ class DeactivatePage(Frame):
         entryBox = Label(box,image=self.imgList['entry'],bg='#D0EEFF')
         entryBox.pack()
         entryBox.propagate(0)
-        entry = Entry(entryBox,font='leelawadee 15',width=35,bd=0,
-        textvariable=self.password,show="*")
-        entry.pack(expand=1)
-        entry.focus_force()
+        self.password = Entry(entryBox,font='leelawadee 15',width=35,bd=0,show="*")
+        self.password.pack(expand=1)
+        self.password.focus_force()
         Button(box,text="Deactivate",image=self.imgList['button'],bd=0,bg='#D0EEFF',
         activebackground='#D0EEFF',compound=CENTER,fg='white',
         activeforeground='white',font='leelawadee 13 bold',
         command=self.deactivate).pack(pady=30)
     def deactivate(self) :
+        print(self.password.get())
         if self.password.get() == "" :
-            messagebox.showwarning("Deactivate","Please enter your password")
+            messagebox.showwarning("BU Friends  |  Warning","Please enter your password")
+            self.password.focus_force()
             return
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
@@ -1836,19 +1835,19 @@ class DeactivatePage(Frame):
             passkey = self.controller.password_encryptioncheck(self.password.get(),passSalt)
             if passkey == passHash :
                 print("same password")
-                ms = messagebox.askquestion("Deactivate","Are you sure you want to deactivate account?")
+                ms = messagebox.askquestion("BU Friends  |  Notification","Are you sure you want to deactivate account?")
                 if ms == "yes" :
                     for i,data in enumerate(sqlDelete):
                         c = self.controller.execute_sql(data,[self.controller.uid])
                     print("deactivate account")
                     self.controller.uid = 0
                     self.controller.set_sessions()
-                    messagebox.showinfo("BU Friends  |  Deactivate Account","Your Account Has Been Deactivated.\nHave a nice time and GOOD BYE ...")
+                    messagebox.showinfo("BU Friends  |  Successful","Your account has been deactivated\nHave a nice time and GOOD BYE ...")
                     self.controller.destroy()
-                else :
-                    self.password.set('')
             else :
-                messagebox.showerror("BU Friends  |  Deactivate Account","Incorrect password! Please Try Again.")
+                messagebox.showerror("BU Friends  |  Incomplete","Incorrect password! Please try again")
+                self.password.focus_force()
+                self.password.select_range(0,END)
         conn.close()
 class InfoOnProfile() :
     def __init__(self, root, bgcolor,controller,parent,uid):
@@ -1911,7 +1910,7 @@ class InfoOnProfile() :
             for i,data in enumerate(sqlDelete):
                 c = self.controller.execute_sql(data,[self.controller.requestReport['reported']])
             conn.close()
-            messagebox.showinfo("delete","delete successfully")
+            messagebox.showinfo("BU Friends  |  Successful","Thid account has been deactivated")
             self.controller.requestReport = None
             self.controller.ridSelect = None
             self.controller.switch_frame(Administration)
@@ -1933,7 +1932,7 @@ class InfoOnProfile() :
                 c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
                 affected_rows = c.rowcount
                 if affected_rows > 0 :
-                    messagebox.showinfo("Blacklist","Suspending Successfully")
+                    messagebox.showinfo("BU Friends  |  Successful","This account has been banned")
                     self.controller.requestReport = None
                     self.controller.ridSelect = None
                     self.controller.switch_frame(Administration)
@@ -1942,18 +1941,18 @@ class InfoOnProfile() :
                 c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
                 data = c.fetchone()
                 if data['Amount'] >= 3 :
-                    ms = messagebox.askquestion("Blacklist","บัญชีโดนระงับครบ 3 ครั้ง หากดำเนินการต่อจะเป็นการลบบัญชีนี้")
+                    ms = messagebox.askquestion("BU Friends  |  Warning","This account has been banned 3 times\nIf you continue, this account will be deactivted")
                     if ms == "yes" :
                         self.request_delete()
                         return
                     else: 
                         return
                 if data['Status'] == 1 :
-                    messagebox.showwarning("Blacklist","""
-                    This account is already suspended.\n
+                    messagebox.showwarning("BU Friends  |  Incomplete","""
+                    This account has already banned\n
                     ***Policies***\n
-                    -รอจนหมดเวลาระงับบัญชี\n
-                    -หากรุนแรงให้ลบบัญชีนี้""")
+                    [minor offense] Reject the report\n
+                    [major offense] Deactivate this account""")
                 else :
                     sql = """UPDATE Blacklists SET Amount=Amount+1, Status=1, StartDate=datetime('now'), EndDate=datetime('now','+7 days') WHERE Uid = ?"""
                     c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
@@ -2064,7 +2063,7 @@ class InfoOnProfile() :
             limit = 256
             if len(txtdata) > limit:
                 overlimit = (len(txtdata)-limit)+5
-                messagebox.showwarning("BU Friends  |  Report-User",f"Detail Infomations Must Have less than {limit} characters")
+                messagebox.showwarning("BU Friends  |  Warning",f"Detail cannot be longer than {limit} characters")
                 self.detailReport.delete(f"end-{overlimit}c",END)
                 return
             
@@ -2080,11 +2079,11 @@ class InfoOnProfile() :
             conn.commit()
             comitted = report.rowcount
             if comitted > 0:
-                messagebox.showinfo("BU Friends  |  Report-User",f"[ {self.userReported['DisplayName']} ] has been Reported.\nThank for Information.")
+                messagebox.showinfo("BU Friends  |  Successful",f"[ {self.userReported['DisplayName']} ] has been reported\nThank for information")
                 self.report_closeto(self.oldFrame)
                 return
             else:
-                messagebox.showwarning("BU Friends  |  Report-User","Cannot Report This time Please try again.")
+                messagebox.showwarning("BU Friends  |  Incomplete","Cannot report this time\nPlease try again")
                 return
         
     def option_click(self) :
@@ -2096,18 +2095,18 @@ class InfoOnProfile() :
                     return
                 self.controller.switch_frame(pageList[index])
             elif self.parent == 2 and index == 2 :
-                ms = messagebox.askquestion("log out","Are you sure you want to log out?")
+                ms = messagebox.askquestion("BU Friends  |  Notification","Are you sure you want to log out?")
                 if ms == "yes" :
                     self.controller.uid = 0
                     self.controller.set_sessions()
                     self.controller.switch_frame(SignIn)
             elif self.parent == 3 :
                 if index == 0 :
-                    ms = messagebox.askquestion("blacklist","Are you sure you want to suspend this account?")
+                    ms = messagebox.askquestion("BU Friends  |  Warning","Are you sure you want to ban this account?")
                     if ms == "yes" :
                         self.request_blacklist()
                 else:
-                    ms = messagebox.askquestion("delete","Are you sure you want to dalete this account?")
+                    ms = messagebox.askquestion("BU Friends  |  Warning","Are you sure you want to deactivate this account?")
                     if ms == "yes" :
                         self.request_delete()
         bgColor = '#686DE0'
@@ -2301,7 +2300,7 @@ class Administration(Frame):
             elif self.typeVar.get() == 2 :
                 self.get_blacklist()
         def log_out() :
-            ms = messagebox.askquestion("log out","Are you sure you want to log out?")
+            ms = messagebox.askquestion("BU Friends  |  Notification","Are you sure you want to log out?")
             if ms == "yes" :
                 self.controller.set_sessions()
                 self.controller.switch_frame(SignIn)
