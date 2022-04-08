@@ -2508,7 +2508,8 @@ class Administration(Frame):
             font='leelawadee 13').grid(sticky=W,row=1,column=1,padx=20)
             canvas.create_line(0, 110, 900, 110,fill='#868383')
             detail = Text(canvas,relief=FLAT,height=15,bg=self.bgColor,fg='white')
-            detail.insert(INSERT,self.report['detail'])
+            if self.report['detail'] :
+                detail.insert(INSERT,self.report['detail'])
             detail.tag_configure('heading',font='leelawadee 13')
             detail.tag_add('heading',1.0,END)
             detail.config(state=DISABLED)
