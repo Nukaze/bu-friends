@@ -12,7 +12,6 @@ import random
 import os
 import assets.mbti.mbtiData as qz
 
-
 class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -28,7 +27,7 @@ class BUFriends(Tk):
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
         self.uid, self.uidSelect = 0,0
-        self.pvFrame, self.matchFilter = 0,0
+        self.newUserFlow, self.matchFilter = 0,0
         self.mbtiCode = None
         self.ridSelect, self.requestReport = None, None
         self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
@@ -225,7 +224,6 @@ class ScrollFrame():
     def unbind_from_mousewheel(self, event):
         self.root.unbind_all("<MouseWheel>")
         
-
 class SignIn(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
@@ -411,8 +409,7 @@ class SignIn(Frame):
                 self.controller.switch_frame(Administration)
             else: 
                 self.controller.switch_frame(Matching)
-        
-            
+         
 class SignUp(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
@@ -635,7 +632,7 @@ class SignUp(Frame):
             self.widgetLst = [["Personality Test ( MBTI ){}".format(" "*22)],["Let's Go! Have fun in BU Friends.{}".format(" "*8)]]
             redirectLst = [lambda:self.controller.switch_frame(Mbti), lambda:self.controller.switch_frame(Matching)]
             imgPathLst = [r'./assets/buttons/rectangleGreen.png',r'./assets/buttons/rectangleWhite.png']
-            self.controller.pvFrame = 1
+            self.controller.newUserFlow = 1
             for i,path in enumerate(imgPathLst):
                 img = self.controller.get_image(path)
                 self.widgetLst[i].append(img)
@@ -645,7 +642,6 @@ class SignUp(Frame):
             x,y1,y2 = 440, 335,435
             self.canvasFrame.create_window(x,y1,anchor="nw",window=get_widget(0,redirectLst[0]))
             self.canvasFrame.create_window(x,y2,anchor="nw",window=get_widget(1,redirectLst[1]))
-
 
 class Mbti(Frame):
     def __init__(self, controllerFrame):
@@ -673,7 +669,7 @@ class Mbti(Frame):
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
             self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(EditPage), image=self.backImg, relief="flat",bd=0)
-            if self.controller.pvFrame == 1:
+            if self.controller.newUserFlow == 1:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
             self.back.place(x=20,y=10 ,anchor="nw")
             self.mbtiProgress = {'ie':[],
@@ -780,9 +776,8 @@ class Mbti(Frame):
             sqlMbti = """UPDATE UsersTag SET UserType = ? WHERE Uid = ? ;"""
             self.controller.execute_sql(sqlMbti, (self.controller.mbtiCode, self.controller.uid))
             print("mbti commited !")
-            self.controller.switch_frame(MbtiSuccess)
-    
-class MbtiSuccess(Frame):
+            self.controller.switch_frame(MbtiSuccessfully)
+class MbtiSuccessfully(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
         self.bgColor = "#d0eeff"
@@ -790,16 +785,50 @@ class MbtiSuccess(Frame):
         self.pack(expand=1,fill=BOTH)
         self.root = ScrollFrame(self).interior
         self.controller = controllerFrame
-        bg = "#d0eeff"
-        self.frame = Frame(self.root, width=900, height=600)
-        self.frame.option_add('*font',self.controller.fontBody)
-        self.frame.pack(expand=1,fill=BOTH)
-        Label(self.frame, text=self.controller.mbtiCode, font=self.controller.fontHeading).pack(expand=1)
         self.controller.title("BUFriends  |  MBTi Test Successfully!")
-        Button(self.frame,text="Go to Matching",command=lambda:self.controller.switch_frame(Matching)).pack(expand=1)
-        Button(self.frame,text="Go to Edit Profile",command=lambda:self.controller.switch_frame(EditPage)).pack(expand=1)
-        pass
-
+        self.content_geometry()
+    
+    def get_mbti_characters(self, _mbtiCode):
+        mbtiImg = self.controller.get_image(f"./assets/mbti/{(_mbtiCode.upper())}.png",900,596)
+        return mbtiImg
+    
+    def content_geometry(self):
+        mbtiCode = (self.controller.mbtiCode).upper()
+        
+        bgPallette = ["#E0D7E6","#CBD4C2","#D6E6F1","#E8E2CA"]
+        letterCode = [["N","T"],
+                      ["N","F"],
+                      ["S","J"],
+                      ["S","P"]]
+        for i, letter in enumerate(letterCode):
+            if letter[0] in mbtiCode and letter[1] in mbtiCode:
+                activeBg = bgPallette[i]
+                break
+        self.frame = Frame(self.root,bd=0,highlightthickness=0)
+        self.frame.option_add('*font',"leelawadee 16 bold")
+        self.frame.pack(expand=1,fill=BOTH)
+        miniGrey = self.controller.get_image(r'./assets/buttons/miniGrey.png',260,107)
+        miniWhite = self.controller.get_image(r'./assets/buttons/miniWhite.png',260,107)
+        mbtiImg = self.get_mbti_characters(mbtiCode)
+        mbti = Label(self.frame, image=mbtiImg)
+        mbti.image = mbtiImg
+        mbti.pack(expand=1)
+        xplace,yplace = 600,400
+        if self.controller.newUserFlow == 1:
+            matchingBtn = Button(self.frame,text="MATCHING",command=lambda:self.controller.switch_frame(Matching),
+                                image=miniWhite, compound=CENTER,bg=activeBg, bd=0,activebackground=activeBg)
+            matchingBtn.image = miniWhite
+            matchingBtn.place(x=xplace-100, y=yplace)
+            return
+        matchingBtn = Button(self.frame,text="MATCHING",command=lambda:self.controller.switch_frame(Matching),
+                            image=miniWhite, compound=CENTER,bg=activeBg, bd=0,activebackground=activeBg)
+        matchingBtn.image = miniWhite
+        matchingBtn.place(x=xplace, y=yplace)
+        editprofileBtn = Button(self.frame,text="EDIT PROFILE",command=lambda:self.controller.switch_frame(EditPage),
+                                image=miniGrey, compound=CENTER,bg=activeBg,fg="#ffffff", bd=0,activebackground=activeBg,
+                                activeforeground="#ffffff")
+        editprofileBtn.image = miniGrey
+        editprofileBtn.place(x=xplace-250, y=yplace)
 
 class Matching(Frame):
     def __init__(self, controllerFrame):
@@ -809,7 +838,7 @@ class Matching(Frame):
         self.pack(expand=1,fill=BOTH)
         self.root = ScrollFrame(self).interior
         self.controller = controllerFrame
-        self.controller.pvFrame = 0
+        self.controller.newUserFlow = 0
         self.controller.title("BU Friends  |  Matching")
         self.bgCanva = "#FFFFFF"
         self.canvasMain = Canvas(self.root, width=900, height=6000 ,bg=self.bgCanva,bd=0, highlightthickness=0)
@@ -946,7 +975,7 @@ class Matching(Frame):
             self.endBtn.pack(side=LEFT,expand=1,fill=Y,pady=15)
             imgBtn = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
             matchBtn = Button(self.endBtn,command=lambda:self.match_tags_commit(),text="Match!!",
-                                image=imgBtn,fg="#ffffff",bg=bg,compound=CENTER,bd=0,activebackground=bg)
+                                image=imgBtn,fg="#ffffff",bg=bg,compound=CENTER,bd=0,activebackground=bg,activeforeground="#ffffff")
             matchBtn.image = imgBtn
             matchBtn.pack(side=RIGHT,padx=10)
             imgBtn2 = self.controller.get_image(r'./assets/buttons/buttonDice.png')
@@ -954,7 +983,7 @@ class Matching(Frame):
                 self.controller.matchFilter = 0
                 self.controller.switch_frame(Matching)
             randBtn = Button(self.endBtn, text=f"""{" "*6}Random!""", command=lambda: random_filter(),
-                                image=imgBtn2,font="leelawadee 12 bold",fg="#ffffff",bg=bg,compound=CENTER,bd=0,activebackground=bg)
+                                image=imgBtn2,font="leelawadee 12 bold",fg="#ffffff",bg=bg,compound=CENTER,bd=0,activebackground=bg,activeforeground="#ffffff")
             randBtn.image = imgBtn2
             randBtn.pack(side=RIGHT,padx=10)
             def close_leave(e):
@@ -1264,7 +1293,6 @@ class Matching(Frame):
         self.controller.option_add('*foreground',"#000000")
         self.controller.switch_frame(ProfilePage)
   
-
 class ProfileReviewPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -1630,6 +1658,7 @@ class EditPage(Frame):
             conn.close()
             messagebox.showinfo("BU Friends  |  Successful","Profile has been successfully edited")
             self.controller.switch_frame(ProfilePage)
+
 class MyAccountPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -1760,7 +1789,6 @@ class ChangePasswordPage(Frame):
                 messagebox.showerror("BU Friends  |  Incomplete","Incorrect current password!")
                 self.pwdEntryList[0].focus_force()
                 self.pwdEntryList[0].select_range(0,END)
-
 class DeactivatePage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)

@@ -12,7 +12,6 @@ import random
 import os
 import assets.mbti.mbtiData as qz
 
-
 class BUFriends(Tk):
     def __init__(self):
         Tk.__init__(self)
@@ -28,7 +27,7 @@ class BUFriends(Tk):
         self.fontBody = Font(family="leelawadee",size=16)
         self.option_add('*font',self.fontBody)
         self.uid, self.uidSelect = 0,0
-        self.pvFrame, self.matchFilter = 0,0
+        self.newUserFlow, self.matchFilter = 0,0
         self.mbtiCode = None
         self.ridSelect, self.requestReport = None, None
         self.uuidLst, self.uinfoLst, self.udnameLst = [],[],[]
@@ -56,19 +55,17 @@ class BUFriends(Tk):
                 return
             sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
             lastUid = self.execute_sql(sqlLastUid).fetchone()[0]
-            print(lastUid)
-            if self.ssid > lastUid:
+            print("lastuid in database =",lastUid)
+            if self.ssid > lastUid:                # check over uid
                 self.uid,self.ssid = 0,0
                 self.set_sessions()
                 self.switch_frame(SignIn)
                 return
-            
             sqlgetUserExist = """SELECT * FROM Users WHERE Uid = ?;"""
             userExisted = self.execute_sql(sqlgetUserExist, [self.ssid])
             try:
-                userExisted.fetchone()[0]         #catch deactivate user
-            except TypeError as te:
-                print(te)
+                userExisted.fetchone()[0]           # catch deactivate user
+            except TypeError:
                 relogin_sessions()
                 return
             sqlgetDname = """SELECT DisplayName FROM Users WHERE Uid = ?;"""
@@ -77,11 +74,11 @@ class BUFriends(Tk):
             uStat = self.execute_sql(sqlgetStatus, [self.ssid])
             try:
                 uStat.row_factory = sqlite3.Row
-                userStatus = uStat.fetchone()        #catch banned user
+                userStatus = uStat.fetchone()        # catch banned user
             except TypeError as te: print(te)
-            if userStatus is None:
+            if userStatus is None:                   # have no data history in Blacklist = white User
                 pass 
-            elif userStatus['Status'] == 1:
+            elif userStatus['Status'] == 1:          # have data in Blacklist and status == 1
                 print("blacklist =",*userStatus)
                 uStartDate = self.timezone_converter(userStatus['StartDate'], _strftime=1)
                 uEndDate = self.timezone_converter(userStatus['EndDate'], _strftime=1)
@@ -92,19 +89,18 @@ class BUFriends(Tk):
             
             sqlgetSessionType = """SELECT UserType FROM UsersTag WHERE Uid = ?;"""
             sessionType = self.execute_sql(sqlgetSessionType, [self.ssid]).fetchone()[0]
-            print("ss type =",sessionType)
             conn.close()
-            if sessionType == None:
+            self.set_sessions(self.uid)         # remember session uid
+            if sessionType == None:             # have no do the test mbti
                 self.switch_frame(Matching)
                 messagebox.showinfo('BU Friends  |  Welcome ',"{}Welcome back! [ {} ]{}".format(" "*5,dname," "*5))
                 return
             elif sessionType == "ADMIN":
                 self.uid = self.ssid
-                print("go admin")
                 self.switch_frame(Administration)
                 messagebox.showinfo('BU Friends  |  Welcome',"{}Welcome back Admin! [ {} ]{}".format(" "*5,dname," "*5))
                 return
-            else:
+            else:                               # do the test mbti and have 16 type of user
                 self.switch_frame(Matching)
                 messagebox.showinfo('BU Friends  |  Welcome ',"{}Welcome back! [ {} ]{}".format(" "*5,dname," "*5))
         else:
@@ -123,7 +119,7 @@ class BUFriends(Tk):
             conn.close()
 
     def switch_frame(self, frame_class):
-        print("switching to {} \n==|with uid = {}".format(frame_class, self.uid))
+        print(f"switching to {frame_class} \n==| My uid = {self.uid} |==")
         new_frame = frame_class(self)
         if self.frame is not None:
             self.frame.destroy()
@@ -136,7 +132,6 @@ class BUFriends(Tk):
         try:
             self.conn = sqlite3.connect(r"./database/BUFriends.db")
             self.conn.execute("PRAGMA foreign_keys = 1")                 # Allow Foreign Key
-            print(sqlite3.version)
         except Error as e:
             print(e)
         return self.conn
@@ -229,7 +224,6 @@ class ScrollFrame():
     def unbind_from_mousewheel(self, event):
         self.root.unbind_all("<MouseWheel>")
         
-
 class SignIn(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
@@ -245,7 +239,6 @@ class SignIn(Frame):
             self.controller = controllerFrame
             self.controller.uid = 0
             self.controller.title("BU Friends  |  Sign-In")
-            print("uidcheck", self.controller.uid)
             self.root = root
             self.loginDict = {"usermail":"",
                               "userpass":""}
@@ -356,7 +349,7 @@ class SignIn(Frame):
                 q = self.controller.execute_sql(sqlQuery, [self.userName.get()])
                 rowExist = q.fetchall()
                 if rowExist == []:
-                    messagebox.showwarning('BU Friends  |  Incomplete', f"[ {self.userName.get()} ] does not exist \nPlease check bu-mail carefully and try again")
+                    messagebox.showwarning('BU Friends  |  Failure', f"[ {self.userName.get()} ] does not exist \nPlease check bu-mail carefully and try again")
                     self.userName.focus_force()
                     self.userName.select_range(0,END)
                     return
@@ -367,8 +360,8 @@ class SignIn(Frame):
             
         def login_validation(self):
             logPasskey = self.controller.password_encryptioncheck(self.userPass.get(), self.row[2])
-            print("loghash {}\ndbhash  {}".format(logPasskey, self.row[1]))
-            print(type(logPasskey), type(self.row[1]))
+            print(f"login-hash {logPasskey}")
+            print(type(logPasskey))
             self.loginDict['userpass'] = logPasskey
             if self.loginDict['userpass'] == self.row[1]:
                 self.controller.uid = self.row[0]
@@ -396,7 +389,7 @@ class SignIn(Frame):
                     self.login_submit()
                     return
             else:
-                messagebox.showwarning('BU Friends  |  Incomplete', "Incorrect Password! Please try again.")
+                messagebox.showwarning('BU Friends  |  Failure', "Incorrect Password! Please Try Again.")
                 self.userPass.focus_force()
                 self.userPass.select_range(0,END)
         
@@ -409,15 +402,14 @@ class SignIn(Frame):
             sqlUsertype = """SELECT * FROM UsersTag WHERE Uid = ?;"""
             user = self.controller.execute_sql(sqlUsertype, [self.controller.uid]).fetchone()
             conn.close()
-            print(*user)
-            if user['UserType'] is None:
+            self.controller.set_sessions(self.controller.uid)       # remember session uid
+            if user['UserType'] is None: 
                 self.controller.switch_frame(Matching)
-            elif user['UserType'] == "ADMIN":
+            elif user['UserType'] == "ADMIN": 
                 self.controller.switch_frame(Administration)
-            else:
+            else: 
                 self.controller.switch_frame(Matching)
-        
-            
+         
 class SignUp(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
@@ -432,7 +424,6 @@ class SignUp(Frame):
     class SignUpContent:
         def __init__(self, root, controllerFrame):
             self.controller = controllerFrame
-            print("uidcheck",self.controller.uid)
             self.root = root
             self.controller.title("BU Friends  |  Sign-Up")
             self.bg,self.fgHead,self.fg,self.fgHolder = "#ccefff","#000000","#333333","#999999"
@@ -495,19 +486,23 @@ class SignUp(Frame):
         def register_error(self, errorFormat="Error, Please contact moderater", fatal=None):
             print("[SignUp Validator Reject]")
             if fatal is not None:
-                messagebox.showerror('BU Friends  |  Incomplete', '{}\nPlease sign up form again'.format(errorFormat))
+                messagebox.showerror("BU Friends  |  Incomplete", f"{errorFormat}\nPlease sign up form again")
+                return
             else:
-                messagebox.showwarning('BU Friends  |  Incomplete', '{}\nPlease sign up form again'.format(errorFormat))
+                messagebox.showwarning("BU Friends  |  Incomplete", f"{errorFormat}\nPlease sign up form again")
+                return
                
         def signup_reqvalidation(self):
-            print("check entry var")
+            print("Signup-Validtion")
+            limitDname = 24
+            limitPass = 8
             try:
                 for i,data in enumerate(self.entryLst):
                     if data.get() == "" or data.get().isspace() or " " in self.entryLst[0].get():
                         self.register_error("Information cannot be empty")
                         self.entryLst[i].focus_force()
                         self.entryLst[i].select_range(0,END)
-                        break
+                        return
                 if "@bumail.net" not in self.entryLst[0].get():
                     self.register_error("BU Friends exclusive for Bangkok University\nUse student mail  [ bumail.net ]  only")
                     self.entryLst[0].focus_force()
@@ -519,15 +514,17 @@ class SignUp(Frame):
                     self.entryLst[1].select_range(0,END)
                     self.entryLst[2].delete(0,END)
                     return
-                elif not len(self.entryLst[1].get()) > 7:
+                elif len(self.entryLst[1].get()) < limitPass:
                     self.register_error(
-                        "Invalid password!\n[ Required ] At Least 8 Characters \n[ Required ] A mix of letters and number\n[ Optional ] Special Characters\nYour password have {} characters".format(len(self.entryLst[1].get())))
-                elif not self.check_alnumpass(self.entryLst[1].get()):
-                    print(self.check_alnumpass(self.entryLst[1].get()))
-                    self.register_error("Invalid password!\n[ Required ] A mix of letters and number\n[ Optional ] Special Characters")
+                        f"Invalid password!\n[ Required ] At Least {limitPass} Characters \n[ Required ] Mixture of Letters and Numbers\n[ Optional ] Special Characters\nYour password have {len(self.entryLst[1].get())} characters")
+                    self.entryLst[1].focus_force()
+                    self.entryLst[1].select_range(0,END)
                     return
-                elif len(self.entryLst[3].get()) >32:
-                    self.register_error("Display name cannot be longer than 32 characters")
+                elif not self.check_alnumpass(self.entryLst[1].get()):
+                    self.register_error("Invalid password!\n[ Required ] Mixture of Letters and Numbers\n[ Optional ] Special Characters")
+                    return
+                elif len(self.entryLst[3].get()) > limitDname :
+                    self.register_error(f"Display name cannot be longer than {limitDname} characters")
                     self.entryLst[3].focus_force()
                     self.entryLst[3].select_range(0,END)
                     return
@@ -561,7 +558,7 @@ class SignUp(Frame):
                                     self.register_error(f"[ {bumail} ] has already existed")
                                     return
                                 else: self.password_encryption();conn.close()
-                            except sqlite3.Error as e :print("catch!!! {}".format(e))
+                            except sqlite3.Error as e :print(f"catch!!! {e}")
                     database_validator(self)
             except ValueError as ve: print(ve)
             
@@ -569,17 +566,13 @@ class SignUp(Frame):
             return any(c.isdigit() == True for c in _pass) and any(c.isalpha() == True for c in _pass)
         
         def password_encryption(self):
-            print("password enc")
+            print("password encryption")
             stdhash = 'sha256'
             stdencode = 'utf-8'
             salt = os.urandom(32)
             password = self.entryLst[1].get()
             passkey = hashlib.pbkdf2_hmac(stdhash, password.encode(stdencode), salt, 161803)
             self.regisSubmitDict['passhash'], self.regisSubmitDict['salt'] = passkey, salt
-            print("bumail = ", self.regisSubmitDict.get('bumail'))
-            print("Displayname = ", self.regisSubmitDict.get('displayname'))
-            print("Passhash = ", self.regisSubmitDict.get('passhash'))
-            print("salt = ", self.regisSubmitDict.get('salt'))
             self.signup_commit()
                    
         def signup_commit(self):
@@ -595,30 +588,37 @@ class SignUp(Frame):
             sqlMail = (self.regisSubmitDict['bumail'])          
             
             sqlAddUserTag = """INSERT INTO UsersTag VALUES(NULL,NULL,NULL,NULL,NULL,NULL);"""
-
             print(type(self.regisSubmitDict['passhash']))
             print(type(self.regisSubmitDict['salt']))
             conn = self.controller.create_connection()
             if conn is None:
                 print("DB can't connect in signup commit.")
-                messagebox.showerror("BU Friends  |  Error","Can't access BU Friends\nPlease try again later")
+                messagebox.showerror("BU Friends  |  Database Error","Can't access BU Friends\nPlease try again later")
+                return
             else:
                 try:
-                    self.controller.execute_sql(sqlRegis, userinfoValues)
-                    self.controller.execute_sql(sqlAddUserTag)
-                    cur = self.controller.execute_sql(sqlGetuid, [sqlMail])
-                    getUid = (cur.fetchall())[0]
-                    print(getUid)
-                    self.controller.uid = getUid[0]
-                    print("user id = [ {} ]".format(self.controller.uid))
-                    messagebox.showinfo('BU Friends  |  Successful'
-                                        ,"Welcome to BU Friends [ {} ] \nHave a great time in BU Friends".format(self.regisSubmitDict['displayname']))
-                    conn.close()
-                    self.signup_complete()
+                    userAffected = self.controller.execute_sql(sqlRegis, userinfoValues)
+                    userTagAffected = self.controller.execute_sql(sqlAddUserTag)
+                    print("User affected =",userAffected.rowcount)
+                    print("UserTag affected =",userTagAffected.rowcount)
+                    if userAffected.rowcount > 0 and userTagAffected.rowcount > 0:
+                        cur = self.controller.execute_sql(sqlGetuid, [sqlMail])
+                        getUid = (cur.fetchall())[0]
+                        self.controller.uid = getUid[0]
+                        conn.close()
+                        print("user id = [ {} ]".format(self.controller.uid))
+                        messagebox.showinfo("BU Friends  |  Successful"
+                                            ,f"Welcome to BU Friends [ {self.regisSubmitDict['displayname']} ] \nHave a great time in BU Friends")
+                        self.signup_complete()
+                        return
+                    else:
+                        conn.close()
+                        messagebox.showwarning("BU Friends | Failure","Failed to SignUp Please try again later.")
+                        return
+                        
                 except Error as e :print("catch!!! {}".format(e))
 
         def signup_complete(self):
-            print(self.controller.uid)
             self.controller.title("BU Friends  |  Sign-Up Complete!")
             self.canvasFrame.delete(ALL)
             for widget in self.entryLst:
@@ -632,7 +632,7 @@ class SignUp(Frame):
             self.widgetLst = [["Personality Test ( MBTI ){}".format(" "*22)],["Let's Go! Have fun in BU Friends.{}".format(" "*8)]]
             redirectLst = [lambda:self.controller.switch_frame(Mbti), lambda:self.controller.switch_frame(Matching)]
             imgPathLst = [r'./assets/buttons/rectangleGreen.png',r'./assets/buttons/rectangleWhite.png']
-            self.controller.pvFrame = 1
+            self.controller.newUserFlow = 1
             for i,path in enumerate(imgPathLst):
                 img = self.controller.get_image(path)
                 self.widgetLst[i].append(img)
@@ -642,7 +642,6 @@ class SignUp(Frame):
             x,y1,y2 = 440, 335,435
             self.canvasFrame.create_window(x,y1,anchor="nw",window=get_widget(0,redirectLst[0]))
             self.canvasFrame.create_window(x,y2,anchor="nw",window=get_widget(1,redirectLst[1]))
-
 
 class Mbti(Frame):
     def __init__(self, controllerFrame):
@@ -658,7 +657,6 @@ class Mbti(Frame):
             self.root = root
             self.controller = controllerFrame
             self.controller.title("BU Friends  |  MBTi Test")
-            print("Checkuid",self.controller.uid)
             bg = "#ffffff"
             fontQuiz = Font(family="leelawadee",size=22,weight="bold")
             font = Font(family="leelawadee",size=14,weight="bold")
@@ -671,7 +669,7 @@ class Mbti(Frame):
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
             self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(EditPage), image=self.backImg, relief="flat",bd=0)
-            if self.controller.pvFrame == 1:
+            if self.controller.newUserFlow == 1:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
             self.back.place(x=20,y=10 ,anchor="nw")
             self.mbtiProgress = {'ie':[],
@@ -703,7 +701,6 @@ class Mbti(Frame):
                 self.a2 = Radiobutton(self.subFrame ,variable=self.answVar[r],value=self.answLst[r][1],text="{} {}".format("B :", self.answLst[r][3])\
                     ,bg=bgbtn,fg=btnfg,font=font,indicatoron=0,activebackground=btnfg,width=40)
                 self.a2.pack(side=LEFT,expand=1,fill=Y,ipady=60)
-            print("RandomSample =",self.randLst)
             for i in range(len(self.quizLst)):
                 request_quiz(i)
                 pass
@@ -727,9 +724,7 @@ class Mbti(Frame):
                                  'pj':[]}
         
         def mbti_calculator(self):
-            print(len(self.answVar))
             for i,data in enumerate(self.answVar):
-                print(data.get(), end=", ")
                 if "I" in data.get():self.mbtiProgress["ie"].append(0)
                 elif "E" in data.get():self.mbtiProgress["ie"].append(1)
                 elif "N" in data.get():self.mbtiProgress["ns"].append(0)
@@ -739,7 +734,7 @@ class Mbti(Frame):
                 elif "P" in data.get():self.mbtiProgress["pj"].append(0)
                 elif "J" in data.get():self.mbtiProgress["pj"].append(1)
                 else:
-                    print("out of mbti range")
+                    print("out of mbti letter")
             self.mindLst = self.mbtiProgress.get('ie')
             self.energyLst = self.mbtiProgress.get('ns')
             self.natureLst = self.mbtiProgress.get('ft')
@@ -748,11 +743,13 @@ class Mbti(Frame):
             print("Energy{}".format(self.energyLst))
             print("Nature{}".format(self.natureLst))
             print("Tactic{}".format(self.tacticLst))
+            nowAnswer = len(self.mindLst)+len(self.energyLst)+len(self.natureLst)+len(self.tacticLst)
+            quizLength = len(self.quizLst)
             try:
-                if len(self.mindLst) != 7 or len(self.energyLst) != 7 or len(self.natureLst) != 7 or len(self.tacticLst) != 7:
+                if nowAnswer != quizLength:
                     self.reset_values()
-                    messagebox.showwarning("BU Friends  |  Incomplete","Please answer MBTi Quiz completely")
-                    print("please answer quiz complete")
+                    messagebox.showwarning("BU Friends  |  Incomplete",f"Please answer MBTi Quiz completely\nYou are left with [ {(quizLength-nowAnswer)} ] Quiz answers that must be answered.")
+                    return
                 else:
                     if sum(self.mindLst) > 3:self.mbtiCodeLst.append("E")
                     else:self.mbtiCodeLst.append("I")
@@ -769,24 +766,18 @@ class Mbti(Frame):
                     self.natureLst.clear()
                     self.tacticLst.clear()
                     self.mbti_commit()
-                    
-            except: print("mbti calculator catch!!!")   
+            except ValueError as ve: print(f"mbti calculator catch!!! {ve}")   
         
         def mbti_commit(self):
-            print("checkuid b4 mbti commited",self.controller.uid)
             conn = self.controller.create_connection()
             if conn is None:
                 print("DB Cannot Connect!")
-            else:
-                try:
-                    sqlMbti = """UPDATE UsersTag SET UserType = ? WHERE Uid = ? ;"""
-                    self.controller.execute_sql(sqlMbti, (self.controller.mbtiCode, self.controller.uid))
-                    print("mbti commited !")
-                except Error as e:
-                    print(e)
-            self.controller.switch_frame(MbtiSuccess)
-    
-class MbtiSuccess(Frame):
+                return
+            sqlMbti = """UPDATE UsersTag SET UserType = ? WHERE Uid = ? ;"""
+            self.controller.execute_sql(sqlMbti, (self.controller.mbtiCode, self.controller.uid))
+            print("mbti commited !")
+            self.controller.switch_frame(MbtiSuccessfully)
+class MbtiSuccessfully(Frame):
     def __init__(self, controllerFrame):
         Frame.__init__(self, controllerFrame)
         self.bgColor = "#d0eeff"
@@ -794,16 +785,50 @@ class MbtiSuccess(Frame):
         self.pack(expand=1,fill=BOTH)
         self.root = ScrollFrame(self).interior
         self.controller = controllerFrame
-        bg = "#d0eeff"
-        self.frame = Frame(self.root, width=900, height=600)
-        self.frame.option_add('*font',self.controller.fontBody)
-        self.frame.pack(expand=1,fill=BOTH)
-        Label(self.frame, text=self.controller.mbtiCode, font=self.controller.fontHeading).pack(expand=1)
         self.controller.title("BUFriends  |  MBTi Test Successfully!")
-        Button(self.frame,text="Go to Matching",command=lambda:self.controller.switch_frame(Matching)).pack(expand=1)
-        Button(self.frame,text="Go to Edit Profile",command=lambda:self.controller.switch_frame(EditPage)).pack(expand=1)
-        pass
-
+        self.content_geometry()
+    
+    def get_mbti_characters(self, _mbtiCode):
+        mbtiImg = self.controller.get_image(f"./assets/mbti/{(_mbtiCode.upper())}.png",900,596)
+        return mbtiImg
+    
+    def content_geometry(self):
+        mbtiCode = (self.controller.mbtiCode).upper()
+        
+        bgPallette = ["#E0D7E6","#CBD4C2","#D6E6F1","#E8E2CA"]
+        letterCode = [["N","T"],
+                      ["N","F"],
+                      ["S","J"],
+                      ["S","P"]]
+        for i, letter in enumerate(letterCode):
+            if letter[0] in mbtiCode and letter[1] in mbtiCode:
+                activeBg = bgPallette[i]
+                break
+        self.frame = Frame(self.root,bd=0,highlightthickness=0)
+        self.frame.option_add('*font',"leelawadee 16 bold")
+        self.frame.pack(expand=1,fill=BOTH)
+        miniGrey = self.controller.get_image(r'./assets/buttons/miniGrey.png',260,107)
+        miniWhite = self.controller.get_image(r'./assets/buttons/miniWhite.png',260,107)
+        mbtiImg = self.get_mbti_characters(mbtiCode)
+        mbti = Label(self.frame, image=mbtiImg)
+        mbti.image = mbtiImg
+        mbti.pack(expand=1)
+        xplace,yplace = 600,400
+        if self.controller.newUserFlow == 1:
+            matchingBtn = Button(self.frame,text="MATCHING",command=lambda:self.controller.switch_frame(Matching),
+                                image=miniWhite, compound=CENTER,bg=activeBg, bd=0,activebackground=activeBg)
+            matchingBtn.image = miniWhite
+            matchingBtn.place(x=xplace-100, y=yplace)
+            return
+        matchingBtn = Button(self.frame,text="MATCHING",command=lambda:self.controller.switch_frame(Matching),
+                            image=miniWhite, compound=CENTER,bg=activeBg, bd=0,activebackground=activeBg)
+        matchingBtn.image = miniWhite
+        matchingBtn.place(x=xplace, y=yplace)
+        editprofileBtn = Button(self.frame,text="EDIT PROFILE",command=lambda:self.controller.switch_frame(EditPage),
+                                image=miniGrey, compound=CENTER,bg=activeBg,fg="#ffffff", bd=0,activebackground=activeBg,
+                                activeforeground="#ffffff")
+        editprofileBtn.image = miniGrey
+        editprofileBtn.place(x=xplace-250, y=yplace)
 
 class Matching(Frame):
     def __init__(self, controllerFrame):
@@ -813,15 +838,13 @@ class Matching(Frame):
         self.pack(expand=1,fill=BOTH)
         self.root = ScrollFrame(self).interior
         self.controller = controllerFrame
-        self.controller.set_sessions(self.controller.uid)
-        self.controller.pvFrame = 0
+        self.controller.newUserFlow = 0
         self.controller.title("BU Friends  |  Matching")
-        print("checkuid =",self.controller.uid)
         self.bgCanva = "#FFFFFF"
         self.canvasMain = Canvas(self.root, width=900, height=6000 ,bg=self.bgCanva,bd=0, highlightthickness=0)
         self.canvasMain.pack(expand=1,fill=BOTH)
         print("reqwidth =",self.root.winfo_reqwidth())
-        print("reqheight",self.root.winfo_reqheight())
+        print("reqheight =",self.root.winfo_reqheight())
         # widgetzone 
         self.filterFrame = None
         self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
@@ -848,11 +871,6 @@ class Matching(Frame):
         else:
             self.request_users_infomation()
             self.display_users()
-        print("\nRe-Loop count (Found ADMIN or Your-Self) =",self.cntLoop)
-        print("\nuuidLst user to show =",self.controller.uuidLst)
-        for i,info in enumerate(self.controller.uinfoLst):
-            print(*info,end=">=> ")
-            if i%4 ==0:print()
         
             
     def get_tagname(self):
@@ -861,7 +879,6 @@ class Matching(Frame):
         self.conn = self.controller.create_connection()
         self.conn.row_factory = sqlite3.Row
         if self.conn is None:
-            print('self.conn is None!!')
             return
         else:
             cur = self.controller.execute_sql(sql)
@@ -869,13 +886,13 @@ class Matching(Frame):
             while row:
                 self.tagnameLst.append({'tid':row['Tid'],'tagName':row['TagName']})
                 row = cur.fetchone()
-            print("We have {} tag in Database.".format(len(self.tagnameLst)))
+            print(f"We have {len(self.tagnameLst)} tag in Database.")
             self.conn.close()
             return self.tagnameLst
 
     def gen_qmark(self,_rangelimit):
-                questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
-                return questionMarkSet
+        questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
+        return questionMarkSet
     
     def filter_tags(self):
         def destroy_frame():
@@ -958,7 +975,7 @@ class Matching(Frame):
             self.endBtn.pack(side=LEFT,expand=1,fill=Y,pady=15)
             imgBtn = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
             matchBtn = Button(self.endBtn,command=lambda:self.match_tags_commit(),text="Match!!",
-                                image=imgBtn,fg="#ffffff",bg=bg,compound=CENTER,bd=0,activebackground=bg)
+                                image=imgBtn,fg="#ffffff",bg=bg,compound=CENTER,bd=0,activebackground=bg,activeforeground="#ffffff")
             matchBtn.image = imgBtn
             matchBtn.pack(side=RIGHT,padx=10)
             imgBtn2 = self.controller.get_image(r'./assets/buttons/buttonDice.png')
@@ -966,7 +983,7 @@ class Matching(Frame):
                 self.controller.matchFilter = 0
                 self.controller.switch_frame(Matching)
             randBtn = Button(self.endBtn, text=f"""{" "*6}Random!""", command=lambda: random_filter(),
-                                image=imgBtn2,font="leelawadee 12 bold",fg="#ffffff",bg=bg,compound=CENTER,bd=0,activebackground=bg)
+                                image=imgBtn2,font="leelawadee 12 bold",fg="#ffffff",bg=bg,compound=CENTER,bd=0,activebackground=bg,activeforeground="#ffffff")
             randBtn.image = imgBtn2
             randBtn.pack(side=RIGHT,padx=10)
             def close_leave(e):
@@ -1104,8 +1121,6 @@ class Matching(Frame):
                                             ) uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users 
                                             LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
                                             OR uniA.Uid not in (SELECT Uid FROM Blacklists));"""
-
-            print(sqlMatch)
             curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
             for data in curr:
                 self.uuidFilter.append(data['Uid'])
@@ -1122,11 +1137,8 @@ class Matching(Frame):
                 elif len(self.uuidFilter) > 0:
                     print("uuidfilter <= 12")
                     self.controller.uuidLst = self.uuidFilter
-                else:
-                    print("not match any pass condition")
-                    pass
                 messagebox.showinfo("BU Friends  |  Notification",f"""{" "*18}Matched!!!{" "*18}""")
-                print("final uuidlst",self.controller.uuidLst)
+                print("final uuidlst select random",self.controller.uuidLst)
                 self.controller.matchFilter = 1
                 self.request_users_infomation()
             
@@ -1139,7 +1151,8 @@ class Matching(Frame):
         self.conn = self.controller.create_connection()
         self.conn.row_factory = sqlite3.Row
         if self.conn is None:
-            print("DB connot connect")            
+            print("DB connot connect")   
+            return         
         else:
             if self.controller.matchFilter == 1:
                 self.controller.uinfoLst.clear()
@@ -1155,7 +1168,6 @@ class Matching(Frame):
                     self.controller.udnameLst.append(dname['DisplayName'])
                 self.conn.close()
                 self.controller.switch_frame(Matching)
-                pass
             else:
                 self.reset_list_data()
                 sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
@@ -1176,7 +1188,6 @@ class Matching(Frame):
                         pass
                     elif "ADMIN" in row['UserType']:
                         self.cntLoop +=1
-                        print("check admin")
                         self.reset_list_data()
                         randLst.clear()
                         self.conn.close()
@@ -1191,20 +1202,18 @@ class Matching(Frame):
                 self.controller.udnameLst.clear()
                 for i,row in enumerate(dnameRows):
                     self.controller.udnameLst.append(row['DisplayName'])
-        pass
                 
     def display_users(self):
+        self.get_tagname()
         self.userTabBtnImg = self.controller.get_image(r'./assets/images/rectangle.png',820,180)
         self.idxRandLst = random.sample(range(len(self.controller.uuidLst)), len(self.controller.uuidLst))
-        print("index of uuidlst",self.controller.uuidLst)
         print("Display random index of uuidlst",self.idxRandLst)
-        self.get_tagname()
         print("now show usertab id =",self.controller.uuidLst)
-        print("udnamelst =",self.controller.udnameLst)
         for i in range(len(self.controller.uuidLst)):
             self.get_users_tab(i)
-        if len(self.controller.uuidLst) < 7:
-            uuidFillSpace = 7-(len(self.controller.uuidLst))
+        minimumDisplay = 7
+        if len(self.controller.uuidLst) < minimumDisplay:
+            uuidFillSpace = minimumDisplay-(len(self.controller.uuidLst))
             for i in range(uuidFillSpace):
                 self.get_blank_tab(i)
             
@@ -1276,16 +1285,14 @@ class Matching(Frame):
             
     def goto_review_profile(self,_uidselect):
         self.controller.uidSelect = _uidselect
-        print(self.controller.uidSelect)
+        print("uid select review",self.controller.uidSelect)
         self.controller.option_add('*foreground',"#000000")
         self.controller.switch_frame(ProfileReviewPage)
     def goto_my_profile(self):
-        print(self.controller.uid)
+        print("myuid select",self.controller.uid)
         self.controller.option_add('*foreground',"#000000")
         self.controller.switch_frame(ProfilePage)
-
-        
-
+  
 class ProfileReviewPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -1651,6 +1658,7 @@ class EditPage(Frame):
             conn.close()
             messagebox.showinfo("BU Friends  |  Successful","Profile has been successfully edited")
             self.controller.switch_frame(ProfilePage)
+
 class MyAccountPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -1781,7 +1789,6 @@ class ChangePasswordPage(Frame):
                 messagebox.showerror("BU Friends  |  Incomplete","Incorrect current password!")
                 self.pwdEntryList[0].focus_force()
                 self.pwdEntryList[0].select_range(0,END)
-
 class DeactivatePage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -1862,7 +1869,7 @@ class DeactivatePage(Frame):
             passSalt = data['passSalt']
             passkey = self.controller.password_encryptioncheck(self.password.get(),passSalt)
             if passkey == passHash :
-                print("same password")
+                print("same password ")
                 ms = messagebox.askquestion("BU Friends  |  Notification","Are you sure you want to deactivate account?")
                 if ms == "yes" :
                     for i,data in enumerate(sqlDelete):
@@ -1927,7 +1934,7 @@ class InfoOnProfile() :
             for i,data in enumerate(sqlDelete):
                 c = self.controller.execute_sql(data,[self.controller.requestReport['reported']])
             conn.close()
-            messagebox.showinfo("BU Friends  |  Successful","Thid account has been deactivated")
+            messagebox.showinfo("BU Friends  |  Successful","This account has been deactivated")
             self.controller.requestReport = None
             self.controller.ridSelect = None
             self.controller.switch_frame(Administration)
@@ -1993,7 +2000,6 @@ class InfoOnProfile() :
             self.w,self.h = 700, 410
             self.x = (self.controller.width//2) - (self.w//2)
             self.y = (self.controller.height//2-10) - (self.h//2)
-            print(self.w,self.h,self.x,self.y)
             self.reportFrame = Frame(self.root, width=self.w, height=self.h,bg="#eeeeee",bd=1,relief=SOLID)
             self.reportFrame.propagate(0)
             self.reportFrame.place(x=self.x, y=self.y)
@@ -2074,7 +2080,6 @@ class InfoOnProfile() :
            
         def update_textlimit(self,e):
             txtdata = self.detailReport.get(1.0,"end-1c")
-            print("txtdatalen = ",len(txtdata))
             limit = 256
             if len(txtdata) > limit:
                 overlimit = (len(txtdata)-limit)+5
@@ -2265,7 +2270,7 @@ class PostOnProfile() :
             print("Error! cannot create the database connection.")
         conn.close()
         Label(self.frame,text="Post",font="leelawadee 20 bold",bg='#E6EEFD').pack(anchor=W,padx=20,pady=5)
-        print(len(self.postList))
+        print("post in profile =",len(self.postList))
 
     def post(self):
         for i in range(1,len(self.postList)+1):
