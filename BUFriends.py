@@ -666,7 +666,7 @@ class Mbti(Frame):
             self.mbtiFrame.option_add("*font",font)
             self.mbtiFrame.pack(expand=1,fill=BOTH)
             self.bannerFrame = Frame(self.root)
-            self.bannerMbti = self.controller.get_image(r'./assets/mbti/banner.png')
+            self.bannerMbti = self.controller.get_image(r'./assets/mbti/mbtiBanner.png')
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
@@ -827,7 +827,7 @@ class Matching(Frame):
         self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
         self.headingBg = Label(self.canvasMain,image=self.headBgImg,compound=CENTER, bg=self.bgCanva,width=900,height=20)
         self.headingBg.pack(side=TOP,pady=30)
-        self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
+        self.searchBarImg = self.controller.get_image(r'./assets/entrys/searchtabrz.png')
         self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", command=lambda: self.filter_tags(), image=self.searchBarImg,
                             font="leelawadee 18 bold",fg="#000000",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
         self.searchBar.image = self.searchBarImg
@@ -1367,8 +1367,8 @@ class EditPage(Frame):
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
             {'name':'entry','path':'./assets/entrys/entry2rz.png','x':440,'y':50},
-            {'name':'longentry','path':'./assets/darktheme/searchtabrz.png','x':760,'y':50},
-            {'name':'search','path':'./assets/darktheme/Search.png','x':35,'y':35},
+            {'name':'longentry','path':'./assets/entrys/searchtabrz.png','x':760,'y':50},
+            {'name':'search','path':'./assets/icons/Search.png','x':35,'y':35},
             {'name':'tag','path':'./assets/buttons/tagEdit.png','x':130,'y':45},
             {'name':'add','path':'./assets/buttons/addTag.png','x':130,'y':45},
             {'name':'yellow','path':'./assets/buttons/mbtiYellowEdit.png','x':130,'y':45},
