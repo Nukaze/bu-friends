@@ -1,4 +1,44 @@
-def get_MbtiQuizTH():
+# -*- coding:utf-8 -*-
+from tkinter import *
+def get_mbti_code():
+    return ["INTJ","INTP","ENTJ","ENTP",
+            "INFJ","INFP","ENFJ","ENFP",
+            "ISTJ","ISFJ","ESTJ","ESFJ",
+            "ISTP","ISFP","ESTP","ESFP"
+            ]
+    
+def get_mbti_info():
+    I = {"title":"Introvert",   "data":"จะมีการใช้พลังงานและใช้เวลาไปกับสิ่งภายในตัวเอง"}
+    E = {"title":"Extrovert",   "data":"จะมีการใช้พลังงานและรับพลังงานบวกไปกับสิ่งภายนอก"}
+    N = {"title":"iNtuition",   "data":"ถนัดการรับรู้ในภาพรวม ความหมายที่ซ่อนอยู่ ความสัมพันธ์ของสิ่งต่าง ๆ"}
+    S = {"title":"Sensing",     "data":"ถนัดการรับข้อมูลที่เกี่ยวกับข้อเท็จจริง จากประสาทสัมผัสทั้ง 5 เช่นการมอง การฟัง"}
+    T = {"title":"Thinking",    "data":"มักตัดสินใจจากเหตุและผล ให้ความสำคัญเกี่ยวกับข้อเท็จจริง"}
+    F = {"title":"Feeling",     "data":"มักตัดสินใจหรือนำมาสู่ข้อสรุป จากคุณค่าความสำคัญ หรือคุณค่าที่สังคมให้ความสำคัญ"}
+    J = {"title":"Judging",     "data":"ถนัดในการรับมือโดยอาศัยการวางแผน ความแม่นยำ การจัดตารางเวลา"}
+    P = {"title":"Perceiving",  "data":"การรับมือโดยอาศัยความยืดหยุ่น ชอบความเปิดกว้าง เปิดรับสิ่งใหม่ ๆ"}
+    return {"INTJ":f"""INTJ “นักออกแบบ”\nการที่มีบุคลิกภาพที่หายากที่สุด มีสัดส่วนเพียง 2% จากประชากรทั้งหมด\nคนที่มีบุคลิกภาพแบบนักออกแบบนั้นช่างจินตนาการ แต่ก็เด็ดขาด มีความทะเยอทะยาน\nแต่ก็รักในความเป็นส่วนตัว มีความสงสัยใคร่รู้ แต่ก็ไม่ใช้พลังงานตัวเองไปอย่างสิ้นเปลือง\n[ {I['title']} ] {I['data']}\n[ {N['title']} ] {N['data']}\n[ {T['title']} ] {T['data']}\n[ {J['title']} ] {J['data']}""",
+            "INTP":f"""INTP “นักตรรกะ”\nบุคลิกภาพพบได้ยากยิ่ง มีอยู่เพียง 3% จากประชากรทั้งหมด\nซึ่งเป็นเรื่องดีสำหรับพวกเขา เพราะไม่มีอะไรน่าเศร้าไปกว่าการ “เหมือน” กับคนอื่น ๆ\nนักตรรกะภูมิใจในความช่างคิดของตนเอง มีมุมมองที่ไม่เหมือนใครและความเฉลียวฉลาด \n[ {I['title']} ] {I['data']}\n[ {N['title']} ] {N['data']}\n[ {T['title']} ] {T['data']} \n[ {P['title']} ] {P['data']}""",
+            "ENTJ":f"""ENTJ “นักxxxxx”\n[ {E['title']} ] {E['data']}\n[ {N['title']} ] {N['data']}\n[ {T['title']} ] {T['data']}\n[ {J['title']} ] {J['data']}""",
+            "ENTP":f"""ENTP “นักxxxxx”\n[ {E['title']} ] {E['data']}\n[ {N['title']} ] {N['data']}\n[ {T['title']} ] {T['data']}\n[ {P['title']} ] {P['data']}""",
+            
+            "INFJ":f"""INFJ “นักxxxxx”\n[ {I['title']} ] {I['data']}\n[ {N['title']} ] {N['data']}\n[ {F['title']} ] {F['data']}\n[ {J['title']} ] {J['data']}""",
+            "INFP":f"""INFP “นักxxxxx”\n[ {I['title']} ] {I['data']}\n[ {N['title']} ] {N['data']}  \n[  ] \n[  ] """,
+            "ENFJ":f"""ENFJ “นักxxxxx”\n[ {E['title']} ] {E['data']}\n[ {N['title']} ] {N['data']}\n[ {F['title']} ] {F['data']}\n[ {J['title']} ] {J['data']}""",
+            "ENFP":f"""ENFP “นักxxxxx”\n[ {E['title']} ] {E['data']}\n[ {N['title']} ] {N['data']}  \n[  ] \n[  ] """,
+            
+            "ISTJ":f"""ISTJ “นักxxxxx”\n[ {I['title']} ] {I['data']}\n[  ]  \n[  ] \n[  ] """,
+            "ISFJ":f"""ISFJ “นักxxxxx”\n[ {I['title']} ] {I['data']}\n[ {S['title']} ] {S['data']}\n[ {F['title']} ] {F['data']}\n[ {J['title']} ] {J['data']}""",
+            "ESTJ":f"""ESTJ “นักxxxxx”\n[ {E['title']} ] {E['data']}\n[  ]  \n[  ] \n[  ] """,
+            "ESFJ":f"""ESFJ “นักxxxxx”\n[ {E['title']} ] {E['data']}\n[ {S['title']} ] {S['data']}\n[ {F['title']} ] {F['data']}\n[ {J['title']} ] {J['data']}""",
+            
+            "ISTP":f"""ISTP “นักxxxxx”\n[ {I['title']} ] {I['data']}\n[ {N['title']} ] {N['data']}\n[ {T['title']} ] {T['data']} \n[ {P['title']} ] {P['data']}""",
+            "ISFP":f"""ISFP “นักxxxxx”\n[ {I['title']} ] {I['data']}\n[  ]  \n[  ] \n[  ] """,
+            "ESTP":f"""ESTP “นักxxxxx”\n[ {E['title']} ] {E['data']}\n[ {N['title']} ] {N['data']}\n[ {T['title']} ] {T['data']} \n[ {P['title']} ] {P['data']}""",
+            "ESFP":f"""ESFP “นักxxxxx”\n[ {E['title']} ] {E['data']}\n[  ]  \n[  ] \n[  ] """
+            }
+info = "intp".upper()
+
+def get_quiz_TH():
      return [["IE","คุณมักพบกว่าเป็นเรื่องไม่ยากที่จะผ่อนคลาย\nเมื่อต้องพูดต่อหน้าคนจำนวนมาก"],
             ["IE","ในหมู่เพื่อนของคุณ คุณคือคนแบบไหน ?"],
             ["IE","เมื่อคุณพบปะเพื่อนใหม่ คุณจะบอกความสนใจ\nหรืองานอดิเรกในตอน.."],
@@ -32,7 +72,7 @@ def get_MbtiQuizTH():
             ["PJ","คุณจะเลือกอะไรในสองสิ่งนี้.."]    
 ]
     
-def get_MbtiAnsTH():    
+def get_answer_TH():    
     return [["E","I","เห็นด้วย","ไม่เห็นด้วย"],
             ["I","E","คนสุดท้ายที่จะรู้เรื่องราวภายในกลุ่ม","รับรู้ข่าวสารของเพื่อนในกลุ่มอยู่ตลอด"],
             ["I","E","หลังจากที่ได้ทำความรู้จักจริง ๆ แล้ว","ตอนที่เจอกันเลย"],
@@ -65,3 +105,13 @@ def get_MbtiAnsTH():
             ["J","P","พึงพอใจที่สามารถวางแผนได้อย่างเหมาะสม","ไม่พอใจเล็กน้อยที่กำหนดไว้ตายตัว ไม่ยืดหยุ่น"],
             ["P","J","เป็นไปตามธรรมชาติ ตามสัญชาตญาณ","เป็นระบบระเบียบ ตามแนวปฏิบัติ"]    
 ]
+    
+
+infodict = get_mbti_info()
+root = Tk()
+root.geometry("900x600")
+frame = LabelFrame(root)
+frame.pack(expand=1, fill=BOTH)
+Label(frame, text=infodict[info], font="leelawadee 14 bold", justify=LEFT,bg="lightblue").pack(expand=1, fill=BOTH)
+
+root.mainloop()
