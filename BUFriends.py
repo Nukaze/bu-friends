@@ -197,14 +197,14 @@ class ScrollFrame():
         # create a frame inside the canvas which will be scrolled with it
         self.interior = Frame(self.canvas,bg=self.bgColor)
         self.interior_id = self.canvas.create_window(0, 0, window=self.interior,anchor=NW)
-        self.interior.bind('<Configure>', self._configure_interior)
-        self.canvas.bind('<Configure>', self._configure_canvas)
-        self.canvas.bind('<Enter>', self._bind_to_mousewheel)
-        self.canvas.bind('<Leave>', self._unbind_from_mousewheel)
+        self.interior.bind('<Configure>', self.configure_interior)
+        self.canvas.bind('<Configure>', self.configure_canvas)
+        self.canvas.bind('<Enter>', self.bind_to_mousewheel)
+        self.canvas.bind('<Leave>', self.unbind_from_mousewheel)
         # track changes to the canvas and frame width and sync them,
         # also updating the scrollbar
 
-    def _configure_interior(self, event):
+    def configure_interior(self, event):
         # update the scrollbars to match the size of the inner frame
         size = (self.interior.winfo_reqwidth(), self.interior.winfo_reqheight())
         self.canvas.config(scrollregion="0 0 %s %s" % size)
@@ -212,21 +212,21 @@ class ScrollFrame():
             # update the canvas's width to fit the inner frame
             self.canvas.config(width=self.interior.winfo_reqwidth())
 
-    def _configure_canvas(self, event):
+    def configure_canvas(self, event):
         if self.interior.winfo_reqwidth() != self.root.winfo_width():
             # update the inner frame's width to fill the canvas
             self.canvas.itemconfigure(self.interior_id, width=self.root.winfo_width())
     # This can now handle either windows or linux platforms
-    def _on_mousewheel(self, event):
+    def on_mousewheel(self, event):
         if self.interior.winfo_reqheight() > 600:
             """print(event.delta)"""
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
-    def _bind_to_mousewheel(self, event):
-        self.root.bind_all("<MouseWheel>", self._on_mousewheel)
+    def bind_to_mousewheel(self, event):
+        self.root.bind_all("<MouseWheel>", self.on_mousewheel)
 
-    def _unbind_from_mousewheel(self, event):
+    def unbind_from_mousewheel(self, event):
         self.root.unbind_all("<MouseWheel>")
         
 
