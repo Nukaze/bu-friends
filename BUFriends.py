@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 from tkinter import *
 from tkinter import ttk,messagebox
 from tkinter import font
@@ -10,7 +11,7 @@ import sqlite3
 import hashlib
 import random
 import os
-import assets.mbti.mbtiData as qz
+import assets.mbti.mbtiData as mbtiData
 
 class BUFriends(Tk):
     def __init__(self):
@@ -678,8 +679,8 @@ class Mbti(Frame):
                                  'pj':[]
                                  }
             self.mbtiCodeLst = []
-            self.quizLst = qz.get_MbtiQuizTH()
-            self.answLst = qz.get_MbtiAnsTH()
+            self.quizLst = mbtiData.get_quiz_TH()
+            self.answLst = mbtiData.get_answer_TH()
             self.answVar = [StringVar() for i in range(len(self.quizLst))]
             self.answSubmitLst = []
             self.randLst = random.sample(range(len(self.quizLst)), len(self.quizLst))
@@ -794,7 +795,6 @@ class MbtiSuccessfully(Frame):
     
     def content_geometry(self):
         mbtiCode = (self.controller.mbtiCode).upper()
-        
         bgPallette = ["#E0D7E6","#CBD4C2","#D6E6F1","#E8E2CA"]
         letterCode = [["N","T"],
                       ["N","F"],
@@ -921,10 +921,7 @@ class Matching(Frame):
             self.matchAllTags = []
             self.tagWidgets = []
             self.mbtiWidgets = []
-            self.mbtiLst = ["INTJ","INTP","ENTJ","ENTP",
-                        "INFJ","INFP","ENFJ","ENFP",
-                        "ISTJ","ISFJ","ESTJ","ESFJ",
-                        "ISTP","ISFP","ESTP","ESFP"]
+            self.mbtiLst = mbtiData.get_mbti_code()
             self.tagsFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter)
             self.tagsFrame.pack(side=TOP,fill=BOTH,ipady=5)
             self.tagnameLst.clear()
