@@ -186,7 +186,6 @@ class BUFriends(Tk):
     
 class ScrollFrame():
     def __init__(self,root,bgColor='white'):
-        # creating
         self.root = root
         self.bgColor = bgColor
         self.canvas = Canvas(self.root, bg=self.bgColor,highlightthickness=0)
@@ -197,14 +196,14 @@ class ScrollFrame():
         # create a frame inside the canvas which will be scrolled with it
         self.interior = Frame(self.canvas,bg=self.bgColor)
         self.interior_id = self.canvas.create_window(0, 0, window=self.interior,anchor=NW)
-        self.interior.bind('<Configure>', self._configure_interior)
-        self.canvas.bind('<Configure>', self._configure_canvas)
-        self.canvas.bind('<Enter>', self._bind_to_mousewheel)
-        self.canvas.bind('<Leave>', self._unbind_from_mousewheel)
+        self.interior.bind('<Configure>', self.configure_interior)
+        self.canvas.bind('<Configure>', self.configure_canvas)
+        self.canvas.bind('<Enter>', self.bind_to_mousewheel)
+        self.canvas.bind('<Leave>', self.unbind_from_mousewheel)
         # track changes to the canvas and frame width and sync them,
         # also updating the scrollbar
 
-    def _configure_interior(self, event):
+    def configure_interior(self, event):
         # update the scrollbars to match the size of the inner frame
         size = (self.interior.winfo_reqwidth(), self.interior.winfo_reqheight())
         self.canvas.config(scrollregion="0 0 %s %s" % size)
@@ -212,21 +211,22 @@ class ScrollFrame():
             # update the canvas's width to fit the inner frame
             self.canvas.config(width=self.interior.winfo_reqwidth())
 
-    def _configure_canvas(self, event):
+    def configure_canvas(self, event):
         if self.interior.winfo_reqwidth() != self.root.winfo_width():
             # update the inner frame's width to fill the canvas
             self.canvas.itemconfigure(self.interior_id, width=self.root.winfo_width())
     # This can now handle either windows or linux platforms
-    def _on_mousewheel(self, event):
+    def on_mousewheel(self, event):
+        # condition to scrollable : content > 600
         if self.interior.winfo_reqheight() > 600:
             """print(event.delta)"""
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
-    def _bind_to_mousewheel(self, event):
-        self.root.bind_all("<MouseWheel>", self._on_mousewheel)
+    def bind_to_mousewheel(self, event):
+        self.root.bind_all("<MouseWheel>", self.on_mousewheel)
 
-    def _unbind_from_mousewheel(self, event):
+    def unbind_from_mousewheel(self, event):
         self.root.unbind_all("<MouseWheel>")
         
 
@@ -486,7 +486,7 @@ class SignUp(Frame):
                 self.canvasFrame.create_window(455,430,anchor="nw",window=self.backBtn)
             zone_widgets()
             zone_buttons() 
-        # class method
+            
         def signup_form(self,_root, _index):
             entry = Entry(_root, justify="left",relief="flat",fg=self.fgHolder,width=32)
             entry.insert(0,self.regisInfoLst[_index])
@@ -666,7 +666,7 @@ class Mbti(Frame):
             self.mbtiFrame.option_add("*font",font)
             self.mbtiFrame.pack(expand=1,fill=BOTH)
             self.bannerFrame = Frame(self.root)
-            self.bannerMbti = self.controller.get_image(r'./assets/mbti/banner.png')
+            self.bannerMbti = self.controller.get_image(r'./assets/mbti/mbtiBanner.png')
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
@@ -811,9 +811,9 @@ class Matching(Frame):
         self.bgColor = "#FFFFFF"
         Frame.config(self,bg=self.bgColor)
         self.pack(expand=1,fill=BOTH)
+        self.root = ScrollFrame(self).interior
         self.controller = controllerFrame
         self.controller.set_sessions(self.controller.uid)
-        self.root = ScrollFrame(self).interior
         self.controller.pvFrame = 0
         self.controller.title("BU Friends  |  Matching")
         print("checkuid =",self.controller.uid)
@@ -827,7 +827,7 @@ class Matching(Frame):
         self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
         self.headingBg = Label(self.canvasMain,image=self.headBgImg,compound=CENTER, bg=self.bgCanva,width=900,height=20)
         self.headingBg.pack(side=TOP,pady=30)
-        self.searchBarImg = self.controller.get_image(r'./assets/darktheme/searchtabrz.png')
+        self.searchBarImg = self.controller.get_image(r'./assets/entrys/searchtabrz.png')
         self.searchBar = Button(self.canvasMain, text="#Hashtags Filter", command=lambda: self.filter_tags(), image=self.searchBarImg,
                             font="leelawadee 18 bold",fg="#000000",bg=self.bgCanva,bd=0,activebackground=self.bgCanva, compound=CENTER)
         self.searchBar.image = self.searchBarImg
@@ -1294,6 +1294,7 @@ class ProfileReviewPage(Frame):
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self)
         self.root = scroll.interior
+        self.controller.title("BU Friends  |  Profile Review")
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,1,self.controller.uidSelect)
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uidSelect)
 
@@ -1316,6 +1317,7 @@ class ProfilePage(Frame):
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self)
         self.root = scroll.interior
+        self.controller.title("BU Friends  |  My Profile")
         self.profile = InfoOnProfile(self.root,self.bgColor,self.controller,2,self.controller.uid)
         self.create_post_frame()
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uid)
@@ -1357,8 +1359,7 @@ class EditPage(Frame):
         self.searchEntryBox = None
         self.mainFrame = None
         self.tagData = ProfilePage(self.controller).profile
-        #Frame.configure(self,bg=self.bgColor)
-        Frame.configure(self,bg="pink")
+        Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self)
         self.root = scroll.interior
         fontTag = Font(family='leelawadee',size=13,weight='bold')
@@ -1367,8 +1368,8 @@ class EditPage(Frame):
         imgPathList = [
             {'name':'back','path':'./assets/icons/goback.png','x':50,'y':50},
             {'name':'entry','path':'./assets/entrys/entry2rz.png','x':440,'y':50},
-            {'name':'longentry','path':'./assets/darktheme/searchtabrz.png','x':760,'y':50},
-            {'name':'search','path':'./assets/darktheme/Search.png','x':35,'y':35},
+            {'name':'longentry','path':'./assets/entrys/searchtabrz.png','x':760,'y':50},
+            {'name':'search','path':'./assets/icons/Search.png','x':35,'y':35},
             {'name':'tag','path':'./assets/buttons/tagEdit.png','x':130,'y':45},
             {'name':'add','path':'./assets/buttons/addTag.png','x':130,'y':45},
             {'name':'yellow','path':'./assets/buttons/mbtiYellowEdit.png','x':130,'y':45},
@@ -1407,6 +1408,7 @@ class EditPage(Frame):
         bg=self.bgColor,anchor=N)
         self.headText.pack(anchor=NW,padx=115,ipady=10)
     def main_geometry(self) :
+        self.controller.title("BU Friends  |  Edit Profile")
         if self.nameStr is None :
             self.nameStr = StringVar()
             self.nameStr.set(self.tagData.name) 
@@ -1520,6 +1522,7 @@ class EditPage(Frame):
         self.tag_geometry()
 
     def addtag_page(self,event) :
+        self.controller.title("BU Friends  |  Add Interest")
         self.bioStr = self.bioEntry.get(1.0,'end-1c')
         print(len(self.bioStr))
         self.mainFrame.destroy()
@@ -1653,6 +1656,7 @@ class MyAccountPage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
+        self.controller.title("BU Friends  |  My Account")
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self)
         self.root = scroll.interior
@@ -1691,6 +1695,7 @@ class ChangePasswordPage(Frame):
         Frame.__init__(self,controller)
         self.bgColor = 'white'
         self.controller = controller
+        self.controller.title("BU Friends  |  Change Password")
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self)
         self.root = scroll.interior
@@ -1783,6 +1788,7 @@ class DeactivatePage(Frame):
         self.bgColor = 'white'
         self.controller = controller
         self.data = ProfilePage(self.controller).profile
+        self.controller.title("BU Friends  |  Deactivate Account")
         Frame.configure(self,bg=self.bgColor)
         scroll = ScrollFrame(self)
         self.root = scroll.interior
@@ -1897,22 +1903,11 @@ class InfoOnProfile() :
             self.bio = userData[1]
             self.email = userData[2]
             c = self.controller.execute_sql(sql2,[self.uid])
-            # tagData = c.fetchone()
-            # print(tagData)
             self.tagList.append(c.fetchone()[0])
             c = self.controller.execute_sql(sql3,[self.uid])
             tagData = c.fetchall()
             for i,data in enumerate(tagData) :
                 self.tagList.append(data[0])
-            # for i in range(1,len(tagData)):
-            #     if tagData[i] is not None :
-            #         sql3 = """SELECT TagName FROM Tags WHERE Tid=?"""
-            #         c3 = self.controller.execute_sql(sql3,[tagData[i]])
-            #         self.tagList.append(c3.fetchone()[0])
-            # userData = c.fetchone()
-            # self.name = userData[0]
-            # self.bio = userData[1]
-            # self.email = userData[2]
         else:
             print("Error! cannot create the database connection.")
         conn.close()
@@ -1989,6 +1984,7 @@ class InfoOnProfile() :
             self.bgColor = "#333333"
             self.root = root
             self.controller = controllerFrame
+            self.controller.title("BU Friends  |  Report-User")
             self.oldFrame = oldframe
             self.optionFrame = optionFrame
             self.optionFrame.destroy()
@@ -2058,6 +2054,7 @@ class InfoOnProfile() :
                 for child in frame[i].winfo_children():
                     child.config(state=NORMAL)
             self.reportFrame.destroy()
+            self.controller.title("BU Friends  |  Profile Review")
         def disable_allframe(self, frame):
             for i in range(len(frame)):
                 for child in frame[i].winfo_children():
@@ -2288,6 +2285,7 @@ class Administration(Frame):
         Frame.__init__(self,controller)
         self.bgColor = '#181B23'
         self.controller = controller
+        self.controller.title("BU Friends  |  Administration")
         Frame.config(self,bg=self.bgColor)
         scroll = ScrollFrame(self,self.bgColor)
         self.root = scroll.interior
@@ -2430,7 +2428,7 @@ class Administration(Frame):
             Button(self.innerCanvas,text=blacklist['name'],bg='#282D39',fg='#B7B7B7',
             bd=0,activebackground='#282D39',activeforeground='#B7B7B7',anchor=W,
             width=15,height=2).grid(row=row_,column=0,sticky=W,pady=7,padx=20)
-            msg = f"เคยโดยระงับบัญชีชั่วคราวทั้งหมด {blacklist['amount']} ครั้ง"
+            msg = f"This account has been banned {blacklist['amount']} times"
             Label(self.innerCanvas,text=msg,bg='#282D39',fg='#B7B7B7',
             font='leelawadee 13').grid(row=row_,column=1,sticky=W)
             self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
@@ -2438,9 +2436,9 @@ class Administration(Frame):
             row_+=1
     class RequestReport:
         def __init__(self, root, controllerFrame,requestRid):
-            print("RequestReport")
             self.root = root
             self.controller = controllerFrame
+            self.controller.title("BU Friends  |  Report Request")
             self.bgColor = '#282D39'
             self.rid = requestRid
             self.report = None
@@ -2473,7 +2471,6 @@ class Administration(Frame):
                 c = self.controller.execute_sql(sql,[self.report['reported']])
                 data = c.fetchone()
                 self.report.update({'reportedName':data['displayName']})
-
             print(self.report)
         def remember_rid(self):
             self.controller.ridSelect = self.rid
@@ -2490,7 +2487,7 @@ class Administration(Frame):
             Label(self.topFrame,text=f"Sent by",bg='#181B23',fg='#B7B7B7').pack(padx=18,pady=15,anchor=W,side=LEFT)
             Label(self.topFrame,text=f"@{self.report['reporterName']}",bg='#181B23',fg='#A7f875').pack(padx=0,pady=15,anchor=W,side=LEFT)
             Button(self.topFrame,image=self.imgList['close'],bd=0,bg='#181B23',
-            activebackground='#181B23',command=lambda:mainFrame.destroy()).pack(side=RIGHT,padx=20)
+            activebackground='#181B23',command=lambda:self.close_report(mainFrame)).pack(side=RIGHT,padx=20)
             canvas = Canvas(mainFrame, bg=self.bgColor,highlightthickness=0)
             canvas.pack(side=LEFT, fill=BOTH, expand=1)
             canvas.propagate(0)
@@ -2527,6 +2524,9 @@ class Administration(Frame):
                     self.controller.requestReport = None
                     self.controller.ridSelect = None
                     self.controller.switch_frame(Administration)
+        def close_report(self, mainFrame):
+            mainFrame.destroy()
+            self.controller.title("BU Friends  |  Administration")
 
 if __name__ == '__main__':
     BUFriends().mainloop()
