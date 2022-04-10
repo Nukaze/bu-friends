@@ -858,7 +858,6 @@ class Matching(Frame):
         self.myProfile.image = self.myImg
         self.myProfile.place(x=815,y=11,anchor=NW)
         #Display user filter result
-        print("checklen uuid ",len(self.controller.uuidLst))
         self.usersFrame = Frame(self.canvasMain,width=900,height=1400,bg=self.bgCanva)
         self.usersFrame.pack(side=TOP,expand=1)
         self.uuidFilter = []
@@ -1183,11 +1182,30 @@ class Matching(Frame):
                 userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
                 randLst = []
                 randLst = random.sample(range(1,userCount),12)
-                while self.controller.uid in randLst and [ele for ele in blacklstUid if ele in randLst]:
-                    print("\n\nin while")
-                    self.reset_list_data()
-                    randLst = random.sample(range(1,userCount),12)
                 print(randLst)
+                print(f"myuid not in random = [ {self.controller.uid not in randLst} ]")
+                print(f"ele not in blacklst = [ {[ele for ele in blacklstUid if ele in randLst]==[]} ]")
+                while [ele for ele in blacklstUid if ele in randLst] != []:
+                    self.reset_list_data()
+                    print("\nin while")
+                    randLst = random.sample(range(1,userCount),12)
+                if self.controller.uid in randLst:
+                    print("go rand with mbti",randLst)
+                    randLst.remove(self.controller.uid)
+                    mbtiChoice = mbtiData.get_mbti_code()[random.choice(range(len(mbtiData.get_mbti_code())))]
+                    sqlgetUid = """SELECT Uid FROM UsersTag WHERE UserType = ?"""
+                    conn = self.controller.create_connection()
+                    if conn is None: 
+                        print("No connection")
+                        return
+                    conn.row_factory = sqlite3.Row
+                    cur = conn.cursor().execute(sqlgetUid, [mbtiChoice]).fetchall()
+                    rUid = []
+                    for data in cur:
+                        rUid.append(data['Uid'])
+                    numFinal = random.choice(rUid)
+                    randLst.append(numFinal)
+                print(f"{randLst}\n")
                 sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
                                                                      ?,?,?,?,?,?)"""
                 cur = self.controller.execute_sql(sqlRandTag, randLst)
