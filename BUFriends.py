@@ -868,6 +868,7 @@ class Matching(Frame):
         self.usersTabFrame = []
         if self.controller.matchFilter == 1:
             self.display_users()
+            return
         else:
             self.request_users_infomation()
             self.display_users()
@@ -1104,12 +1105,14 @@ class Matching(Frame):
                                                 )uniA WHERE uniA.UserType in ({qMbtiSet}) 
                                                 AND (uniA.Uid in (SELECT Users.Uid FROM Users 
                                                 LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
-                                                OR uniA.Uid not in (SELECT Uid FROM Blacklists));"""
+                                                OR uniA.Uid not in (SELECT Uid FROM Blacklists))
+                                                EXCEPT SELECT * FROM UsersTag WHERE Uid = {self.controller.uid};"""
                 else:
                     sqlMatch = f"""SELECT uniA.* FROM (SELECT * FROM UsersTag WHERE userType in ({qMbtiSet})
                                                 )uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users 
                                                 LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
-                                                OR uniA.Uid not in (SELECT Uid FROM Blacklists));"""
+                                                OR uniA.Uid not in (SELECT Uid FROM Blacklists))
+                                                EXCEPT SELECT * FROM UsersTag WHERE Uid = {self.controller.uid};"""
             else:
                 sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
                                             UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
@@ -1117,7 +1120,8 @@ class Matching(Frame):
                                             UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
                                             ) uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users 
                                             LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
-                                            OR uniA.Uid not in (SELECT Uid FROM Blacklists));"""
+                                            OR uniA.Uid not in (SELECT Uid FROM Blacklists))
+                                            EXCEPT SELECT * FROM UsersTag WHERE Uid = {self.controller.uid};"""
             curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
             for data in curr:
                 self.uuidFilter.append(data['Uid'])
