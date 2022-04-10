@@ -1890,6 +1890,7 @@ class InfoOnProfile() :
         self.parent = parent
         self.uid = uid
         self.tagList = []
+        self.mbtiTag = None
         self.get_profile()
         self.profile_frame()
         self.tag_frame()    
@@ -2235,10 +2236,46 @@ class InfoOnProfile() :
         for i,data in enumerate(self.tagList) :
             if data is not None :
                 if i == 0 :
-                    Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor,fg='white').pack(side=LEFT)
+                    self.mbtiTag = Label(frame,text=data,image=self.img,compound=CENTER,bg=self.bgColor,fg='white')
+                    self.mbtiTag.pack(side=LEFT)
                 else :
                     Label(frame,text=data,image=self.img2,compound=CENTER,bg=self.bgColor,fg='white').pack(side=LEFT)
-
+        if self.mbtiTag :
+            self.mbtiTag.bind('<Button-1>',lambda e : self.mbti_info())
+    def mbti_info(self) :
+        print(self.tagList[0])
+        if self.tagList[0] is not None :
+            if self.tagList[0][1] == "N" :
+                if self.tagList[0][2] == "T" :
+                    mbtiColor = '#AF86E3'
+                else :
+                    mbtiColor = '#99D575'
+            elif self.tagList[0][1] == "S" :
+                if self.tagList[0][3] == "J" :
+                    mbtiColor = '#83D8EF'
+                else :
+                    mbtiColor = '#EEDF5D'
+        self.closeImg = self.controller.get_image('./assets/icons/Close.png',30,30)
+        bgFrame = Frame(self.controller)
+        fontTag = Font(family='leelawadee',size=13,weight='bold')
+        bgFrame.option_add('*font',fontTag)
+        data = mbtiData.get_mbti_info()[self.tagList[0]]
+        lines = data.split("\n")
+        des = ""
+        for i in range(1,len(lines)):
+            des += lines[i]
+            if i < len(lines) - 1 :
+                des += "\n"
+        topFrame = Frame(bgFrame,bg=mbtiColor)
+        topFrame.pack(fill=X)
+        endFrame = Frame(bgFrame,bg='#F0F0F0')
+        endFrame.pack(fill=BOTH)
+        Label(topFrame,text=lines[0],bg=mbtiColor,fg='white').pack(side=LEFT,padx=15,pady=10)
+        Button(topFrame,image=self.closeImg,bd=0,bg=mbtiColor,
+        activebackground=mbtiColor,command=lambda:bgFrame.destroy()).pack(side=RIGHT,padx=15)
+        Label(endFrame,text=des,bg='#F0F0F0',font='leelawadee 13',justify=LEFT).pack(padx=15,pady=10)   
+        bgFrame.place(relx=0.5, rely=0.5, anchor=CENTER)
+        bgFrame.grab_set()
 class PostOnProfile() :
     def __init__(self,root,bgColor,controller,uid):
         self.root = root
