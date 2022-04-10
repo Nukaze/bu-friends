@@ -1998,11 +1998,12 @@ class InfoOnProfile() :
             self.w,self.h = 700, 410
             self.x = (self.controller.width//2) - (self.w//2)
             self.y = (self.controller.height//2-10) - (self.h//2)
-            self.reportFrame = Frame(self.root, width=self.w, height=self.h,bg="#eeeeee",bd=1,relief=SOLID)
+            self.reportFrame = Frame(self.controller, width=self.w, height=self.h,bg="#eeeeee",bd=1,relief=SOLID)
             self.reportFrame.propagate(0)
             self.reportFrame.place(x=self.x, y=self.y)
             self.top_geometry()
             self.content_geometry()
+            self.reportFrame.grab_set()
             
         def top_geometry(self):
             bg = "#bbbbbb"
@@ -2011,7 +2012,7 @@ class InfoOnProfile() :
             hFrame.pack(side=TOP,fill=X,pady=0)
             Label(hFrame, text="Report User", fg="#555555",font="leelawadee 16 bold",bg=bg).pack(side=LEFT,padx=18,pady=10)
             closeImg = self.controller.get_image(r'./assets/icons/Close.png')
-            closeBtn = Button(hFrame, image=closeImg, command=lambda:self.report_closeto(self.oldFrame), width=100, bd=0, bg=bg,activebackground=bg)
+            closeBtn = Button(hFrame, image=closeImg, command=lambda:self.report_closeto(self.oldFrame), width=70, bd=0, bg=bg,activebackground=bg)
             closeBtn.image = closeImg
             closeBtn.pack(side=RIGHT)
 
@@ -2254,7 +2255,7 @@ class InfoOnProfile() :
                 if self.tagList[0][3] == "J" :
                     mbtiColor = '#83D8EF'
                 else :
-                    mbtiColor = '#EEDF5D'
+                    mbtiColor = '#D2C75D'#EEDF5D
         self.closeImg = self.controller.get_image('./assets/icons/Close.png',30,30)
         bgFrame = Frame(self.controller)
         fontTag = Font(family='leelawadee',size=13,weight='bold')
