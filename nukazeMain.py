@@ -871,8 +871,8 @@ class Matching(Frame):
         else:
             self.request_users_infomation()
             self.display_users()
+        print("count ran loop =",self.cntLoop)
         
-            
     def get_tagname(self):
         self.tagnameLst = []
         sql = """SELECT Tid,TagName FROM Tags"""
@@ -1104,12 +1104,14 @@ class Matching(Frame):
                                                 )uniA WHERE uniA.UserType in ({qMbtiSet}) 
                                                 AND (uniA.Uid in (SELECT Users.Uid FROM Users 
                                                 LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
-                                                OR uniA.Uid not in (SELECT Uid FROM Blacklists));"""
+                                                OR uniA.Uid not in (SELECT Uid FROM Blacklists))
+                                                EXCEPT SELECT * FROM UsersTag WHERE Uid = {self.controller.uid};"""
                 else:
                     sqlMatch = f"""SELECT uniA.* FROM (SELECT * FROM UsersTag WHERE userType in ({qMbtiSet})
                                                 )uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users 
                                                 LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
-                                                OR uniA.Uid not in (SELECT Uid FROM Blacklists));"""
+                                                OR uniA.Uid not in (SELECT Uid FROM Blacklists))
+                                                EXCEPT SELECT * FROM UsersTag WHERE Uid = {self.controller.uid};"""
             else:
                 sqlMatch = f"""SELECT uniA.* FROM(SELECT * FROM UsersTag ut1 WHERE ut1.Tid1 in ({self.matchTagsLst}) 
                                             UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
@@ -1117,7 +1119,8 @@ class Matching(Frame):
                                             UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
                                             ) uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users 
                                             LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
-                                            OR uniA.Uid not in (SELECT Uid FROM Blacklists));"""
+                                            OR uniA.Uid not in (SELECT Uid FROM Blacklists))
+                                            EXCEPT SELECT * FROM UsersTag WHERE Uid = {self.controller.uid};"""
             curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
             for data in curr:
                 self.uuidFilter.append(data['Uid'])
@@ -1165,6 +1168,8 @@ class Matching(Frame):
                     self.controller.udnameLst.append(dname['DisplayName'])
                 self.conn.close()
                 self.controller.switch_frame(Matching)
+                return
+            # random matching sequence
             else:
                 self.reset_list_data()
                 sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
@@ -1176,8 +1181,8 @@ class Matching(Frame):
                     self.reset_list_data()
                     randLst = random.sample(range(1,userCount),12)
                 print(randLst)
-                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
-                                                                    ?,?,?,?,?,?);"""
+                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,?,?,?,?,?,?)
+                                EXCEPT SELECT * FROM UsersTag WHERE UserType = "ADMIN";"""
                 cur = self.controller.execute_sql(sqlRandTag, randLst)
                 infoRows = cur.fetchall()
                 for i, row in enumerate(infoRows):
@@ -2271,10 +2276,11 @@ class InfoOnProfile() :
         topFrame.pack(fill=X)
         endFrame = Frame(bgFrame,bg='#F0F0F0')
         endFrame.pack(fill=BOTH)
-        Label(topFrame,text=lines[0],bg=mbtiColor,fg='white').pack(side=LEFT,padx=15,pady=10)
+        xx, yy = 30, 20
+        Label(topFrame,text=lines[0],bg=mbtiColor,fg='white').pack(side=LEFT,padx=xx,pady=yy)
         Button(topFrame,image=self.closeImg,bd=0,bg=mbtiColor,
         activebackground=mbtiColor,command=lambda:bgFrame.destroy()).pack(side=RIGHT,padx=15)
-        Label(endFrame,text=des,bg='#F0F0F0',font='leelawadee 13',justify=LEFT).pack(padx=15,pady=10)   
+        Label(endFrame,text=des,bg='#F0F0F0',font='leelawadee 13',justify=LEFT).pack(padx=xx,pady=yy//2)   
         bgFrame.place(relx=0.5, rely=0.5, anchor=CENTER)
         bgFrame.grab_set()
 class PostOnProfile() :
