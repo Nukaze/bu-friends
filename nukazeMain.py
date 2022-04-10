@@ -843,8 +843,6 @@ class Matching(Frame):
         self.bgCanva = "#FFFFFF"
         self.canvasMain = Canvas(self.root, width=900, height=6000 ,bg=self.bgCanva,bd=0, highlightthickness=0)
         self.canvasMain.pack(expand=1,fill=BOTH)
-        print("reqwidth =",self.root.winfo_reqwidth())
-        print("reqheight =",self.root.winfo_reqheight())
         # widgetzone 
         self.filterFrame = None
         self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
@@ -1148,6 +1146,8 @@ class Matching(Frame):
         self.controller.udnameLst.clear()
         
     def request_users_infomation(self):
+        self.controller.update_blacklist()
+
         self.conn = self.controller.create_connection()
         self.conn.row_factory = sqlite3.Row
         if self.conn is None:
@@ -1172,17 +1172,24 @@ class Matching(Frame):
             # random matching sequence
             else:
                 self.reset_list_data()
+                blacklstUid = []
+                sqlBlacklist = """SELECT * FROM Blacklists WHERE status = 1;"""
+                c = self.conn.cursor().execute(sqlBlacklist).fetchall()
+                for i,data in enumerate(c):
+                    blacklstUid.append(data['Uid'])
+                print(blacklstUid)
                 sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
                 cur = self.controller.execute_sql(sqlLastUid)
                 userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
                 randLst = []
                 randLst = random.sample(range(1,userCount),12)
-                while self.controller.uid in randLst:
+                while self.controller.uid in randLst and [ele for ele in blacklstUid if ele in randLst]:
+                    print("\n\nin while")
                     self.reset_list_data()
                     randLst = random.sample(range(1,userCount),12)
                 print(randLst)
-                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,?,?,?,?,?,?)
-                                EXCEPT SELECT * FROM UsersTag WHERE UserType = "ADMIN";"""
+                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
+                                                                     ?,?,?,?,?,?)"""
                 cur = self.controller.execute_sql(sqlRandTag, randLst)
                 infoRows = cur.fetchall()
                 for i, row in enumerate(infoRows):
