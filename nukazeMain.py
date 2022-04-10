@@ -2010,7 +2010,7 @@ class InfoOnProfile() :
             hFrame.pack(side=TOP,fill=X,pady=0)
             Label(hFrame, text="Report User", fg="#555555",font="leelawadee 16 bold",bg=bg).pack(side=LEFT,padx=18,pady=10)
             closeImg = self.controller.get_image(r'./assets/icons/Close.png')
-            closeBtn = Button(hFrame, image=closeImg, command=lambda:self.report_closeto(self.oldFrame), width=100, bd=0, bg=bg,activebackground=bg)
+            closeBtn = Button(hFrame, image=closeImg, command=lambda:self.report_closeto(self.oldFrame), width=70, bd=0, bg=bg,activebackground=bg)
             closeBtn.image = closeImg
             closeBtn.pack(side=RIGHT)
 
