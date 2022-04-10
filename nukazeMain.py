@@ -1146,7 +1146,6 @@ class Matching(Frame):
         
     def request_users_infomation(self):
         self.controller.update_blacklist()
-
         self.conn = self.controller.create_connection()
         self.conn.row_factory = sqlite3.Row
         if self.conn is None:
@@ -1171,6 +1170,7 @@ class Matching(Frame):
             # random matching sequence
             else:
                 self.reset_list_data()
+                
                 blacklstUid = []
                 sqlBlacklist = """SELECT * FROM Blacklists WHERE status = 1;"""
                 c = self.conn.cursor().execute(sqlBlacklist).fetchall()
@@ -1187,7 +1187,7 @@ class Matching(Frame):
                 print(f"ele not in blacklst = [ {[ele for ele in blacklstUid if ele in randLst]==[]} ]")
                 while [ele for ele in blacklstUid if ele in randLst] != []:
                     self.reset_list_data()
-                    print("\nin while")
+                    print("in while")
                     randLst = random.sample(range(1,userCount),12)
                 if self.controller.uid in randLst:
                     print("go rand with mbti",randLst)
