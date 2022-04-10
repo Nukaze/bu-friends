@@ -2255,10 +2255,10 @@ class InfoOnProfile() :
                 if self.tagList[0][3] == "J" :
                     mbtiColor = '#83D8EF'
                 else :
-                    mbtiColor = '#D2C75D'#EEDF5D
+                    mbtiColor = '#D2C75D'
         self.closeImg = self.controller.get_image('./assets/icons/Close.png',30,30)
-        bgFrame = Frame(self.controller)
-        fontTag = Font(family='leelawadee',size=13,weight='bold')
+        bgFrame = Frame(self.controller,highlightthickness=2,highlightbackground=mbtiColor)
+        fontTag = Font(family='leelawadee',size=15,weight='bold')
         bgFrame.option_add('*font',fontTag)
         data = mbtiData.get_mbti_info()[self.tagList[0]]
         lines = data.split("\n")
@@ -2271,10 +2271,10 @@ class InfoOnProfile() :
         topFrame.pack(fill=X)
         endFrame = Frame(bgFrame,bg='#F0F0F0')
         endFrame.pack(fill=BOTH)
-        Label(topFrame,text=lines[0],bg=mbtiColor,fg='white').pack(side=LEFT,padx=15,pady=10)
+        Label(topFrame,text=lines[0],bg=mbtiColor,fg='white').pack(side=LEFT,padx=30,pady=15)
         Button(topFrame,image=self.closeImg,bd=0,bg=mbtiColor,
         activebackground=mbtiColor,command=lambda:bgFrame.destroy()).pack(side=RIGHT,padx=15)
-        Label(endFrame,text=des,bg='#F0F0F0',font='leelawadee 13',justify=LEFT).pack(padx=15,pady=10)   
+        Label(endFrame,text=des,bg='#F0F0F0',font='leelawadee 13',justify=LEFT).pack(padx=30,pady=20)   
         bgFrame.place(relx=0.5, rely=0.5, anchor=CENTER)
         bgFrame.grab_set()
 class PostOnProfile() :
