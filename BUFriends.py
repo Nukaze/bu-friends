@@ -1149,12 +1149,14 @@ class Matching(Frame):
         self.controller.udnameLst.clear()
         
     def request_users_infomation(self):
+        self.controller.update_blacklist()
         self.conn = self.controller.create_connection()
         self.conn.row_factory = sqlite3.Row
         if self.conn is None:
             print("DB connot connect")   
             return         
         else:
+            # filter matching sequence
             if self.controller.matchFilter == 1:
                 self.controller.uinfoLst.clear()
                 self.controller.udnameLst.clear()
@@ -1169,20 +1171,47 @@ class Matching(Frame):
                     self.controller.udnameLst.append(dname['DisplayName'])
                 self.conn.close()
                 self.controller.switch_frame(Matching)
+                return
+            # random matching sequence
             else:
                 self.reset_list_data()
+                blacklstUid = []
+                sqlBlacklist = """SELECT * FROM Blacklists WHERE status = 1;"""
+                c = self.conn.cursor().execute(sqlBlacklist).fetchall()
+                for i,data in enumerate(c):
+                    blacklstUid.append(data['Uid'])
+                print(blacklstUid)
                 sqlLastUid = """SELECT Uid FROM UsersTag ORDER BY Uid DESC LIMIT 1;"""
                 cur = self.controller.execute_sql(sqlLastUid)
                 userCount = (cur.fetchone())['Uid']             #get Last User Uid in DB
                 randLst = []
                 randLst = random.sample(range(1,userCount),12)
-                while self.controller.uid in randLst:
-                    self.reset_list_data()
-                    randLst = random.sample(range(1,userCount),12)
                 print(randLst)
-                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
-                                                                    ?,?,?,?,?,?);"""
-                cur = self.controller.execute_sql(sqlRandTag, randLst)
+                while [ele for ele in blacklstUid if ele in randLst] != []:
+                    self.reset_list_data()
+                    print("in while")
+                    randLst = random.sample(range(1,userCount),12)
+                print()
+                if self.controller.uid in randLst:
+                    randLst.remove(self.controller.uid)
+                    mbtiChoice = mbtiData.get_mbti_code()[random.choice(range(len(mbtiData.get_mbti_code())))]
+                    sqlgetUid = """SELECT Uid FROM UsersTag WHERE UserType = ?;"""
+                    conn = self.controller.create_connection()
+                    if conn is None: 
+                        print("No connection")
+                        return
+                    conn.row_factory = sqlite3.Row
+                    cur = conn.cursor().execute(sqlgetUid, [mbtiChoice]).fetchall()
+                    rUid = []
+                    for data in cur:
+                        rUid.append(data['Uid'])
+                    numFinal = random.choice(rUid)
+                    print("go rand with mbti",numFinal)
+                    randLst.append(numFinal)
+                print(f"{randLst}\n")
+                sqlRandMatch = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
+                                                                       ?,?,?,?,?,?);"""
+                cur = self.controller.execute_sql(sqlRandMatch, randLst)
                 infoRows = cur.fetchall()
                 for i, row in enumerate(infoRows):
                     if row['UserType'] is None:
