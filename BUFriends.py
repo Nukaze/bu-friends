@@ -843,8 +843,6 @@ class Matching(Frame):
         self.bgCanva = "#FFFFFF"
         self.canvasMain = Canvas(self.root, width=900, height=6000 ,bg=self.bgCanva,bd=0, highlightthickness=0)
         self.canvasMain.pack(expand=1,fill=BOTH)
-        print("reqwidth =",self.root.winfo_reqwidth())
-        print("reqheight =",self.root.winfo_reqheight())
         # widgetzone 
         self.filterFrame = None
         self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
