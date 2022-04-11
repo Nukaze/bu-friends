@@ -2339,15 +2339,15 @@ class PostOnProfile() :
 
     def post(self):
         for i in range(1,len(self.postList)+1):
-            innerFrame = Frame(self.frame,bg=self.bgColor)
-            Label(innerFrame,text=self.name,font="leelawadee 18 bold",bg=self.bgColor).pack(anchor=W,padx=15)
+            innerFrame = LabelFrame(self.frame,bg=self.bgColor,relief=RIDGE,bd=1)
+            Label(innerFrame,text=self.name,font="leelawadee 18 bold",bg=self.bgColor).pack(anchor=W,padx=15,pady=4)
             textPost = Text(innerFrame,width=90,relief=SUNKEN,bd=0)  
             textPost.insert(END,self.postList[-i])     
             textPost.tag_configure("center")
             textPost.tag_add("center",1.0,END)
             line = float(textPost.index(END)) - 1
             textPost.config(height=line,state=DISABLED)
-            textPost.pack(pady=5)
+            textPost.pack()
             innerFrame.pack(ipadx=20,pady=10)
 
 class Administration(Frame):
