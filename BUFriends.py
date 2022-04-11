@@ -888,10 +888,6 @@ class Matching(Frame):
             print(f"We have {len(self.tagnameLst)} tag in Database.")
             self.conn.close()
             return self.tagnameLst
-
-    def gen_qmark(self,_rangelimit):
-        questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
-        return questionMarkSet
     
     def filter_tags(self):
         def destroy_frame():
@@ -1058,9 +1054,12 @@ class Matching(Frame):
                         select['widget'].config(image=self.userTagImg,compound=CENTER,fg="#555555")
                         select['widget'].image = self.userTagImg
                         select['status'] = 0    
-        print(self.matchAllTags)    
-        pass
-    
+        print(self.matchAllTags)
+
+    def gen_qmark(self,_rangelimit):
+        questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
+        return questionMarkSet        
+
     def match_tags_commit(self):
         if self.filterFrame is not None:
             self.filterFrame.destroy()
