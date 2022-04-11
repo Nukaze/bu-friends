@@ -843,6 +843,8 @@ class Matching(Frame):
         self.bgCanva = "#FFFFFF"
         self.canvasMain = Canvas(self.root, width=900, height=6000 ,bg=self.bgCanva,bd=0, highlightthickness=0)
         self.canvasMain.pack(expand=1,fill=BOTH)
+        print("reqwidth =",self.root.winfo_reqwidth())
+        print("reqheight =",self.root.winfo_reqheight())
         # widgetzone 
         self.filterFrame = None
         self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
@@ -858,18 +860,23 @@ class Matching(Frame):
         self.myProfile.image = self.myImg
         self.myProfile.place(x=815,y=11,anchor=NW)
         #Display user filter result
+        print("checklen uuid ",len(self.controller.uuidLst))
         self.usersFrame = Frame(self.canvasMain,width=900,height=1400,bg=self.bgCanva)
         self.usersFrame.pack(side=TOP,expand=1)
         self.uuidFilter = []
         self.cntLoop = 0
         self.usersTabFrame = []
+        print("uuid init = ",self.controller.uuidLst)
+        print("udname init = ",self.controller.udnameLst)
+        print("uinfo init = ",self.controller.uinfoLst)
         if self.controller.matchFilter == 1:
             self.display_users()
+            return
         else:
             self.request_users_infomation()
             self.display_users()
-        print("count ran loop =",self.cntLoop)
         
+            
     def get_tagname(self):
         self.tagnameLst = []
         sql = """SELECT Tid,TagName FROM Tags"""
@@ -887,9 +894,6 @@ class Matching(Frame):
             self.conn.close()
             return self.tagnameLst
 
-    def gen_qmark(self,_rangelimit):
-        questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
-        return questionMarkSet
     
     def filter_tags(self):
         def destroy_frame():
@@ -1057,7 +1061,10 @@ class Matching(Frame):
                         select['widget'].image = self.userTagImg
                         select['status'] = 0    
         print(self.matchAllTags)    
-        pass
+        
+    def gen_qmark(self,_rangelimit):
+        questionMarkSet = ("?"+", ?"*(_rangelimit-1))
+        return questionMarkSet
     
     def match_tags_commit(self):
         if self.filterFrame is not None:
@@ -1082,7 +1089,7 @@ class Matching(Frame):
                 if any(isinstance(tag, int) for tag in self.matchAllTags):
                     self.matchTagsLst = [tag for tag in self.matchAllTags if isinstance(tag, int)]
                     self.matchTagsLst = ", ".join(map(str,self.matchTagsLst))
-                    print(self.matchTagsLst)
+                    print("remap ",self.matchTagsLst)
             except ValueError as ve: print(ve); return 
             conn = self.controller.create_connection()
             conn.row_factory = sqlite3.Row
@@ -1099,13 +1106,13 @@ class Matching(Frame):
                                                 UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
                                                 UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
                                                 )uniA WHERE uniA.UserType in ({qMbtiSet}) 
-                                                AND (uniA.Uid in (SELECT Users.Uid FROM Users 
+                                                AND (uniA.Uid in (SELECT Users.Uid FROM Users
                                                 LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
                                                 OR uniA.Uid not in (SELECT Uid FROM Blacklists))
                                                 EXCEPT SELECT * FROM UsersTag WHERE Uid = {self.controller.uid};"""
                 else:
                     sqlMatch = f"""SELECT uniA.* FROM (SELECT * FROM UsersTag WHERE userType in ({qMbtiSet})
-                                                )uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users 
+                                                )uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users
                                                 LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
                                                 OR uniA.Uid not in (SELECT Uid FROM Blacklists))
                                                 EXCEPT SELECT * FROM UsersTag WHERE Uid = {self.controller.uid};"""
@@ -1114,10 +1121,12 @@ class Matching(Frame):
                                             UNION SELECT * FROM UsersTag ut2 WHERE ut2.Tid2 in ({self.matchTagsLst}) 
                                             UNION SELECT * FROM UsersTag ut3 WHERE ut3.Tid3 in ({self.matchTagsLst}) 
                                             UNION SELECT * FROM UsersTag ut4 WHERE ut4.Tid4 in ({self.matchTagsLst})
-                                            ) uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users 
+                                            ) uniA WHERE(uniA.Uid in (SELECT Users.Uid FROM Users
                                             LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
                                             OR uniA.Uid not in (SELECT Uid FROM Blacklists))
                                             EXCEPT SELECT * FROM UsersTag WHERE Uid = {self.controller.uid};"""
+                   
+            print(sqlMatch)                         
             curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
             for data in curr:
                 self.uuidFilter.append(data['Uid'])
@@ -1152,6 +1161,7 @@ class Matching(Frame):
             print("DB connot connect")   
             return         
         else:
+            # filter matching sequence
             if self.controller.matchFilter == 1:
                 self.controller.uinfoLst.clear()
                 self.controller.udnameLst.clear()
@@ -1170,7 +1180,6 @@ class Matching(Frame):
             # random matching sequence
             else:
                 self.reset_list_data()
-                
                 blacklstUid = []
                 sqlBlacklist = """SELECT * FROM Blacklists WHERE status = 1;"""
                 c = self.conn.cursor().execute(sqlBlacklist).fetchall()
@@ -1183,17 +1192,15 @@ class Matching(Frame):
                 randLst = []
                 randLst = random.sample(range(1,userCount),12)
                 print(randLst)
-                print(f"myuid not in random = [ {self.controller.uid not in randLst} ]")
-                print(f"ele not in blacklst = [ {[ele for ele in blacklstUid if ele in randLst]==[]} ]")
                 while [ele for ele in blacklstUid if ele in randLst] != []:
                     self.reset_list_data()
                     print("in while")
                     randLst = random.sample(range(1,userCount),12)
+                print()
                 if self.controller.uid in randLst:
-                    print("go rand with mbti",randLst)
                     randLst.remove(self.controller.uid)
                     mbtiChoice = mbtiData.get_mbti_code()[random.choice(range(len(mbtiData.get_mbti_code())))]
-                    sqlgetUid = """SELECT Uid FROM UsersTag WHERE UserType = ?"""
+                    sqlgetUid = """SELECT Uid FROM UsersTag WHERE UserType = ?;"""
                     conn = self.controller.create_connection()
                     if conn is None: 
                         print("No connection")
@@ -1204,11 +1211,12 @@ class Matching(Frame):
                     for data in cur:
                         rUid.append(data['Uid'])
                     numFinal = random.choice(rUid)
+                    print("go rand with mbti",numFinal)
                     randLst.append(numFinal)
                 print(f"{randLst}\n")
-                sqlRandTag = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
-                                                                     ?,?,?,?,?,?)"""
-                cur = self.controller.execute_sql(sqlRandTag, randLst)
+                sqlRandMatch = """SELECT * FROM UsersTag WHERE Uid IN (?,?,?,?,?,?,
+                                                                       ?,?,?,?,?,?);"""
+                cur = self.controller.execute_sql(sqlRandMatch, randLst)
                 infoRows = cur.fetchall()
                 for i, row in enumerate(infoRows):
                     if row['UserType'] is None:
@@ -2287,8 +2295,8 @@ class InfoOnProfile() :
                 else :
                     mbtiColor = '#D2C75D'
         self.closeImg = self.controller.get_image('./assets/icons/Close.png',30,30)
-        bgFrame = Frame(self.controller)
-        fontTag = Font(family='leelawadee',size=13,weight='bold')
+        bgFrame = Frame(self.controller,highlightthickness=2,highlightbackground=mbtiColor)
+        fontTag = Font(family='leelawadee',size=15,weight='bold')
         bgFrame.option_add('*font',fontTag)
         data = mbtiData.get_mbti_info()[self.tagList[0]]
         lines = data.split("\n")
@@ -2301,11 +2309,10 @@ class InfoOnProfile() :
         topFrame.pack(fill=X)
         endFrame = Frame(bgFrame,bg='#F0F0F0')
         endFrame.pack(fill=BOTH)
-        xx, yy = 30, 20
-        Label(topFrame,text=lines[0],bg=mbtiColor,fg='white').pack(side=LEFT,padx=xx,pady=yy)
+        Label(topFrame,text=lines[0],bg=mbtiColor,fg='white').pack(side=LEFT,padx=30,pady=15)
         Button(topFrame,image=self.closeImg,bd=0,bg=mbtiColor,
         activebackground=mbtiColor,command=lambda:bgFrame.destroy()).pack(side=RIGHT,padx=15)
-        Label(endFrame,text=des,bg='#F0F0F0',font='leelawadee 13',justify=LEFT).pack(padx=xx,pady=yy//2)   
+        Label(endFrame,text=des,bg='#F0F0F0',font='leelawadee 13',justify=LEFT).pack(padx=30,pady=20)   
         bgFrame.place(relx=0.5, rely=0.5, anchor=CENTER)
         bgFrame.grab_set()
 class PostOnProfile() :
