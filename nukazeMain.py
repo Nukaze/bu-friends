@@ -843,8 +843,6 @@ class Matching(Frame):
         self.bgCanva = "#FFFFFF"
         self.canvasMain = Canvas(self.root, width=900, height=6000 ,bg=self.bgCanva,bd=0, highlightthickness=0)
         self.canvasMain.pack(expand=1,fill=BOTH)
-        print("reqwidth =",self.root.winfo_reqwidth())
-        print("reqheight =",self.root.winfo_reqheight())
         # widgetzone 
         self.filterFrame = None
         self.headBgImg = self.controller.get_image(r'./assets/images/banner.png')
@@ -866,9 +864,6 @@ class Matching(Frame):
         self.uuidFilter = []
         self.cntLoop = 0
         self.usersTabFrame = []
-        print("uuid init = ",self.controller.uuidLst)
-        print("udname init = ",self.controller.udnameLst)
-        print("uinfo init = ",self.controller.uinfoLst)
         if self.controller.matchFilter == 1:
             self.display_users()
             return
@@ -893,7 +888,6 @@ class Matching(Frame):
             print(f"We have {len(self.tagnameLst)} tag in Database.")
             self.conn.close()
             return self.tagnameLst
-
     
     def filter_tags(self):
         def destroy_frame():
@@ -1060,12 +1054,12 @@ class Matching(Frame):
                         select['widget'].config(image=self.userTagImg,compound=CENTER,fg="#555555")
                         select['widget'].image = self.userTagImg
                         select['status'] = 0    
-        print(self.matchAllTags)    
-        
+        print(self.matchAllTags)
+
     def gen_qmark(self,_rangelimit):
-        questionMarkSet = ("?"+", ?"*(_rangelimit-1))
-        return questionMarkSet
-    
+        questionMarkSet = ("?"+" ,?"*(_rangelimit-1))
+        return questionMarkSet        
+
     def match_tags_commit(self):
         if self.filterFrame is not None:
             self.filterFrame.destroy()
@@ -1089,7 +1083,7 @@ class Matching(Frame):
                 if any(isinstance(tag, int) for tag in self.matchAllTags):
                     self.matchTagsLst = [tag for tag in self.matchAllTags if isinstance(tag, int)]
                     self.matchTagsLst = ", ".join(map(str,self.matchTagsLst))
-                    print("remap ",self.matchTagsLst)
+                    print(self.matchTagsLst)
             except ValueError as ve: print(ve); return 
             conn = self.controller.create_connection()
             conn.row_factory = sqlite3.Row
@@ -1125,8 +1119,6 @@ class Matching(Frame):
                                             LEFT JOIN Blacklists ON Users.Uid=Blacklists.Uid WHERE Blacklists.Status=0) 
                                             OR uniA.Uid not in (SELECT Uid FROM Blacklists))
                                             EXCEPT SELECT * FROM UsersTag WHERE Uid = {self.controller.uid};"""
-                   
-            print(sqlMatch)                         
             curr = self.controller.execute_sql(sqlMatch, self.matchMbtiLst).fetchall()
             for data in curr:
                 self.uuidFilter.append(data['Uid'])
@@ -1365,9 +1357,10 @@ class ProfilePage(Frame):
         PostOnProfile(self.root,self.bgColor,self.controller,self.controller.uid)
     def post_event(self):
         txt = self.post.get(1.0,END)
+        self.limitPostlen = 300
         if txt.isspace() :
             messagebox.showwarning("BU Friends  |  Warning","Your post cannot be empty")
-        elif len(txt) >300 :
+        elif len(txt) > self.limitPostlen :
             messagebox.showwarning("BU Friends  |  Warning","Your post cannot be longer than 300 characters")
         else :
             conn = self.controller.create_connection()
@@ -1386,11 +1379,27 @@ class ProfilePage(Frame):
         Label(frame,text="Create Post",font="leelawadee 20 bold",bg=self.bgColor).pack(anchor=W,padx=25,pady=5)
         self.post = Text(frame,width=90,height=4,relief=GROOVE,bd=2)
         self.post.pack()
+        self.post.bind('<KeyPress>',self.update_textlimit)
+        self.post.bind('<KeyRelease>',self.update_textlimit)
         Button(frame,text="Post",font='leelawadee 13 bold',fg='white',
         activeforeground='white',image=self.img3,compound=CENTER,bd=0,
         bg=self.bgColor,activebackground=self.bgColor,command=self.post_event).pack(side=RIGHT,padx=35,pady=10)
+        self.postLenNow = Label(frame,text="0/300")
+        self.postLenNow.pack(side=RIGHT,pady=10,ipadx=3)
         frame.pack(fill=X)   
-
+        
+    def update_textlimit(self,e):
+            txtdata = self.post.get(1.0,"end-1c")
+            limit = 300 
+            self.postLenNow.config(text=f"{len(txtdata)}/300")
+            if len(txtdata) > limit:
+                overlimit = (len(txtdata)-limit)+5
+                messagebox.showwarning("BU Friends  |  Warning",f"Post cannot be longer than {limit} characters")
+                self.post.delete(f"end-{overlimit}c",END)
+                txtdata = self.post.get(1.0,"end-1c")
+                self.postLenNow.config(text=f"{len(txtdata)}/300")
+                return
+            
 class EditPage(Frame):
     def __init__(self,controller):
         Frame.__init__(self,controller)
@@ -2084,12 +2093,14 @@ class InfoOnProfile() :
             self.detailReport = Text(dFrame,bg="#fafafa",height=5,width=59,relief=SOLID)
             self.detailReport.pack(side=TOP,pady=5)
             self.detailReport.bind('<KeyPress>',lambda e: self.update_textlimit(e))
-            self.detailReport.bind('<KeyPress>',lambda e: self.update_textlimit(e))
+            self.detailReport.bind('<KeyRelease>',lambda e: self.update_textlimit(e))
             btnImg = self.controller.get_image(r'./assets/buttons/buttonRaw.png',240,66)
             self.sendReport = Button(canvas, command=lambda:self.report_commit(),text="Send Report!",image=btnImg,
                                      font=fontHead,fg=bg,bd=0,activebackground=bg,compound=CENTER)
             self.sendReport.image = btnImg
             canvas.create_window((self.w//2)-120,280,anchor=NW, window=self.sendReport)
+            self.detailLenNow = Label(canvas, text="0/256",font="leelawadee 12 bold")
+            canvas.create_window((self.w//2)+200,300, anchor=NW, window=self.detailLenNow)
             pass
         
         def report_closeto(self, frame):
@@ -2118,10 +2129,13 @@ class InfoOnProfile() :
         def update_textlimit(self,e):
             txtdata = self.detailReport.get(1.0,"end-1c")
             limit = 256
+            self.detailLenNow.config(text=f"{len(txtdata)}/{limit}")
             if len(txtdata) > limit:
                 overlimit = (len(txtdata)-limit)+5
-                messagebox.showwarning("BU Friends  |  Warning",f"Detail cannot be longer than {limit} characters")
+                messagebox.showwarning("BU Fr iends  |  Warning",f"Detail cannot be longer than {limit} characters")
                 self.detailReport.delete(f"end-{overlimit}c",END)
+                txtdata = self.detailReport.get(1.0,"end-1c")
+                self.detailLenNow.config(text=f"{len(txtdata)}/{limit}")
                 return
             
         def report_commit(self):
@@ -2346,11 +2360,12 @@ class PostOnProfile() :
         print("post in profile =",len(self.postList))
 
     def post(self):
+        limitPostlen = 300
         for i in range(1,len(self.postList)+1):
-            innerFrame = Frame(self.frame,bg=self.bgColor)
-            Label(innerFrame,text=self.name,font="leelawadee 18 bold",bg=self.bgColor).pack(anchor=W,padx=15)
-            textPost = Text(innerFrame,width=90,relief=SUNKEN,bd=0)  
-            textPost.insert(END,self.postList[-i])     
+            innerFrame = LabelFrame(self.frame,bg=self.bgColor,relief=RIDGE,bd=1,width=815)
+            Label(innerFrame,text=self.name,font="leelawadee 18 bold",bg=self.bgColor).pack(anchor=W,padx=15,pady=4)
+            textPost = Text(innerFrame,width=90,relief=SUNKEN,bd=0)
+            textPost.insert(END,self.postList[-i])
             textPost.tag_configure("center")
             textPost.tag_add("center",1.0,END)
             line = float(textPost.index(END)) - 1
