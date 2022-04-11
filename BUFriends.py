@@ -2032,15 +2032,12 @@ class InfoOnProfile() :
             conn.close()
     
     class ReportUser:
-        def __init__(self, root, controllerFrame, optionFrame, oldframe):
+        def __init__(self, root, controllerFrame, oldframe):
             self.bgColor = "#333333"
             self.root = root
             self.controller = controllerFrame
             self.controller.title("BU Friends  |  Report-User")
             self.oldFrame = oldframe
-            self.optionFrame = optionFrame
-            self.optionFrame.destroy()
-            self.optionFrame = None
             self.disable_allframe(oldframe)
             self.w,self.h = 700, 410
             self.x = (self.controller.width//2) - (self.w//2)
@@ -2099,8 +2096,8 @@ class InfoOnProfile() :
                                      font=fontHead,fg=bg,bd=0,activebackground=bg,compound=CENTER)
             self.sendReport.image = btnImg
             canvas.create_window((self.w//2)-120,280,anchor=NW, window=self.sendReport)
-            self.detailLenNow = Label(canvas, text="0/256",font="leelawadee 12 bold")
-            canvas.create_window((self.w//2)+200,300, anchor=NW, window=self.detailLenNow)
+            self.detailLenNow = Label(canvas, text="0/256",font="leelawadee 12",justify=RIGHT)
+            canvas.create_window((self.w//2)+256,115, anchor=NW, window=self.detailLenNow)
             pass
         
         def report_closeto(self, frame):
@@ -2162,7 +2159,9 @@ class InfoOnProfile() :
             if pageList[index] is not None :
                 print(self.controller.uidSelect)
                 if pageList[index] == self.ReportUser:
-                    self.ReportUser(self.root, self.controller, self.optionFrame, [self.topFrame])
+                    self.optionFrame.destroy()
+                    self.optionFrame = None
+                    self.ReportUser(self.root, self.controller, [self.topFrame])
                     return
                 self.controller.switch_frame(pageList[index])
             elif self.parent == 2 and index == 2 :
@@ -2296,6 +2295,8 @@ class InfoOnProfile() :
         if self.mbtiTag :
             self.mbtiTag.bind('<Button-1>',lambda e : self.mbti_info())
     def mbti_info(self) :
+        for child in self.topFrame.winfo_children():
+            child.config(state=DISABLED)
         print(self.tagList[0])
         if self.tagList[0] is not None :
             if self.tagList[0][1] == "N" :
@@ -2323,9 +2324,13 @@ class InfoOnProfile() :
         topFrame.pack(fill=X)
         endFrame = Frame(bgFrame,bg='#F0F0F0')
         endFrame.pack(fill=BOTH)
+        def mbtiinfo_close():
+            bgFrame.destroy()
+            for child in self.topFrame.winfo_children():
+                child.config(state=NORMAL)
         Label(topFrame,text=lines[0],bg=mbtiColor,fg='white').pack(side=LEFT,padx=30,pady=15)
         Button(topFrame,image=self.closeImg,bd=0,bg=mbtiColor,
-        activebackground=mbtiColor,command=lambda:bgFrame.destroy()).pack(side=RIGHT,padx=15)
+        activebackground=mbtiColor,command=lambda:mbtiinfo_close()).pack(side=RIGHT,padx=15)
         Label(endFrame,text=des,bg='#F0F0F0',font='leelawadee 13',justify=LEFT).pack(padx=30,pady=20)   
         bgFrame.place(relx=0.5, rely=0.5, anchor=CENTER)
         bgFrame.grab_set()
