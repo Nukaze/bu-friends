@@ -707,7 +707,7 @@ class Mbti(Frame):
                 pass
             self.btnImg = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
             self.mbtiSubmitBtn = Button(self.mbtiFrame, text="Submit!", command=self.mbti_calculator, image=self.btnImg, compound="center",
-                                  bd=0,activebackground=bg,bg=bg,fg=bg)
+                                  bd=0,bg=bg,fg=bg,activebackground=bg,activeforeground=bg)
             self.mbtiSubmitBtn.image = self.btnImg
             self.mbtiSubmitBtn.pack(expand=1,pady=30)
     
@@ -1374,7 +1374,7 @@ class ProfilePage(Frame):
         Button(frame,text="Post",font='leelawadee 13 bold',fg='white',
         activeforeground='white',image=self.img3,compound=CENTER,bd=0,
         bg=self.bgColor,activebackground=self.bgColor,command=self.post_event).pack(side=RIGHT,padx=35,pady=10)
-        self.postLenNow = Label(frame,text="0/300")
+        self.postLenNow = Label(frame,text="0/300",bg="#ffffff",fg="#666666")
         self.postLenNow.pack(side=RIGHT,pady=10,ipadx=3)
         frame.pack(fill=X)   
         
@@ -2086,9 +2086,8 @@ class InfoOnProfile() :
                                      font=fontHead,fg=bg,bd=0,activebackground=bg,compound=CENTER)
             self.sendReport.image = btnImg
             canvas.create_window((self.w//2)-120,280,anchor=NW, window=self.sendReport)
-            self.detailLenNow = Label(canvas, text="0/256",font="leelawadee 12",justify=RIGHT)
+            self.detailLenNow = Label(canvas, text="0/256",font="leelawadee 12",justify=RIGHT,fg="#666666")
             canvas.create_window((self.w//2)+256,115, anchor=NW, window=self.detailLenNow)
-            pass
         
         def report_closeto(self, frame):
             for i in range(len(frame)):
