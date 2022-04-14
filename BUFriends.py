@@ -94,22 +94,25 @@ class BUFriends(Tk):
             self.set_sessions(self.uid)         # remember session uid
             if sessionType == None:             # have no do the test mbti
                 self.switch_frame(Matching)
-                messagebox.showinfo('BU Friends  |  Welcome ',"{}Welcome back! [ {} ]{}".format(" "*5,dname," "*5))
+                messagebox.showinfo('BU Friends  |  Welcome ',
+                                    f"""{(" "*5)}Welcome back! [ {dname} ]{(" "*5)}""")
                 return
             elif sessionType == "ADMIN":
                 self.uid = self.ssid
                 self.switch_frame(Administration)
-                messagebox.showinfo('BU Friends  |  Welcome',"{}Welcome back Admin! [ {} ]{}".format(" "*5,dname," "*5))
+                messagebox.showinfo('BU Friends  |  Welcome',
+                                    f"""{(" "*5)}Welcome back Admin!!! [ {dname} ]{(" "*5)}""")
                 return
             else:                               # do the test mbti and have 16 type of user
                 self.switch_frame(Matching)
-                messagebox.showinfo('BU Friends  |  Welcome ',"{}Welcome back! [ {} ]{}".format(" "*5,dname," "*5))
+                messagebox.showinfo('BU Friends  |  Welcome ',
+                                    f"""{(" "*5)}Welcome back! [ {dname} ]{(" "*5)}""")
         else:
             self.switch_frame(SignIn)
                 
     def set_sessions(self, _session=0):
         with open(r'./database/sessions.txt','w')as ss:
-            ss.write("{}".format(_session))
+            ss.write(f"{_session}")
     
     def update_blacklist(self) :
         sql = """
@@ -375,7 +378,7 @@ class SignIn(Frame):
                 userBlacklist = self.controller.execute_sql(sqlBlacklist, [self.controller.uid]).fetchone()
                 conn.close()
                 if userBlacklist is None:
-                    messagebox.showinfo('BU Friends  |  Welcome',"Welcome Back [ {} ] \nHave a great time in BU Friends.".format(self.row[3]))
+                    messagebox.showinfo('BU Friends  |  Welcome',f"Welcome Back [ {self.row[3]} ] \nHave a great time in BU Friends.")
                     self.login_submit()
                     return
                 elif userBlacklist['Status'] == 1:
@@ -386,7 +389,7 @@ class SignIn(Frame):
                                             f"{self.loginDict['usermail']} has been banned from BU Friends\nFrom [ {uStartDate} ] \nUntill [ {uEndDate} ]")
                     return
                 else:
-                    messagebox.showinfo('BU Friends  |  Welcome',"Welcome Back [ {} ] \nHave a great time in BU Friends".format(self.row[3]))
+                    messagebox.showinfo('BU Friends  |  Welcome',f"Welcome Back [ {self.row[3]} ] \nHave a great time in BU Friends")
                     self.login_submit()
                     return
             else:
@@ -607,7 +610,6 @@ class SignUp(Frame):
                         getUid = (cur.fetchall())[0]
                         self.controller.uid = getUid[0]
                         conn.close()
-                        print("user id = [ {} ]".format(self.controller.uid))
                         messagebox.showinfo("BU Friends  |  Successful"
                                             ,f"Welcome to BU Friends [ {self.regisSubmitDict['displayname']} ] \nHave a great time in BU Friends")
                         self.signup_complete()
@@ -617,7 +619,7 @@ class SignUp(Frame):
                         messagebox.showwarning("BU Friends | Failure","Failed to SignUp Please try again later.")
                         return
                         
-                except Error as e :print("catch!!! {}".format(e))
+                except Error as e :print(f"catch!!! {e}")
 
         def signup_complete(self):
             self.controller.title("BU Friends  |  Sign-Up Complete!")
@@ -693,7 +695,7 @@ class Mbti(Frame):
                 btnfg = "#486edf"
                 self.mainFrame = Frame(self.mbtiFrame)
                 self.mainFrame.pack(expand=1,fill=BOTH)
-                Label(self.mainFrame ,text="[{}] {}".format(i+1, self.quizLst[r][1]),font=fontQuiz,bg=bg,fg="#000000")\
+                Label(self.mainFrame ,text=f"[{i+1}] {self.quizLst[r][1]}",font=fontQuiz,bg=bg,fg="#000000")\
                     .pack(expand=1,fill=X,ipady=200)
                 self.subFrame = Frame(self.mainFrame,height=155)
                 self.subFrame.propagate(0)
@@ -742,10 +744,10 @@ class Mbti(Frame):
             self.energyLst = self.mbtiProgress.get('ns')
             self.natureLst = self.mbtiProgress.get('ft')
             self.tacticLst = self.mbtiProgress.get('pj')
-            print("\n  Mind{}".format(self.mindLst))
-            print("Energy{}".format(self.energyLst))
-            print("Nature{}".format(self.natureLst))
-            print("Tactic{}".format(self.tacticLst))
+            print(f"\n  Mind{self.mindLst}")
+            print(f"Energy{self.energyLst}")
+            print(f"Nature{self.natureLst}")
+            print(f"Tactic{self.tacticLst}")
             nowAnswer = len(self.mindLst)+len(self.energyLst)+len(self.natureLst)+len(self.tacticLst)
             quizLength = len(self.quizLst)
             try:
@@ -763,7 +765,7 @@ class Mbti(Frame):
                     if sum(self.tacticLst) > 3:self.mbtiCodeLst.append("J")
                     else:self.mbtiCodeLst.append("P")
                     self.controller.mbtiCode = "".join(self.mbtiCodeLst)
-                    print("{} ".format(self.controller.mbtiCode))
+                    print(f"{self.controller.mbtiCode}")
                     self.mindLst.clear()
                     self.energyLst.clear()
                     self.natureLst.clear()
@@ -1268,19 +1270,19 @@ class Matching(Frame):
             if i > 4: break             # stop tag place
             if tag is None:             # didnt show None Tag 
                 if i == 1:              # except Mbti
-                    self.userTag = Label(self.tabFrame, text="{}".format(tag), image=self.userTagImg,
+                    self.userTag = Label(self.tabFrame, text=f"{tag}", image=self.userTagImg,
                                         bg=bgRectangle, compound=CENTER)
                     self.userTag.image = self.userTagImg
                     self.userTag.place(x=xplace,y=110)
                 else:pass
             elif isinstance(tag, str):
-                self.userTag = Label(self.tabFrame, text="{}".format(self.controller.uinfoLst[ir][i]), image=self.userTagImg,
+                self.userTag = Label(self.tabFrame, text=f"{(self.controller.uinfoLst[ir][i])}", image=self.userTagImg,
                                     bg=bgRectangle, compound=CENTER)
                 self.userTag.image = self.userTagImg
                 self.userTag.place(x=xplace,y=110)
             else:
                 tag = self.tagnameLst[(self.controller.uinfoLst[ir][i])-1]
-                self.userTag = Label(self.tabFrame, text="{}".format(tag['tagName']), image=self.userTagImg,
+                self.userTag = Label(self.tabFrame, text=f"{(tag['tagName'])}", image=self.userTagImg,
                                     bg=bgRectangle, compound=CENTER)
                 self.userTag.image = self.userTagImg
                 self.userTag.place(x=xplace,y=110)
@@ -1356,7 +1358,7 @@ class ProfilePage(Frame):
             messagebox.showwarning("BU Friends  |  Warning","Your post cannot be longer than 300 characters")
         else :
             conn = self.controller.create_connection()
-            sql = """INSERT INTO Postings(Detail,Uid) VALUES (?,?)""".format(txt,self.controller.uid)
+            sql = """INSERT INTO Postings(Detail,Uid) VALUES (?,?)"""
             if conn is not None:
                 c = self.controller.execute_sql(sql,[txt,self.controller.uid])
                 self.controller.switch_frame(ProfilePage)
@@ -2618,4 +2620,4 @@ class Administration(Frame):
             self.controller.title("BU Friends  |  Administration")
 
 if __name__ == '__main__':
-    BUFriends().mainloop()
+    BUFriends().mainloop() 
