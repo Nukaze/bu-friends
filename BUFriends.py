@@ -666,7 +666,7 @@ class Mbti(Frame):
             self.mbtiFrame.option_add("*font",font)
             self.mbtiFrame.pack(expand=1,fill=BOTH)
             self.bannerFrame = Frame(self.root)
-            self.bannerMbti = self.controller.get_image(r'./assets/mbti/newBanner.png')
+            self.bannerMbti = self.controller.get_image(r'./assets/mbti/mbtiBanner.png')
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
@@ -674,7 +674,7 @@ class Mbti(Frame):
                                relief="flat",bd=0, activebackground=backbg)
             if self.controller.newUserFlow == 1:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
-            self.back.place(x=20,y=10 ,anchor="nw")
+            self.back.place(x=30,y=10 ,anchor="nw")
             self.mbtiProgress = {'ie':[],
                                  'ns':[],
                                  'ft':[],
