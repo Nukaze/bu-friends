@@ -659,17 +659,19 @@ class Mbti(Frame):
             self.controller = controllerFrame
             self.controller.title("BU Friends  |  MBTi Test")
             bg = "#ffffff"
+            backbg = "#D6E6F1"
             fontQuiz = Font(family="leelawadee",size=22,weight="bold")
             font = Font(family="leelawadee",size=14,weight="bold")
-            self.mbtiFrame = Canvas(self.root,width=900,bd=0,highlightthickness=0,bg=bg)
+            self.mbtiFrame = Canvas(self.root,width=900,bd=0,highlightthickness=0,bg="#d0eeff")
             self.mbtiFrame.option_add("*font",font)
             self.mbtiFrame.pack(expand=1,fill=BOTH)
             self.bannerFrame = Frame(self.root)
-            self.bannerMbti = self.controller.get_image(r'./assets/mbti/mbtiBanner.png')
+            self.bannerMbti = self.controller.get_image(r'./assets/mbti/newBanner.png')
             Label(self.mbtiFrame, image=self.bannerMbti,bd=0).pack(side=TOP,expand=1,fill=X)
             self.mbtiFrame.image = self.bannerMbti
             self.backImg =  self.controller.get_image(r'./assets/icons/goback.png')
-            self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(EditPage), image=self.backImg, relief="flat",bd=0)
+            self.back = Button(self.mbtiFrame,command=lambda:self.controller.switch_frame(EditPage), image=self.backImg,bg=backbg,
+                               relief="flat",bd=0, activebackground=backbg)
             if self.controller.newUserFlow == 1:
                 self.back.config(command=lambda:self.controller.switch_frame(Matching))
             self.back.place(x=20,y=10 ,anchor="nw")
@@ -689,25 +691,25 @@ class Mbti(Frame):
                 bg = "#d0eeff"
                 bgbtn = "#2E3033"
                 btnfg = "#486edf"
-                self.mainFrame = Frame(self.mbtiFrame,bg="pink")
+                self.mainFrame = Frame(self.mbtiFrame)
                 self.mainFrame.pack(expand=1,fill=BOTH)
                 Label(self.mainFrame ,text="[{}] {}".format(i+1, self.quizLst[r][1]),font=fontQuiz,bg=bg,fg="#000000")\
                     .pack(expand=1,fill=X,ipady=200)
                 self.subFrame = Frame(self.mainFrame,height=155)
                 self.subFrame.propagate(0)
                 self.subFrame.pack(expand=1,fill=X)
-                self.a1 = Radiobutton(self.subFrame ,variable=self.answVar[r],value=self.answLst[r][0],text="{} {}".format("A :", self.answLst[r][2])\
+                self.a1 = Radiobutton(self.subFrame ,variable=self.answVar[r],value=self.answLst[r][0],text=f"A : {self.answLst[r][2]}"\
                     ,bg=bgbtn,fg=btnfg,font=font,indicatoron=0,activebackground=btnfg,width=40)
                 self.a1.pack(side=LEFT,expand=1,fill=Y,ipady=60)
-                self.a2 = Radiobutton(self.subFrame ,variable=self.answVar[r],value=self.answLst[r][1],text="{} {}".format("B :", self.answLst[r][3])\
+                self.a2 = Radiobutton(self.subFrame ,variable=self.answVar[r],value=self.answLst[r][1],text=f"B : {self.answLst[r][3]}"\
                     ,bg=bgbtn,fg=btnfg,font=font,indicatoron=0,activebackground=btnfg,width=40)
                 self.a2.pack(side=LEFT,expand=1,fill=Y,ipady=60)
             for i in range(len(self.quizLst)):
                 request_quiz(i)
-                pass
             self.btnImg = self.controller.get_image(r'./assets/buttons/buttonRaw.png')
+            bgSubmit = "#d0eeff"
             self.mbtiSubmitBtn = Button(self.mbtiFrame, text="Submit!", command=self.mbti_calculator, image=self.btnImg, compound="center",
-                                  bd=0,bg=bg,fg=bg,activebackground=bg,activeforeground=bg)
+                                  bd=0,bg=bgSubmit,fg="#ffffff",activebackground=bgSubmit,activeforeground="#ffffff")
             self.mbtiSubmitBtn.image = self.btnImg
             self.mbtiSubmitBtn.pack(expand=1,pady=30)
     
