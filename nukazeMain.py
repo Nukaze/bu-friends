@@ -232,6 +232,7 @@ class ScrollFrame():
     # This can now handle either windows or linux platforms
     def on_mousewheel(self, event):
         # condition to scrollable : content > 600
+        
         if self.miniFrame is not None:
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         elif self.interior.winfo_reqheight() > 600:
