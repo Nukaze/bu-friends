@@ -198,9 +198,10 @@ class BUFriends(Tk):
         _input.bind('<KeyRelease>',lambda event:update_text_length(event))
     
 class ScrollFrame():
-    def __init__(self,root,bgColor='white'):
+    def __init__(self,root,bgColor='white', miniFrame=None):
         self.root = root
         self.bgColor = bgColor
+        self.miniFrame = miniFrame
         self.canvas = Canvas(self.root, bg=self.bgColor,highlightthickness=0)
         self.canvas.pack(side=LEFT, fill=BOTH, expand=1)
         # reset the view
@@ -231,7 +232,9 @@ class ScrollFrame():
     # This can now handle either windows or linux platforms
     def on_mousewheel(self, event):
         # condition to scrollable : content > 600
-        if self.interior.winfo_reqheight() > 600:
+        if self.miniFrame is not None:
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        elif self.interior.winfo_reqheight() > 600:
             """print(event.delta)"""
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
@@ -2438,7 +2441,7 @@ class Administration(Frame):
         bottomFrame = Frame(self.root,bg='#282D39',width=800,height=440)
         bottomFrame.pack()
         bottomFrame.propagate(0)
-        self.scroll = ScrollFrame(bottomFrame,'#282D39')
+        self.scroll = ScrollFrame(bottomFrame,'#282D39',1)
         self.container = self.scroll.interior
         self.innerCanvas = Canvas(self.container, bg='#282D39',highlightthickness=0)
         self.innerCanvas.pack(side=LEFT, fill=BOTH, expand=1)
