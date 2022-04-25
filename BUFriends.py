@@ -1969,9 +1969,9 @@ class InfoOnProfile() :
         sqlDelete.append("""DELETE FROM Users WHERE Uid=?""")
         conn = self.controller.create_connection()
         if conn is not None:
-            c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+            c = self.controller.execute_sql(sql,[self.controller.requestReport])
             for i,data in enumerate(sqlDelete):
-                c = self.controller.execute_sql(data,[self.controller.requestReport['reported']])
+                c = self.controller.execute_sql(data,[self.controller.requestReport])
             conn.close()
             messagebox.showinfo("BU Friends  |  Successful","This account has been deactivated")
             self.controller.requestReport = None
@@ -1984,24 +1984,22 @@ class InfoOnProfile() :
         print(self.controller.requestReport)
         sql = """SELECT * FROM Blacklists WHERE Uid=?"""
         if conn is not None:
-            c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+            c = self.controller.execute_sql(sql,[self.controller.requestReport])
             data = c.fetchone()
             if data is None :
                 sql = """INSERT INTO Blacklists (Uid) SELECT Uid FROM Users WHERE Users.Uid = ?"""
-                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                c = self.controller.execute_sql(sql,[self.controller.requestReport])
                 sql = """UPDATE Blacklists SET EndDate = datetime(StartDate, '+7 days') WHERE Uid = ?"""
-                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                c = self.controller.execute_sql(sql,[self.controller.requestReport])
                 sql = """UPDATE Reports SET Status = 1 WHERE ReportedUid = ?"""
-                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
-                affected_rows = c.rowcount
-                if affected_rows > 0 :
-                    messagebox.showinfo("BU Friends  |  Successful","This account has been banned")
-                    self.controller.requestReport = None
-                    self.controller.ridSelect = None
-                    self.controller.switch_frame(Administration)
+                c = self.controller.execute_sql(sql,[self.controller.requestReport])
+                messagebox.showinfo("BU Friends  |  Successful","This account has been banned")
+                self.controller.requestReport = None
+                self.controller.ridSelect = None
+                self.controller.switch_frame(Administration)
             else :
                 sql = """SELECT Status,Amount FROM Blacklists WHERE Uid=?"""
-                c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                c = self.controller.execute_sql(sql,[self.controller.requestReport])
                 data = c.fetchone()
                 if data['Amount'] >= 3 :
                     ms = messagebox.askquestion("BU Friends  |  Warning","This account has been banned 3 times\nIf you continue, this account will be deactivted")
@@ -2014,14 +2012,12 @@ class InfoOnProfile() :
                     messagebox.showwarning("BU Friends  |  Incomplete","""This account has already banned\n***Policies***\n[minor offense] Reject the report\n[major offense] Deactivate this account""")
                 else :
                     sql = """UPDATE Blacklists SET Amount=Amount+1, Status=1, StartDate=datetime('now'), EndDate=datetime('now','+7 days') WHERE Uid = ?"""
-                    c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
+                    c = self.controller.execute_sql(sql,[self.controller.requestReport])
                     sql = """UPDATE Reports SET Status = 1 WHERE ReportedUid = ?"""
-                    c = self.controller.execute_sql(sql,[self.controller.requestReport['reported']])
-                    affected_rows = c.rowcount
-                    if affected_rows > 0 :
-                        self.controller.requestReport = None
-                        self.controller.ridSelect = None
-                        self.controller.switch_frame(Administration)
+                    c = self.controller.execute_sql(sql,[self.controller.requestReport])
+                    self.controller.requestReport = None
+                    self.controller.ridSelect = None
+                    self.controller.switch_frame(Administration)
                 # update data
             conn.close()
     
@@ -2385,13 +2381,15 @@ class Administration(Frame):
         self.allReports = []
         self.allBlacklists = []
         self.line = []
+        self.searchBox = None
         self.imgList = {}
         imgPathList = [
-            {'name':'logout','path':'./assets/icons/signOut.png','x':35,'y':35},
+            {'name':'logout','path':'./assets/icons/signOut.png','x':40,'y':40},
             {'name':'blacklist','path':'./assets/icons/BlacklistlDefault.png','x':30,'y':30},
             {'name':'blacklist2','path':'./assets/icons/BlacklistClicked.png','x':30,'y':30},
             {'name':'report','path':'./assets/icons/MailDefault.png','x':30,'y':30},
-            {'name':'report2','path':'./assets/icons/MailClicked.png','x':30,'y':30}]
+            {'name':'report2','path':'./assets/icons/MailClicked.png','x':30,'y':30},
+            {'name':'longentry','path':'./assets/entrys/searchtabrz.png','x':760,'y':50}]
         for i,data in enumerate(imgPathList) :
             img = self.controller.get_image(data['path'],data['x'],data['y'])
             self.imgList[data['name']] = img
@@ -2411,8 +2409,23 @@ class Administration(Frame):
             if ms == "yes" :
                 self.controller.set_sessions()
                 self.controller.switch_frame(SignIn)
-        Button(self.root,image=self.imgList['logout'],bd=0,
-        bg=self.bgColor,activebackground=self.bgColor,command=lambda:log_out()).pack(anchor=NE,pady=10,padx=10)
+        def on_entry_click() :
+            if self.searchEntry.get() == 'Search':
+                self.searchEntry.delete(0, END)
+                self.searchEntry.insert(0, '')
+        self.topFrame = Frame(self.root,bg=self.bgColor)
+        self.topFrame.pack()
+        self.searchEntryBox = Label(self.topFrame,image=self.imgList['longentry'],bg=self.bgColor)
+        self.searchEntryBox.pack(pady=10,padx=20,side=LEFT)
+        self.searchEntryBox.propagate(0)
+        self.searchEntry = Entry(self.searchEntryBox,bd=0,font='leelawadee 15',fg='#B7B7B7',
+        width=67,bg=self.bgColor,insertbackground='#B7B7B7')
+        self.searchEntry.pack(expand=1,anchor=W,padx=10,side=LEFT)
+        self.searchEntry.insert(END,"Search")
+        self.searchEntry.bind('<FocusIn>', lambda e:on_entry_click())
+        self.searchEntry.bind('<Return>', lambda e:self.get_search())
+        Button(self.topFrame,image=self.imgList['logout'],bd=0,
+        bg=self.bgColor,activebackground=self.bgColor,command=lambda:log_out()).pack(anchor=E,pady=15,padx=10)
         fontTag = Font(family='leelawadee',size=13,weight='bold')
         self.option_add('*font',fontTag)
         self.mainFrame = Frame(self.root,bg='#282D39',width=800,height=60)
@@ -2482,7 +2495,34 @@ class Administration(Frame):
                 data = c.fetchone()
                 self.allBlacklists[i].update({'name': data['displayName']})
         self.blacklist_geometry()
-
+    def get_search(self) :
+        if self.searchBox :
+            self.searchBox.destroy()
+        self.mouse_pos = "out"
+        def enter_event() :
+            self.mouse_pos = "in"
+        def leave_event() :
+            self.mouse_pos = "out"
+        def click_event() :
+            if self.mouse_pos == "out" :
+                self.searchBox.destroy()
+        conn = self.controller.create_connection()
+        conn.row_factory = sqlite3.Row
+        sql = """
+        SELECT Users.Uid,DisplayName,Email 
+        FROM Users LEFT JOIN UsersTag ON UsersTag.Uid=Users.Uid 
+        WHERE UsersTag.UserType != 'ADMIN' AND DisplayName LIKE ?"""
+        if conn is not None:
+            c = self.controller.execute_sql(sql,['%'+self.searchEntry.get()+'%'])
+            data = c.fetchall()
+            conn.close()
+            if data :
+                self.searchBox = self.SearchUser(self.controller,data)
+                self.searchBox.place(x=43,y=62)
+                self.searchBox.bind("<Enter>", lambda e: enter_event())
+                self.searchBox.bind("<Leave>", lambda e: leave_event())
+                self.bind_all("<Button-1>", lambda e: click_event())
+    
     def report_geometry(self) :
         for i,line in enumerate(self.line) :
             self.innerCanvas.delete(line)
@@ -2525,6 +2565,27 @@ class Administration(Frame):
             self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
             y+=65
             row_+=1
+            
+    class SearchUser(Frame):
+        def __init__(self, controllerFrame, user):
+            Frame.__init__(self, controllerFrame)
+            Frame.config(self,bg='white')
+            self.controller = controllerFrame
+            self.user = user
+            self.allSearch = []
+            self.layout()
+        def layout(self) :
+            for row_, record in enumerate(self.user):
+                Button(self,text=record['DisplayName'],bd=0,anchor=W,bg='white',activebackground='white',
+                width=15,height=1,command=lambda uid=record['Uid'] : self.select_event(uid)).grid(row=row_,column=0,sticky=W,pady=7,padx=20)
+                Label(self,text=record['Email'],bg='white',fg='#868383',
+                font='leelawadee 13',anchor=W).grid(row=row_,column=1,sticky=W,ipadx=160)
+                if row_>= 4: break
+        def select_event(self,uid) :
+            self.controller.uidSelect = uid
+            self.controller.requestReport = uid
+            self.controller.switch_frame(AdminReviewPage)
+            
     class RequestReport:
         def __init__(self, root, controllerFrame,requestRid):
             self.root = root
@@ -2565,7 +2626,7 @@ class Administration(Frame):
             print(self.report)
         def remember_rid(self):
             self.controller.ridSelect = self.rid
-            self.controller.requestReport = self.report
+            self.controller.requestReport = self.report['reported']
             print("self.root.ridSelect",self.controller.ridSelect)
             self.controller.uidSelect = self.report['reported']
             self.controller.switch_frame(AdminReviewPage)
