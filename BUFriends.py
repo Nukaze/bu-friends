@@ -231,13 +231,12 @@ class ScrollFrame():
     # This can now handle either windows or linux platforms
     def on_mousewheel(self, event):
         # condition to scrollable : content > 600
-        if self.interior.winfo_reqheight() > self.root.winfo_height():
+        if self.interior.winfo_height() > self.root.winfo_height():
             """print(event.delta)"""
             self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         else :
             self.canvas.yview_scroll(0, "units")
     def bind_to_mousewheel(self, event):
-        self.root.update()
         self.root.bind_all("<MouseWheel>", self.on_mousewheel)
 
     def unbind_from_mousewheel(self, event):
