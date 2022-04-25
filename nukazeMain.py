@@ -183,6 +183,20 @@ class BUFriends(Tk):
             timeConvertedObj = timeConvertedObj.strftime("%d-%B-%Y %H:%M")
         return timeConvertedObj
     
+    def update_text_limit(self, _input, _output, _limit, _title):
+        def update_text_length(event):
+            txtLen = len(_input.get(1.0,"end-1c"))
+            _output.config(text=f"{txtLen}/{_limit}")
+            if txtLen > _limit:
+                overLimit = (txtLen-_limit)+5
+                messagebox.showwarning("BU Friends  |  Warning",f"{_title} cannot be longer than {_limit} characters.\nPlease try again.")
+                _input.delete(f"end-{overLimit}c",END)
+                txtLen = len(_input.get(1.0,"end-1c"))
+                _output.config(text=f"{txtLen}/{_limit}")
+                return
+        _input.bind('<KeyPress>',lambda event:update_text_length(event))
+        _input.bind('<KeyRelease>',lambda event:update_text_length(event))
+    
 class ScrollFrame():
     def __init__(self,root,bgColor='white'):
         self.root = root
@@ -1373,26 +1387,14 @@ class ProfilePage(Frame):
         Label(frame,text="Create Post",font="leelawadee 20 bold",bg=self.bgColor).pack(anchor=W,padx=25,pady=5)
         self.post = Text(frame,width=90,height=4,relief=GROOVE,bd=2)
         self.post.pack()
-        self.post.bind('<KeyPress>',self.update_textlimit)
-        self.post.bind('<KeyRelease>',self.update_textlimit)
         Button(frame,text="Post",font='leelawadee 13 bold',fg='white',
         activeforeground='white',image=self.img3,compound=CENTER,bd=0,
         bg=self.bgColor,activebackground=self.bgColor,command=self.post_event).pack(side=RIGHT,padx=35,pady=10)
-        self.postLenNow = Label(frame,text="0/300",bg="#ffffff",fg="#666666")
+        limit = 300
+        self.postLenNow = Label(frame,text=f"0/{limit}",bg="#ffffff",fg="#666666")
         self.postLenNow.pack(side=RIGHT,pady=10,ipadx=3)
+        self.controller.update_text_limit(self.post, self.postLenNow, limit, "Post")
         frame.pack(fill=X)   
-        
-    def update_textlimit(self,e):
-            txtdata = self.post.get(1.0,"end-1c")
-            limit = 300 
-            self.postLenNow.config(text=f"{len(txtdata)}/300")
-            if len(txtdata) > limit:
-                overlimit = (len(txtdata)-limit)+5
-                messagebox.showwarning("BU Friends  |  Warning",f"Post cannot be longer than {limit} characters")
-                self.post.delete(f"end-{overlimit}c",END)
-                txtdata = self.post.get(1.0,"end-1c")
-                self.postLenNow.config(text=f"{len(txtdata)}/300")
-                return
             
 class EditPage(Frame):
     def __init__(self,controller):
@@ -2079,15 +2081,15 @@ class InfoOnProfile() :
             Label(dFrame, text="Details",font=fontHead, fg=fgHead).pack(anchor=W)
             self.detailReport = Text(dFrame,bg="#fafafa",height=5,width=59,relief=SOLID)
             self.detailReport.pack(side=TOP,pady=5)
-            self.detailReport.bind('<KeyPress>',lambda e: self.update_textlimit(e))
-            self.detailReport.bind('<KeyRelease>',lambda e: self.update_textlimit(e))
             btnImg = self.controller.get_image(r'./assets/buttons/buttonRaw.png',240,66)
             self.sendReport = Button(canvas, command=lambda:self.report_commit(),text="Send Report!",image=btnImg,
                                      font=fontHead,fg=bg,bd=0,activebackground=bg,compound=CENTER)
             self.sendReport.image = btnImg
+            limit = 256
+            self.detailLenNow = Label(canvas, text=f"0/{limit}",font="leelawadee 12",justify=RIGHT,fg="#666666")
             canvas.create_window((self.w//2)-120,280,anchor=NW, window=self.sendReport)
-            self.detailLenNow = Label(canvas, text="0/256",font="leelawadee 12",justify=RIGHT,fg="#666666")
             canvas.create_window((self.w//2)+256,115, anchor=NW, window=self.detailLenNow)
+            self.controller.update_text_limit(self.detailReport, self.detailLenNow, limit, "Report Details")
         
         def report_closeto(self, frame):
             for i in range(len(frame)):
@@ -2111,18 +2113,6 @@ class InfoOnProfile() :
             userReported = self.controller.execute_sql(sqlwho, [self.controller.uidSelect]).fetchone()
             conn.close()
             return userReported
-           
-        def update_textlimit(self,e):
-            txtdata = self.detailReport.get(1.0,"end-1c")
-            limit = 256
-            self.detailLenNow.config(text=f"{len(txtdata)}/{limit}")
-            if len(txtdata) > limit:
-                overlimit = (len(txtdata)-limit)+5
-                messagebox.showwarning("BU Fr iends  |  Warning",f"Detail cannot be longer than {limit} characters")
-                self.detailReport.delete(f"end-{overlimit}c",END)
-                txtdata = self.detailReport.get(1.0,"end-1c")
-                self.detailLenNow.config(text=f"{len(txtdata)}/{limit}")
-                return
             
         def report_commit(self):
             conn = self.controller.create_connection()
