@@ -156,7 +156,7 @@ class BUFriends(Tk):
             except Error as e:
                 print(e)
         return self.c
-    
+
     def get_image(self, _path, _width=None, _height=None):
         if _width is not None and _height is not None:
             ori = Image.open(_path).resize((_width,_height),Image.ANTIALIAS)
@@ -632,9 +632,8 @@ class SignUp(Frame):
                         conn.close()
                         messagebox.showwarning("BU Friends | Failure","Failed to SignUp Please try again later.")
                         return
-                        
                 except Error as e :print(f"catch!!! {e}")
-
+        
         def signup_complete(self):
             self.controller.title("BU Friends  |  Sign-Up Complete!")
             self.canvasFrame.delete(ALL)
@@ -675,7 +674,7 @@ class Mbti(Frame):
             self.controller = controllerFrame
             self.controller.title("BU Friends  |  MBTi Test")
             bg = "#ffffff"
-            backbg = "#D6E6F1"
+            backbg = "#CBD4C2"
             fontQuiz = Font(family="leelawadee",size=22,weight="bold")
             font = Font(family="leelawadee",size=14,weight="bold")
             self.mbtiFrame = Canvas(self.root,width=900,bd=0,highlightthickness=0,bg="#d0eeff")
@@ -888,8 +887,7 @@ class Matching(Frame):
         else:
             self.request_users_infomation()
             self.display_users()
-        
-            
+             
     def get_tagname(self):
         self.tagnameLst = []
         sql = """SELECT Tid,TagName FROM Tags"""
@@ -978,7 +976,6 @@ class Matching(Frame):
                 if c==4:
                     c = 0
                     r +=1
-            
             self.endFrame = LabelFrame(self.filterFrame,bg=bg,width=wfilter)
             self.endFrame.pack(side=BOTTOM,fill=X)
             self.endBtn = Frame(self.endFrame,bg=bg)
@@ -1030,7 +1027,6 @@ class Matching(Frame):
             elif _mbtiLetter == "SP": 
                 selectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiYellow.png', w, h)
                 unselectMbtiImg = self.controller.get_image(r'./assets/buttons/mbtiYellow2.png', w, h)
-
             for i,select in enumerate(self.mbtiWidgets):
                 if select['userType'] == tag:
                     select['widget'].config(image=selectMbtiImg,compound=CENTER,fg="#eeeeee")
@@ -1141,7 +1137,8 @@ class Matching(Frame):
             for data in curr:
                 self.uuidFilter.append(data['Uid'])
             if self.uuidFilter == []:
-                messagebox.showinfo("BU Friends  |  Notification","Currently no one matches your tags required\nTry to changing the tags again \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
+                messagebox.showinfo("BU Friends  |  Notification",
+                            "Currently no one matches your tags required\nTry to changing the tags again \n\u2764\ufe0f Don't give up and you'll meet new friends \u2764\ufe0f")
             else:
                 self.controller.uuidLst.clear()
                 if len(self.uuidFilter) > 12:
@@ -1196,7 +1193,8 @@ class Matching(Frame):
                 for i,data in enumerate(c):
                     blacklstUid.append(data['Uid'])
                 print(blacklstUid)
-                sqlRandUtype = """SELECT Uid, UserType FROM UsersTag EXCEPT SELECT Uid, UserType FROM UsersTag WHERE UserType = "ADMIN";"""
+                sqlRandUtype = """SELECT Uid, UserType FROM UsersTag 
+                                    EXCEPT SELECT Uid, UserType FROM UsersTag WHERE UserType = "ADMIN";"""
                 cur = self.controller.execute_sql(sqlRandUtype)
                 userObj = (cur.fetchall())
                 provideLst = []
@@ -1237,7 +1235,7 @@ class Matching(Frame):
                 self.controller.udnameLst.clear()
                 for i,row in enumerate(dnameRows):
                     self.controller.udnameLst.append(row['DisplayName'])
-                
+                    
     def display_users(self):
         self.get_tagname()
         self.userTabBtnImg = self.controller.get_image(r'./assets/images/rectangle.png',820,180)
@@ -1306,7 +1304,6 @@ class Matching(Frame):
                             bd=0, bg=bgRectangle, activebackground=bgRectangle)
         self.next.image = nextIcon
         self.next.place(x=720,y=45, anchor=NW)
-        pass
        
     def get_blank_tab(self,_i):
         self.tabFrame = Frame(self.usersFrame,bg=self.bgCanva)
@@ -1481,18 +1478,17 @@ class EditPage(Frame):
         entryBox.propagate(0)
         entry = Entry(entryBox,font='leelawadee 15',width=38,bd=0,textvariable=self.nameStr,fg='#868383')
         entry.pack(expand=1)
-    
         entryBox2 = Label(self.mainFrame,image=self.imgList['entry2'],bg=self.bgColor)
         entryBox2.grid(row=1,column=1,sticky=N,pady=10,padx=115)
         entryBox2.propagate(0)
 
         self.bioEntry = Text(entryBox2,font='leelawadee 15',
         bg=self.bgColor,width=38,height=3,bd=0,fg='#868383')
-
         self.bioEntry.insert(END,self.bioStr)     
         self.bioEntry.pack(expand=1)
         self.tag_geometry()
-        self.end_geometry()   
+        self.end_geometry()
+        
     def tag_geometry(self) :
         self.addWidget = None
         self.mbtiTag = None
@@ -1782,7 +1778,6 @@ class ChangePasswordPage(Frame):
         activebackground=self.bgColor,compound=CENTER,fg='white',activeforeground='white',
         command=self.password_validation).pack(pady=30)
         self.pwdEntryList[2].bind('<Return>',lambda e : self.password_validation())
-
     def password_validation(self) :
         self.pwds = []
         for i in range(len(self.pwdEntryList)) :
@@ -1799,13 +1794,13 @@ class ChangePasswordPage(Frame):
                     self.pwdEntryList[2].focus_force()
                     self.pwdEntryList[2].select_range(0,END)
             else :
-                messagebox.showerror("BU Friends  |  Incomplete","Invalid password!!!\n[ Required ] At least 8 characters \n[ Required ] A mix of letters and number")
+                messagebox.showerror("BU Friends  |  Incomplete",
+                                     "Invalid password!!!\n[ Required ] At least 8 characters \n[ Required ] A mix of letters and number")
                 self.pwdEntryList[1].focus_force()
                 self.pwdEntryList[1].select_range(0,END)
         else:
             messagebox.showerror("BU Friends  |  Warning","Please enter current password")
             self.pwdEntryList[0].focus_force()
-    
     def change_password(self) :
         conn = self.controller.create_connection()
         conn.row_factory = sqlite3.Row
@@ -2011,7 +2006,8 @@ class InfoOnProfile() :
                     else: 
                         return
                 if data['Status'] == 1 :
-                    messagebox.showwarning("BU Friends  |  Incomplete","""This account has already banned\n***Policies***\n[minor offense] Reject the report\n[major offense] Deactivate this account""")
+                    messagebox.showwarning("BU Friends  |  Incomplete",
+                                           """This account has already banned\n***Policies***\n[minor offense] Reject the report\n[major offense] Deactivate this account""")
                 else :
                     sql = """UPDATE Blacklists SET Amount=Amount+1, Status=1, StartDate=datetime('now'), EndDate=datetime('now','+7 days') WHERE Uid = ?"""
                     c = self.controller.execute_sql(sql,[self.controller.requestReport])
@@ -2020,7 +2016,6 @@ class InfoOnProfile() :
                     self.controller.requestReport = None
                     self.controller.ridSelect = None
                     self.controller.switch_frame(Administration)
-                # update data
             conn.close()
     
     class ReportUser:
@@ -2195,7 +2190,7 @@ class InfoOnProfile() :
         else :
             self.optionFrame.destroy()
             self.optionFrame = None
-
+        
     def profile_frame(self) :
         self.topFrame = Frame(self.root,bg=self.bgColor)
         bottomFrame = Frame(self.root,bg=self.bgColor)
@@ -2241,7 +2236,7 @@ class InfoOnProfile() :
             bioWidget.pack()
         self.topFrame.pack(fill=X)
         bottomFrame.pack(fill=X,pady=20)
-
+        
     def tag_frame(self) :
         outerFrame = Frame(self.root,bg=self.bgColor,highlightthickness=2)
         outerFrame.pack(fill=X)
@@ -2537,7 +2532,7 @@ class Administration(Frame):
             self.line.append(self.innerCanvas.create_line(20, y, 780, y,fill='#868383'))
             y+=65
             row_+=1
-
+        
     def blacklist_geometry(self) :
         for i,line in enumerate(self.line) :
             self.innerCanvas.delete(line)
@@ -2595,6 +2590,7 @@ class Administration(Frame):
                 self.imgList[data['name']] = img
             self.get_request_report()
             self.page_geometry()
+            
         def get_request_report(self) :
             conn = self.controller.create_connection()
             conn.row_factory = sqlite3.Row
