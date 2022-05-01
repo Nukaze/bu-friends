@@ -2161,7 +2161,7 @@ class InfoOnProfile() :
             imgOptionList = [None]
             pageList = [self.ReportUser]
         elif self.parent == 2 :
-            optionList = ["Edit Profile","My account","Log out"]
+            optionList = ["Edit profile","My account","Log out"]
             imgOptionList = [
                 ('./assets/icons/edit.png',20,20),
                 ('./assets/icons/userWhite.png',25,25),
