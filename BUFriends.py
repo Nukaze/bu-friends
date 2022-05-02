@@ -2498,7 +2498,8 @@ class Administration(Frame):
         sql = """
         SELECT Users.Uid,DisplayName,Email 
         FROM Users LEFT JOIN UsersTag ON UsersTag.Uid=Users.Uid 
-        WHERE UsersTag.UserType != 'ADMIN' AND (DisplayName LIKE ? OR Email LIKE ?)"""
+        WHERE (UsersTag.UserType != 'ADMIN' OR UsersTag.UserType IS NULL) 
+        AND (DisplayName LIKE ? OR Email LIKE ?)"""
         if conn is not None:
             c = self.controller.execute_sql(sql,['%'+self.searchEntry.get()+'%','%'+self.searchEntry.get()+'%'])
             data = c.fetchall()
